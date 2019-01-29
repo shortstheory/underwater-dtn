@@ -24,6 +24,9 @@ public class DtnStorage {
         if (!file.exists()) {
             file.mkdir()
         }
+
+        db = new HashMap<>()
+        datagramMap = new HashMap<>()
     }
 
     ArrayList<String> getNextHopDatagrams(int nextHop) {

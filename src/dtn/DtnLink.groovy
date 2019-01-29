@@ -15,7 +15,7 @@ import org.arl.unet.UnetAgent
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 
-@TypeChecked
+//@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
     private DtnStorage storage
@@ -55,22 +55,22 @@ class DtnLink extends UnetAgent {
         } else {
             println "PHY not provided for link"
         }
-//        add(new TickerBehavior(BEACON_DURATION) {
-//            @Override
-//            void onTick() {
-//                super.onTick()
-//                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION) {
-////                    link.send(new DatagramReq(to: Address.BROADCAST))
-//                    lastReceivedTime = System.currentTimeSeconds()
-//                }
-//            }
-//        })
-//
+        add(new TickerBehavior(BEACON_DURATION) {
+            @Override
+            void onTick() {
+                super.onTick()
+                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION) {
+//                    link.send(new DatagramReq(to: Address.BROADCAST))
+                    lastReceivedTime = System.currentTimeSeconds()
+                }
+            }
+        })
+
         add(new TickerBehavior(SWEEP_DURATION) {
             @Override
             void onTick() {
                 super.onTick()
-//                ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
+                ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
             }
         })
     }
