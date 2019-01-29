@@ -31,14 +31,14 @@ public class DtnStorage {
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             DtnPDUMetadata metadata = entry.getValue()
             if (System.currentTimeMillis() > metadata.expiryTime) {
-                // delete
+                deleteFile(entry.getKey())
                 continue
             }
             if (metadata.nextHop == nextHop) {
                 data.add(metadata)
             }
         }
-        return data;
+        return data
     }
 
     boolean saveDatagram(DatagramReq req) {
@@ -50,12 +50,26 @@ public class DtnStorage {
         try {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), data)
-
-
+            db.put(messageID, new DtnPDUMetadata(nextHop: nextHop, protocol: protocol))
+            return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
             return false
         }
+    }
+
+    void deleteFile(String messageID) {
+        File file = new File(directory, messageID)
+        try {
+            file.delete()
+            db.remove(messageID)
+            // add corresponding method for DatagramMap
+        } catch (IOException e) {
+            println "Could not delete file for " + messageID
+        }
+    }
+
+    ArrayList<String> deleteExpiredDatagrams() {
 
     }
 }
