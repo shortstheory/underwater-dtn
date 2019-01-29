@@ -2,6 +2,7 @@ package dtn
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
+import org.apache.commons.lang3.tuple.Pair
 import org.arl.unet.DatagramReq
 import org.arl.unet.Protocol
 
@@ -25,17 +26,19 @@ public class DtnStorage {
         }
     }
 
-    ArrayList<DtnPDUMetadata> getNextHopMetadata(int nextHop) {
-        ArrayList data = new ArrayList<DtnPDUMetadata>()
+    ArrayList<String> getNextHopDatagrams(int nextHop) {
+        ArrayList data = new ArrayList<String>()
 
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
+            String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
             if (System.currentTimeMillis() > metadata.expiryTime) {
-                deleteFile(entry.getKey())
+                // we don't delete here, as it will complicate the logic
+                // instead, it will be deleted by the next sweep
                 continue
             }
             if (metadata.nextHop == nextHop) {
-                data.add(metadata)
+                data.add(messageID)
             }
         }
         return data
@@ -58,18 +61,29 @@ public class DtnStorage {
         }
     }
 
-    void deleteFile(String messageID) {
+    Tuple2 deleteFile(String messageID) {
         File file = new File(directory, messageID)
+        int nextHop
         try {
             file.delete()
-            db.remove(messageID)
+            nextHop = db.get(messageID).nextHop
             // add corresponding method for DatagramMap
         } catch (IOException e) {
             println "Could not delete file for " + messageID
         }
+        return new Tuple2(messageID, nextHop)
     }
 
-    ArrayList<String> deleteExpiredDatagrams() {
+    ArrayList<Tuple2> deleteExpiredDatagrams() {
+        ArrayList expiredDatagrams = new ArrayList<Tuple2>()
 
+        for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
+            String messageID = entry.getKey()
+            DtnPDUMetadata metadata = entry.getValue()
+            if (System.currentTimeMillis() > metadata.expiryTime) {
+                expiredDatagrams.add(deleteFile(entry.getKey()))
+            }
+        }
+        return expiredDatagrams
     }
 }
