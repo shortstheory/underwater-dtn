@@ -1,0 +1,1 @@
+* @TypeChecked breaks TickerBehavior
