@@ -1,0 +1,4 @@
+package dtn
+
+class DtnLink {
+}
