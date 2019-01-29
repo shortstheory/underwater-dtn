@@ -5,8 +5,9 @@ import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message
 import org.arl.fjage.TickerBehavior
+import org.arl.unet.DatagramCapability
+import org.arl.unet.Services
 import org.arl.unet.UnetAgent
-import sun.management.Agent
 
 @TypeChecked
 @CompileStatic
@@ -26,6 +27,10 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected void setup() {
+        register(Services.LINK)
+        register(Services.DATAGRAM)
+
+        addCapability(DatagramCapability.RELIABILITY)
     }
 
     @Override

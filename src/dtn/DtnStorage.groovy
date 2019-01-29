@@ -32,7 +32,7 @@ public class DtnStorage {
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
-            if (System.currentTimeMillis() > metadata.expiryTime) {
+            if (System.currentTimeSeconds() > metadata.expiryTime) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next sweep
                 continue
@@ -47,13 +47,15 @@ public class DtnStorage {
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
+        float ttl = req.getTtl()
         String messageID = req.getMessageID()
         byte[] data = req.getData()
 
         try {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), data)
-            db.put(messageID, new DtnPDUMetadata(nextHop: nextHop, protocol: protocol))
+            db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
+                    expiryTime: (int)ttl + System.currentTimeSeconds()))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -80,7 +82,7 @@ public class DtnStorage {
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
-            if (System.currentTimeMillis() > metadata.expiryTime) {
+            if (System.currentTimeSeconds() > metadata.expiryTime) {
                 expiredDatagrams.add(deleteFile(entry.getKey()))
             }
         }
