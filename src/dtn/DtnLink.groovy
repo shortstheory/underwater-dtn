@@ -27,8 +27,8 @@ class DtnLink extends UnetAgent {
     private AgentID nodeInfo
     private AgentID phy
 
-    int BEACON_DURATION = 100
-    int SWEEP_DURATION = 100
+    int BEACON_DURATION = 100*1000
+    int SWEEP_DURATION = 100*1000
 
     @Override
     protected void setup() {
@@ -47,20 +47,22 @@ class DtnLink extends UnetAgent {
         storage = new DtnStorage(Integer.toString(nodeAddress))
 
         link = getLinkWithReliability()
-        subscribe(link)
-        phy = agent((String)get(link, org.arl.unet.link.ReliableLinkParam.phy))
-        if (phy != null) {
-            subscribe(phy)
-            subscribe(topic(phy, Physical.SNOOP))
-        } else {
-            println "PHY not provided for link"
+        if (link != null) {
+            subscribe(link)
+            phy = agent((String)get(link, org.arl.unet.link.ReliableLinkParam.phy))
+            if (phy != null) {
+                subscribe(phy)
+                subscribe(topic(phy, Physical.SNOOP))
+            } else {
+                println "PHY not provided for link"
+            }
         }
         add(new TickerBehavior(BEACON_DURATION) {
             @Override
             void onTick() {
                 super.onTick()
                 if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION) {
-//                    link.send(new DatagramReq(to: Address.BROADCAST))
+                    link.send(new DatagramReq(to: Address.BROADCAST))
                     lastReceivedTime = System.currentTimeSeconds()
                 }
             }
@@ -85,6 +87,7 @@ class DtnLink extends UnetAgent {
                 return link
             }
         }
+        return null
     }
 
     @Override
