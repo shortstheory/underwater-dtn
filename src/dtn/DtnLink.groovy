@@ -122,7 +122,13 @@ class DtnLink extends UnetAgent {
                 void action() {
                     super.action()
                     ArrayList<String> datagrams = storage.getNextHopDatagrams()
-
+                    for (String messageID : datagrams) {
+                        Tuple datagramTuple = storage.decodePdu(messageID)
+                        DatagramReq datagramReq = new DatagramReq(ttl: datagramTuple.get(0),
+                                                                protocol: datagramTuple.get(1),
+                                                                data: datagramTuple.get(2))
+                        link.send(datagramReq)
+                    }
                 }
             })
         }

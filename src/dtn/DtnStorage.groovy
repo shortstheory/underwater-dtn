@@ -2,8 +2,9 @@ package dtn
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
-import org.apache.commons.lang3.tuple.Pair
 import org.arl.unet.DatagramReq
+import org.arl.unet.InputPDU
+import org.arl.unet.OutputPDU
 import org.arl.unet.Protocol
 
 import java.nio.file.Files;
@@ -30,7 +31,7 @@ public class DtnStorage {
     }
 
     ArrayList<String> getNextHopDatagrams(int nextHop) {
-        ArrayList data = new ArrayList<String>()
+        ArrayList<String> data = new ArrayList<>()
 
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
@@ -50,13 +51,14 @@ public class DtnStorage {
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
-        float ttl = req.getTtl()
+        int ttl = Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
+        byte[] pduBytes = encodePdu(data, ttl, protocol)
 
         try {
             File file = new File(directory, messageID)
-            Files.write(file.toPath(), data)
+            Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
                     expiryTime: (int)ttl + System.currentTimeSeconds()))
             return true
@@ -80,26 +82,36 @@ public class DtnStorage {
     }
 
     ArrayList<Tuple2> deleteExpiredDatagrams() {
-        ArrayList expiredDatagrams = new ArrayList<Tuple2>()
+        ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
 
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
             if (System.currentTimeSeconds() > metadata.expiryTime) {
-                expiredDatagrams.add(deleteFile(entry.getKey()))
+                expiredDatagrams.add(deleteFile(messageID))
             }
         }
         return expiredDatagrams
     }
 
-    byte[] encodePdu(String messageID) {
-
+    byte[] encodePdu(byte[] data, int ttl, int protocol) {
+        // ttl + protocol = 8 bytes?
+        OutputPDU pdu = new OutputPDU(data.length + 8)
+        pdu.write32(ttl)
+        pdu.write32(protocol)
+        pdu.write(data)
+        return pdu.toByteArray()
     }
 
-    void decodePdu(byte[] pdu) {
+    Tuple decodePdu(String messageID) {
+        byte[] pduBytes = new File(messageID).text.getBytes()
+        InputPDU pdu = new InputPDU(pduBytes)
 
+        int ttl = pdu.read32()
+        int protocol = pdu.read32()
+        byte[] data = Arrays.copyOfRange(pduBytes, 8, pduBytes.length)
+
+        Tuple decodedPDU = new Tuple(ttl, protocol, data)
+        return decodedPDU
     }
-
-    
-
 }
