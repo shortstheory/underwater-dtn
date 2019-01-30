@@ -9,9 +9,11 @@ import org.arl.fjage.TickerBehavior
 import org.arl.unet.Address
 import org.arl.unet.CapabilityReq
 import org.arl.unet.DatagramCapability
+import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
+import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 
@@ -21,6 +23,7 @@ class DtnLink extends UnetAgent {
     private DtnStorage storage
     private int nodeAddress
     private long lastReceivedTime = 0
+    private final int HEADER_SIZE = 12
 
     private AgentID link
     private AgentID notify
@@ -47,9 +50,10 @@ class DtnLink extends UnetAgent {
         storage = new DtnStorage(Integer.toString(nodeAddress))
 
         link = getLinkWithReliability()
+
         if (link != null) {
             subscribe(link)
-            phy = agent((String)get(link, org.arl.unet.link.ReliableLinkParam.phy))
+            phy = agent((String)get(link, ReliableLinkParam.phy))
             if (phy != null) {
                 subscribe(phy)
                 subscribe(topic(phy, Physical.SNOOP))
@@ -57,6 +61,7 @@ class DtnLink extends UnetAgent {
                 println "PHY not provided for link"
             }
         }
+
         add(new TickerBehavior(BEACON_DURATION) {
             @Override
             void onTick() {
@@ -83,7 +88,7 @@ class DtnLink extends UnetAgent {
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 500)
-            if (rsp.getPerformative() == Performative.CONFIRM) {
+            if (rsp.getPerformative() == Performative.CONFIRM && (int)get(link, DatagramParam.MTU) > HEADER_SIZE) {
                 return link
             }
         }
@@ -92,10 +97,25 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected Message processRequest(Message msg) {
-        
+        if (msg instanceof DatagramReq) {
+            // check for buffer space too, probably in saveDatagram!
+            if (msg.getTtl() == Float.NaN || !storage.saveDatagram(msg)) {
+                return new Message(msg, Performative.REFUSE)
+            } else {
+                return new Message(msg, Performative.AGREE)
+            }
+        }
+        return null
     }
 
     @Override
     protected void processMessage(Message msg) {
+    }
+
+    int getMTU() {
+        if (link != null) {
+            return (int)get(link, DatagramParam.MTU) - HEADER_SIZE
+        }
+        return 0
     }
 }
