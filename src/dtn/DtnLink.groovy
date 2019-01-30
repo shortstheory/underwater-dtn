@@ -1,7 +1,6 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message
 import org.arl.fjage.OneShotBehavior
@@ -15,6 +14,7 @@ import org.arl.unet.DatagramFailureNtf
 import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
+import org.arl.unet.Parameter
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
@@ -48,6 +48,10 @@ class DtnLink extends UnetAgent {
         register(Services.DATAGRAM)
 
         addCapability(DatagramCapability.RELIABILITY)
+    }
+
+    List<Parameter> getParameterList() {
+        allOf(DtnLinkParameters)
     }
 
     @Override
@@ -89,8 +93,8 @@ class DtnLink extends UnetAgent {
                 ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
                 // now send DFNs for all of these
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
-                    notify.send(new DatagramFailureNtf(inReplyTo: expiredDatagram.getFirst(),
-                                                        to: expiredDatagram.getSecond()))
+                    notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
+                                                        to: (int)expiredDatagram.getSecond()))
                 }
             }
         })
@@ -102,7 +106,9 @@ class DtnLink extends UnetAgent {
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 500)
-            if (rsp.getPerformative() == Performative.CONFIRM && (int)get(link, DatagramParam.MTU) > HEADER_SIZE) {
+            if (rsp.getPerformative() == Performative.CONFIRM &&
+                (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
+                link != getAgentID()) {
                 return link
             }
         }

@@ -11,7 +11,7 @@ import java.nio.file.Files;
 
 @TypeChecked
 @CompileStatic
-public class DtnStorage {
+class DtnStorage {
     private final String directory
     HashMap<String, DtnPDUMetadata> db
 
