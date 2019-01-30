@@ -34,6 +34,10 @@ public class DtnStorage {
         datagramMap.put(newMessageID, oldMessageID)
     }
 
+    String getOriginalMessageID(String newMessageID) {
+        return datagramMap.get(newMessageID)
+    }
+
     ArrayList<String> getNextHopDatagrams(int nextHop) {
         ArrayList<String> data = new ArrayList<>()
 
@@ -64,7 +68,7 @@ public class DtnStorage {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
-                    expiryTime: (int)ttl + System.currentTimeSeconds()))
+                    expiryTime: (int)ttl + (int)System.currentTimeSeconds()))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -79,6 +83,14 @@ public class DtnStorage {
             file.delete()
             nextHop = db.get(messageID).nextHop
             // add corresponding method for DatagramMap
+            String key
+            for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
+                if (entry.getValue() == messageID) {
+                    key = entry.getKey()
+                    break;
+                }
+            }
+            datagramMap.remove(key)
         } catch (IOException e) {
             println "Could not delete file for " + messageID
         }

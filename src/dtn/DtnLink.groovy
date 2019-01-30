@@ -121,11 +121,12 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
         if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
+            int node = msg.getFrom()
             add(new OneShotBehavior() {
                 @Override
                 void action() {
                     super.action()
-                    ArrayList<String> datagrams = storage.getNextHopDatagrams()
+                    ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                     for (String messageID : datagrams) {
                         sendDatagram(messageID)
                     }
@@ -149,7 +150,12 @@ class DtnLink extends UnetAgent {
             }
             // we don't need to handle other protocols
         } else if (msg instanceof DatagramDeliveryNtf) {
-            
+            int node = msg.to
+            String messageID = msg.inReplyTo
+            String originalMessageID = storage.getOriginalMessageID(messageID)
+
+            DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+            notify.send(deliveryNtf)
         } else if (msg instanceof DatagramFailureNtf) {
             // we don't need to do anything for failure
         }
