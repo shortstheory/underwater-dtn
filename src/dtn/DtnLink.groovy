@@ -87,6 +87,11 @@ class DtnLink extends UnetAgent {
             void onTick() {
                 super.onTick()
                 ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
+                // now send DFNs for all of these
+                for (Tuple2 expiredDatagram : expiredDatagrams) {
+                    notify.send(new DatagramFailureNtf(inReplyTo: expiredDatagram.getFirst(),
+                                                        to: expiredDatagram.getSecond()))
+                }
             }
         })
     }

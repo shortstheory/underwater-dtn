@@ -82,7 +82,6 @@ public class DtnStorage {
         try {
             file.delete()
             nextHop = db.get(messageID).nextHop
-            // add corresponding method for DatagramMap
             String key
             for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
                 if (entry.getValue() == messageID) {
@@ -91,9 +90,11 @@ public class DtnStorage {
                 }
             }
             datagramMap.remove(key)
+            db.remove(messageID)
         } catch (IOException e) {
             println "Could not delete file for " + messageID
         }
+        // first & second
         return new Tuple2(messageID, nextHop)
     }
 
