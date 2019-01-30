@@ -107,8 +107,7 @@ public class DtnStorage {
         return pdu.toByteArray()
     }
 
-    Tuple decodePdu(String messageID) {
-        byte[] pduBytes = new File(messageID).text.getBytes()
+    Tuple decodePdu(byte[] pduBytes) {
         InputPDU pdu = new InputPDU(pduBytes)
 
         int ttl = pdu.read32()
@@ -121,12 +120,12 @@ public class DtnStorage {
 
     // this method will automatically set the TTL correctly for sending the PDU
     byte[] getPDU(String messageID) {
-        Tuple pduTuple = decodePdu(messageID)
+        byte[] pduBytes = new File(messageID).text.getBytes()
+        Tuple pduTuple = decodePdu(pduBytes)
 
-        int ttl = (int)pduTuple.get(0)
         int protocol = (int)pduTuple.get(1)
         byte[] data = (byte[])pduTuple.get(2)
-        ttl = (int)System.currentTimeSeconds() - db.get(messageID).expiryTime
+        int ttl = (int)System.currentTimeSeconds() - db.get(messageID).expiryTime
         if (ttl > 0) {
             return encodePdu(data, ttl, protocol)
         }

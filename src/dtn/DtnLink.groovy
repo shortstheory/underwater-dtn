@@ -10,6 +10,9 @@ import org.arl.fjage.TickerBehavior
 import org.arl.unet.Address
 import org.arl.unet.CapabilityReq
 import org.arl.unet.DatagramCapability
+import org.arl.unet.DatagramDeliveryNtf
+import org.arl.unet.DatagramFailureNtf
+import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
 import org.arl.unet.Services
@@ -104,7 +107,7 @@ class DtnLink extends UnetAgent {
     @Override
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
-            // check for buffer space too, probably in saveDatagram!
+            // FIXME: check for buffer space too, probably in saveDatagram!
             if (msg.getTtl() == Float.NaN || !storage.saveDatagram(msg)) {
                 return new Message(msg, Performative.REFUSE)
             } else {
@@ -117,6 +120,7 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
         if (msg instanceof RxFrameNtf) {
+            // FIXME: should this only be for SNOOP?
             add(new OneShotBehavior() {
                 @Override
                 void action() {
@@ -127,11 +131,31 @@ class DtnLink extends UnetAgent {
                     }
                 }
             })
-        } else if (msg instanceof )
+        } else if (msg instanceof DatagramNtf) {
+            if (msg.getProtocol() == DTN_PROTOCOL) {
+                // FIXME: check for buffer space, or abstract it
+                byte[] pduBytes = msg.getData()
+                Tuple pduTuple = storage.decodePdu(pduBytes)
+
+                int ttl = (int)pduTuple.get(0)
+                int protocol = (int)pduTuple.get(1)
+                byte[] data = (byte[])pduTuple.get(2)
+
+                DatagramNtf ntf = new DatagramNtf()
+                ntf.setProtocol(protocol)
+                ntf.setData(data)
+                // FIXME: ntf.setTtl(ttl)
+                notify.send(ntf)
+            }
+            // we don't need to handle other protocols
+        } else if (msg instanceof DatagramDeliveryNtf) {
+            
+        } else if (msg instanceof DatagramFailureNtf) {
+            // we don't need to do anything for failure
+        }
     }
 
     void sendDatagram(String messageID) {
-        // needs tracking data and TTL modification
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
