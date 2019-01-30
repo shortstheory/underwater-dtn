@@ -123,14 +123,21 @@ class DtnLink extends UnetAgent {
                     super.action()
                     ArrayList<String> datagrams = storage.getNextHopDatagrams()
                     for (String messageID : datagrams) {
-                        Tuple datagramTuple = storage.decodePdu(messageID)
-                        DatagramReq datagramReq = new DatagramReq(ttl: datagramTuple.get(0),
-                                                                protocol: datagramTuple.get(1),
-                                                                data: datagramTuple.get(2))
-                        link.send(datagramReq)
+                        sendDatagram(messageID)
                     }
                 }
             })
+        } else if (msg instanceof )
+    }
+
+    void sendDatagram(String messageID) {
+        // needs tracking data and TTL modification
+        byte[] pdu = storage.getPDU(messageID)
+        if (pdu != null) {
+            DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                                      data: pdu)
+            storage.trackDatagram(datagramReq.getMessageID(), messageID)
+            link.send(datagramReq)
         }
     }
 

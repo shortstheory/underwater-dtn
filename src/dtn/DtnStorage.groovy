@@ -30,6 +30,10 @@ public class DtnStorage {
         datagramMap = new HashMap<>()
     }
 
+    void trackDatagram(String newMessageID, String oldMessageID) {
+        datagramMap.put(newMessageID, oldMessageID)
+    }
+
     ArrayList<String> getNextHopDatagrams(int nextHop) {
         ArrayList<String> data = new ArrayList<>()
 
@@ -113,5 +117,19 @@ public class DtnStorage {
 
         Tuple decodedPDU = new Tuple(ttl, protocol, data)
         return decodedPDU
+    }
+
+    // this method will automatically set the TTL correctly for sending the PDU
+    byte[] getPDU(String messageID) {
+        Tuple pduTuple = decodePdu(messageID)
+
+        int ttl = (int)pduTuple.get(0)
+        int protocol = (int)pduTuple.get(1)
+        byte[] data = (byte[])pduTuple.get(2)
+        ttl = (int)System.currentTimeSeconds() - db.get(messageID).expiryTime
+        if (ttl > 0) {
+            return encodePdu(data, ttl, protocol)
+        }
+        return null
     }
 }

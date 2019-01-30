@@ -7,5 +7,5 @@ import groovy.transform.TypeChecked;
 @CompileStatic
 public class DtnPDUMetadata {
     int nextHop
-    long expiryTime
+    int expiryTime
 }
