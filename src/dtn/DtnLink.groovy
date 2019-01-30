@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message
+import org.arl.fjage.OneShotBehavior
 import org.arl.fjage.Performative
 import org.arl.fjage.TickerBehavior
 import org.arl.unet.Address
@@ -16,14 +17,19 @@ import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
+import org.arl.unet.phy.RxFrameNtf
+
+import javax.jws.Oneway
 
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
+    private final int HEADER_SIZE = 12
+    private final int DTN_PROTOCOL = 99
+
     private DtnStorage storage
     private int nodeAddress
     private long lastReceivedTime = 0
-    private final int HEADER_SIZE = 12
 
     private AgentID link
     private AgentID notify
@@ -110,6 +116,16 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected void processMessage(Message msg) {
+        if (msg instanceof RxFrameNtf) {
+            add(new OneShotBehavior() {
+                @Override
+                void action() {
+                    super.action()
+                    ArrayList<String> datagrams = storage.getNextHopDatagrams()
+
+                }
+            })
+        }
     }
 
     int getMTU() {

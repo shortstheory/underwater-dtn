@@ -91,4 +91,15 @@ public class DtnStorage {
         }
         return expiredDatagrams
     }
+
+    byte[] encodePdu(String messageID) {
+
+    }
+
+    void decodePdu(byte[] pdu) {
+
+    }
+
+    
+
 }
