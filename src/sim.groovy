@@ -1,4 +1,6 @@
 //!Simulation
+
+import org.arl.fjage.DiscreteEventSimulator
 import org.arl.fjage.RealTimePlatform
 import dtn.*
 import org.arl.fjage.shell.*
@@ -7,17 +9,30 @@ import org.arl.unet.link.*
 import org.arl.unet.nodeinfo.*
 
 
-platform = RealTimePlatform
+//platform = RealTimePlatform
+platform = DiscreteEventSimulator
+
 
 println "Starting simulation!"
 
-simulate {
+def T = 1.hour
+
+//def testStack = { container ->
+//  container.add 'link', new ReliableLink()
+//  container.add 'dtnlink', new DtnLink()
+//  container.add 'testagent', new TestAgent()
+//}
+
+
+simulate T, {
   node '1', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
-    container.add 'link', new org.arl.unet.link.ReliableLink()
+    container.add 'link', new ReliableLink()
     container.add 'dtnlink', new DtnLink()
+    container.add 'testagent', new TestAgent(2)
   }
-  node '2', address: 2, location: [200.m, 0, 0], shell: false, stack: { container ->
-    container.add 'link', new org.arl.unet.link.ReliableLink()
-    container.add 'dtnLink', new DtnLink()
+  node '2', address: 2, location: [200.m, 0, 0], shell: 5000, stack: { container ->
+    container.add 'link', new ReliableLink()
+    container.add 'dtnlink', new DtnLink()
+    container.add 'testagent', new TestAgent(1)
   }
 }

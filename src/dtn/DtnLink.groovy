@@ -22,12 +22,10 @@ import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
 
-import javax.jws.Oneway
-
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
-    private final int HEADER_SIZE = 12
+    private final int HEADER_SIZE = 8
     private final int DTN_PROTOCOL = 99
 
     private DtnStorage storage
@@ -39,8 +37,8 @@ class DtnLink extends UnetAgent {
     private AgentID nodeInfo
     private AgentID phy
 
-    int BEACON_DURATION = 100*1000
-    int SWEEP_DURATION = 100*1000
+    int BEACON_DURATION = 10*1000
+    int SWEEP_DURATION = 10*1000
 
     @Override
     protected void setup() {
@@ -80,6 +78,7 @@ class DtnLink extends UnetAgent {
             void onTick() {
                 super.onTick()
                 if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION) {
+                    println "Sent BEACON!"
                     link.send(new DatagramReq(to: Address.BROADCAST))
                     lastReceivedTime = System.currentTimeSeconds()
                 }
@@ -120,8 +119,10 @@ class DtnLink extends UnetAgent {
         if (msg instanceof DatagramReq) {
             // FIXME: check for buffer space too, probably in saveDatagram!
             if (msg.getTtl() == Float.NaN || !storage.saveDatagram(msg)) {
+                println("No Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
+                println("Saved Datagram!")
                 return new Message(msg, Performative.AGREE)
             }
         }
@@ -134,6 +135,7 @@ class DtnLink extends UnetAgent {
             // FIXME: should this only be for SNOOP?
             int node = msg.getFrom()
             add(new OneShotBehavior() {
+                // FIXME: would this keep getting triggered endlessly if I send msgs?
                 @Override
                 void action() {
                     super.action()
@@ -159,7 +161,7 @@ class DtnLink extends UnetAgent {
                 // FIXME: ntf.setTtl(ttl)
                 notify.send(ntf)
             }
-            // we don't need to handle other protocols
+            // we don't need to handle other protocol numbers
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.to
             String messageID = msg.inReplyTo
