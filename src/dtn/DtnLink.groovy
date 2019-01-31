@@ -7,6 +7,7 @@ import org.arl.fjage.Message
 import org.arl.fjage.OneShotBehavior
 import org.arl.fjage.Performative
 import org.arl.fjage.TickerBehavior
+import org.arl.fjage.WakerBehavior
 import org.arl.unet.Address
 import org.arl.unet.CapabilityReq
 import org.arl.unet.DatagramCapability
@@ -70,7 +71,8 @@ class DtnLink extends UnetAgent {
         if (link != null) {
             subscribe(link)
             if (mac != null) {
-                set(mac, ReliableLinkParam.mac, mac)
+                // FIXME: MAC seems broken!
+                // set(mac, ReliableLinkParam.mac, mac)
             }
             phy = agent((String)get(link, ReliableLinkParam.phy))
             if (phy != null) {
@@ -85,18 +87,18 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 super.onTick()
-//                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION/1000) {
-                    println "Sent BEACON!"
+                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION/1000) {
                     int dest
                     if (nodeAddress == 1) {
                         dest = 2
                         String s = "hello"
+                        println "Sent BEACON!" + nodeAddress
                         link.send(new DatagramReq(to: dest, data: s.getBytes()))
                     } else {
 //                        dest = 1
                     }
                     lastReceivedTime = System.currentTimeSeconds()
-//                }
+                }
             }
         })
 
@@ -163,6 +165,7 @@ class DtnLink extends UnetAgent {
             for (String messageID : datagrams) {
                 sendDatagram(messageID)
             }
+
 //                }
 //            })
         } else if (msg instanceof DatagramNtf) {
