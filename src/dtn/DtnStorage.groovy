@@ -138,7 +138,7 @@ class DtnStorage {
 
         int protocol = (int)pduTuple.get(1)
         byte[] data = (byte[])pduTuple.get(2)
-        int ttl = (int)System.currentTimeSeconds() - db.get(messageID).expiryTime
+        int ttl = db.get(messageID).expiryTime - (int)System.currentTimeSeconds()
         if (ttl > 0) {
             return encodePdu(data, ttl, protocol)
         }

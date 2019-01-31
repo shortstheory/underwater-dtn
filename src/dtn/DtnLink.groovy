@@ -38,6 +38,7 @@ class DtnLink extends UnetAgent {
     private AgentID notify
     private AgentID nodeInfo
     private AgentID phy
+    private AgentID mac
 
     int BEACON_DURATION = 10*1000
     int SWEEP_DURATION = 10*1000
@@ -57,6 +58,8 @@ class DtnLink extends UnetAgent {
     @Override
     protected void startup() {
         nodeInfo = agentForService(Services.NODE_INFO)
+        mac = agentForService(Services.MAC)
+
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
 
@@ -66,6 +69,9 @@ class DtnLink extends UnetAgent {
 
         if (link != null) {
             subscribe(link)
+            if (mac != null) {
+                set(mac, ReliableLinkParam.mac, mac)
+            }
             phy = agent((String)get(link, ReliableLinkParam.phy))
             if (phy != null) {
                 subscribe(phy)
@@ -161,6 +167,7 @@ class DtnLink extends UnetAgent {
 //            })
         } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
+                println "Handling DATAGRAMNTF"
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
