@@ -9,7 +9,7 @@ import org.arl.unet.Protocol
 
 import java.nio.file.Files;
 
-@TypeChecked
+//@TypeChecked
 @CompileStatic
 class DtnStorage {
     private final String directory
@@ -133,7 +133,7 @@ class DtnStorage {
 
     // this method will automatically set the TTL correctly for sending the PDU
     byte[] getPDU(String messageID) {
-        byte[] pduBytes = new File(messageID).text.getBytes()
+        byte[] pduBytes = new File(directory, messageID).text.getBytes()
         Tuple pduTuple = decodePdu(pduBytes)
 
         int protocol = (int)pduTuple.get(1)

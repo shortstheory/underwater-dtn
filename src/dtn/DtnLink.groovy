@@ -1,6 +1,7 @@
 package dtn
 
 import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message
 import org.arl.fjage.OneShotBehavior
@@ -21,6 +22,7 @@ import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
+import org.arl.unet.phy.RxFrameStartNtf
 
 //@TypeChecked
 @CompileStatic
@@ -77,11 +79,18 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 super.onTick()
-                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION) {
+//                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION/1000) {
                     println "Sent BEACON!"
-                    link.send(new DatagramReq(to: Address.BROADCAST))
+                    int dest
+                    if (nodeAddress == 1) {
+                        dest = 2
+                        String s = "hello"
+                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
+                    } else {
+//                        dest = 1
+                    }
                     lastReceivedTime = System.currentTimeSeconds()
-                }
+//                }
             }
         })
 
@@ -100,6 +109,7 @@ class DtnLink extends UnetAgent {
     }
 
     AgentID getLinkWithReliability() {
+        return agent("link")
         AgentID[] links = agentsForService(Services.LINK)
 
         for (AgentID link : links) {
@@ -122,7 +132,6 @@ class DtnLink extends UnetAgent {
                 println("No Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
-                println("Saved Datagram!")
                 return new Message(msg, Performative.AGREE)
             }
         }
@@ -131,20 +140,25 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected void processMessage(Message msg) {
-        if (msg instanceof RxFrameNtf) {
+        if (msg instanceof RxFrameStartNtf) {
+            println "Starting to receive a frame!"
+        } else if (msg instanceof RxFrameNtf) {
+
             // FIXME: should this only be for SNOOP?
             int node = msg.getFrom()
-            add(new OneShotBehavior() {
-                // FIXME: would this keep getting triggered endlessly if I send msgs?
-                @Override
-                void action() {
-                    super.action()
-                    ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                    for (String messageID : datagrams) {
-                        sendDatagram(messageID)
-                    }
-                }
-            })
+            println "RECEIVED BEACON FROM " + node
+//            add(new OneShotBehavior() {
+//                // FIXME: would this keep getting triggered endlessly if I send msgs?
+//                @Override
+//                void action() {
+//                    super.action()
+            println "Sending messages to " + node
+            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+            for (String messageID : datagrams) {
+                sendDatagram(messageID)
+            }
+//                }
+//            })
         } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
@@ -163,8 +177,8 @@ class DtnLink extends UnetAgent {
             }
             // we don't need to handle other protocol numbers
         } else if (msg instanceof DatagramDeliveryNtf) {
-            int node = msg.to
-            String messageID = msg.inReplyTo
+            int node = msg.getTo()
+            String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
 
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)

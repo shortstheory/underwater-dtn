@@ -26,7 +26,7 @@ class TestAgent extends UnetAgent{
         dtnLink = agent("dtnlink")
         String data = createDataSize(1000)
         byte[] bytes = data.getBytes()
-        add(new TickerBehavior(1000, {
+        add(new TickerBehavior(100.second, {
             dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 10))
         }))
     }
