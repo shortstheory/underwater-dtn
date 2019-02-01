@@ -17,6 +17,7 @@ import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
 import org.arl.unet.Parameter
+import org.arl.unet.Protocol
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
@@ -28,8 +29,8 @@ import org.arl.unet.phy.RxFrameStartNtf
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
-    private final int HEADER_SIZE = 8
-    private final int DTN_PROTOCOL = 99
+    public static final int HEADER_SIZE = 8
+    public static final int DTN_PROTOCOL = 50
 
     private DtnStorage storage
     private int nodeAddress
@@ -41,8 +42,12 @@ class DtnLink extends UnetAgent {
     private AgentID phy
     private AgentID mac
 
-    int BEACON_DURATION = 10*1000
-    int SWEEP_DURATION = 10*1000
+    int BEACON_DURATION = 1*1000
+    int SWEEP_DURATION = 100*1000
+
+    public int currentTimeSeconds() {
+        return (currentTimeMillis()/1000).intValue()
+    }
 
     @Override
     protected void setup() {
@@ -64,16 +69,12 @@ class DtnLink extends UnetAgent {
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
 
-        storage = new DtnStorage(Integer.toString(nodeAddress))
+        storage = new DtnStorage(this, Integer.toString(nodeAddress))
 
         link = getLinkWithReliability()
 
         if (link != null) {
             subscribe(link)
-            if (mac != null) {
-                // FIXME: MAC seems broken!
-                // set(mac, ReliableLinkParam.mac, mac)
-            }
             phy = agent((String)get(link, ReliableLinkParam.phy))
             if (phy != null) {
                 subscribe(phy)
@@ -86,19 +87,22 @@ class DtnLink extends UnetAgent {
         add(new TickerBehavior(BEACON_DURATION) {
             @Override
             void onTick() {
-                super.onTick()
-                if (System.currentTimeSeconds() - lastReceivedTime >= BEACON_DURATION/1000) {
-                    int dest
-                    if (nodeAddress == 1) {
-                        dest = 2
-                        String s = "hello"
-                        println "Sent BEACON!" + nodeAddress
-                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
-                    } else {
-//                        dest = 1
-                    }
-                    lastReceivedTime = System.currentTimeSeconds()
-                }
+//                super.onTick()
+                println currentTimeSeconds()
+//                int currentTime = (int)System.currentTimeSeconds()
+//                int gapTime = (BEACON_DURATION/1000).intValue()
+//                if (currentTime - lastReceivedTime >= gapTime) {
+//                    int dest
+//                    if (nodeAddress == 1) {
+//                        dest = 2
+//                        String s = "hello"
+////                        println "Sent BEACON!" + nodeAddress
+//                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
+//                    } else {
+////                        dest = 1
+//                    }
+//                    lastReceivedTime = System.currentTimeSeconds()
+//                }
             }
         })
 
@@ -148,42 +152,33 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected void processMessage(Message msg) {
-        if (msg instanceof RxFrameStartNtf) {
-            println "Starting to receive a frame!"
-        } else if (msg instanceof RxFrameNtf) {
-
+         if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
             int node = msg.getFrom()
-            println "RECEIVED BEACON FROM " + node
-//            add(new OneShotBehavior() {
-//                // FIXME: would this keep getting triggered endlessly if I send msgs?
-//                @Override
-//                void action() {
-//                    super.action()
-            println "Sending messages to " + node
+            println "Observed Link Msg from " + node
             ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
             for (String messageID : datagrams) {
-                sendDatagram(messageID)
+                println "Sending Datagram " + messageID
+                sendDatagram(messageID, node)
             }
-
-//                }
-//            })
         } else if (msg instanceof DatagramNtf) {
+            println "Received DGramNtf"
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 println "Handling DATAGRAMNTF"
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
+                if (pduTuple != null) {
+                    int ttl = (int) pduTuple.get(0)
+                    int protocol = (int) pduTuple.get(1)
+                    byte[] data = (byte[]) pduTuple.get(2)
 
-                int ttl = (int)pduTuple.get(0)
-                int protocol = (int)pduTuple.get(1)
-                byte[] data = (byte[])pduTuple.get(2)
-
-                DatagramNtf ntf = new DatagramNtf()
-                ntf.setProtocol(protocol)
-                ntf.setData(data)
-                // FIXME: ntf.setTtl(ttl)
-                notify.send(ntf)
+                    DatagramNtf ntf = new DatagramNtf()
+                    ntf.setProtocol(protocol)
+                    ntf.setData(data)
+                    // FIXME: ntf.setTtl(ttl)
+                    notify.send(ntf)
+                }
             }
             // we don't need to handle other protocol numbers
         } else if (msg instanceof DatagramDeliveryNtf) {
@@ -198,11 +193,13 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    void sendDatagram(String messageID) {
+    void sendDatagram(String messageID, int node) {
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                                      data: pdu)
+                                                      data: pdu,
+                                                      to: node,
+                                                      reliability: true)
             storage.trackDatagram(datagramReq.getMessageID(), messageID)
             link.send(datagramReq)
         }

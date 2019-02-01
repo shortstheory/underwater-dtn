@@ -6,6 +6,7 @@ import org.arl.unet.UnetAgent
 
 class TestAgent extends UnetAgent{
     AgentID dtnLink
+    AgentID link
 
     int destNode
 
@@ -24,10 +25,12 @@ class TestAgent extends UnetAgent{
     @Override
     protected void startup() {
         dtnLink = agent("dtnlink")
-        String data = createDataSize(1000)
+        link = agent("link")
+        String data = createDataSize(100)
         byte[] bytes = data.getBytes()
         add(new TickerBehavior(100.second, {
-            dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 10))
+//            dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 10))
+            link.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 99))
         }))
     }
 }

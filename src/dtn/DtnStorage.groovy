@@ -18,8 +18,11 @@ class DtnStorage {
     // New DatagramReqID - Old DatagramReqID
     HashMap<String, String> datagramMap
 
-    DtnStorage(String dir) {
+    DtnLink dtnLink
+
+    DtnStorage(DtnLink link, String dir) {
         directory = dir
+        dtnLink = link
 
         File file = new File(directory)
         if (!file.exists()) {
@@ -44,7 +47,7 @@ class DtnStorage {
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
-            if (System.currentTimeSeconds() > metadata.expiryTime) {
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next sweep
                 continue
@@ -68,7 +71,7 @@ class DtnStorage {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
-                    expiryTime: (int)ttl + (int)System.currentTimeSeconds()))
+                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds()))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -104,7 +107,7 @@ class DtnStorage {
         for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
-            if (System.currentTimeSeconds() > metadata.expiryTime) {
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 expiredDatagrams.add(deleteFile(messageID))
             }
         }
@@ -121,6 +124,9 @@ class DtnStorage {
     }
 
     Tuple decodePdu(byte[] pduBytes) {
+        if (pduBytes.length < DtnLink.HEADER_SIZE) {
+            return null
+        }
         InputPDU pdu = new InputPDU(pduBytes)
 
         int ttl = pdu.read32()
@@ -138,7 +144,7 @@ class DtnStorage {
 
         int protocol = (int)pduTuple.get(1)
         byte[] data = (byte[])pduTuple.get(2)
-        int ttl = db.get(messageID).expiryTime - (int)System.currentTimeSeconds()
+        int ttl = db.get(messageID).expiryTime - dtnLink.currentTimeSeconds()
         if (ttl > 0) {
             return encodePdu(data, ttl, protocol)
         }
