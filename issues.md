@@ -3,6 +3,7 @@
 * ttls are floats, but I want int/long
 * write32/48 but not write64 for floats?
 * CSMA MAC isn't working
+* without reliaiblity, reliableLink does not send any messages!!
 
 fixed:
 * telnet doesn't work for me

@@ -1,3 +1,4 @@
+import dtn.DtnLink
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
 import org.arl.fjage.TickerBehavior
@@ -28,9 +29,10 @@ class TestAgent extends UnetAgent{
         link = agent("link")
         String data = createDataSize(100)
         byte[] bytes = data.getBytes()
-        add(new TickerBehavior(100.second, {
-//            dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 10))
-            link.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: 99))
+        add(new TickerBehavior(1*1000, {
+            println "Executing tick!"
+            dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
+//            link.send(new DatagramReq(data: bytes, to: 1, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
         }))
     }
 }
