@@ -8,4 +8,5 @@ import groovy.transform.TypeChecked;
 class DtnPDUMetadata {
     int nextHop
     int expiryTime
+    boolean sent
 }

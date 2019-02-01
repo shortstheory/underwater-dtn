@@ -32,6 +32,8 @@ class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE = 8
     public static final int DTN_PROTOCOL = 50
 
+    int dtnGramsRec = 0
+
     private DtnStorage storage
     private int nodeAddress
     private long lastReceivedTime = 0
@@ -155,16 +157,15 @@ class DtnLink extends UnetAgent {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
             int node = msg.getFrom()
-            println "Observed Link Msg from " + node
             ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+
             for (String messageID : datagrams) {
-                println "Sending Datagram " + messageID
+//                println "Sending Datagram " + messageID
                 sendDatagram(messageID, node)
             }
         } else if (msg instanceof DatagramNtf) {
-            println "Received DGramNtf"
+//            println "Received DGramNtf"
             if (msg.getProtocol() == DTN_PROTOCOL) {
-                println "Handling DATAGRAMNTF"
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
@@ -177,6 +178,7 @@ class DtnLink extends UnetAgent {
                     ntf.setProtocol(protocol)
                     ntf.setData(data)
                     // FIXME: ntf.setTtl(ttl)
+                    println(++dtnGramsRec)
                     notify.send(ntf)
                 }
             }
@@ -186,16 +188,20 @@ class DtnLink extends UnetAgent {
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
 
+            storage.deleteFile(originalMessageID, messageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
         } else if (msg instanceof DatagramFailureNtf) {
-            // we don't need to do anything for failure
+             // we reset the sent flag in hope of resending the message later on
+             String messageID = msg.getInReplyTo()
+             String originalMessageID = storage.getOriginalMessageID(messageID)
+             storage.db.get(originalMessageID).sent = false
         }
     }
 
     void sendDatagram(String messageID, int node) {
         byte[] pdu = storage.getPDU(messageID)
-        if (pdu != null) {
+        if (pdu != null && !storage.db.get(messageID).sent) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                       data: pdu,
                                                       to: node,

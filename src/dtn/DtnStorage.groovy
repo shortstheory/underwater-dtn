@@ -34,6 +34,7 @@ class DtnStorage {
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
+        db.get(oldMessageID).sent = true
         datagramMap.put(newMessageID, oldMessageID)
     }
 
@@ -71,7 +72,8 @@ class DtnStorage {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
-                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds()))
+                                                 expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
+                                                sent: false))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -79,23 +81,26 @@ class DtnStorage {
         }
     }
 
-    Tuple2 deleteFile(String messageID) {
-        File file = new File(directory, messageID)
+    Tuple2 deleteFile(String messageID, String xiD) {
+        println("Deleting " + messageID + " w/ new " + xiD + " files " + datagramMap.size() + "/" + db.size())
+
         int nextHop
         try {
+            File file = new File(directory, messageID)
+
             file.delete()
             nextHop = db.get(messageID).nextHop
             String key
             for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
                 if (entry.getValue() == messageID) {
                     key = entry.getKey()
-                    break;
+                    break
                 }
             }
             datagramMap.remove(key)
             db.remove(messageID)
-        } catch (IOException e) {
-            println "Could not delete file for " + messageID
+        } catch (Exception e) {
+            println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + db.size()
         }
         // first & second
         return new Tuple2(messageID, nextHop)
@@ -108,7 +113,7 @@ class DtnStorage {
             String messageID = entry.getKey()
             DtnPDUMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                expiredDatagrams.add(deleteFile(messageID))
+//                expiredDatagrams.add(deleteFile(messageID))
             }
         }
         return expiredDatagrams
