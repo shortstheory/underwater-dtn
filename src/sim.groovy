@@ -16,7 +16,7 @@ platform = DiscreteEventSimulator
 
 println "Starting simulation!"
 
-def T = 100.second
+def T = 20.minute
 
 //def testStack = { container ->
 //  container.add 'link', new ReliableLink()

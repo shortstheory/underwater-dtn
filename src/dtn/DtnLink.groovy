@@ -42,7 +42,7 @@ class DtnLink extends UnetAgent {
     private AgentID phy
     private AgentID mac
 
-    int BEACON_DURATION = 1*1000
+    int BEACON_DURATION = 100*1000
     int SWEEP_DURATION = 100*1000
 
     public int currentTimeSeconds() {
@@ -88,21 +88,21 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
 //                super.onTick()
-                println currentTimeSeconds()
-//                int currentTime = (int)System.currentTimeSeconds()
-//                int gapTime = (BEACON_DURATION/1000).intValue()
-//                if (currentTime - lastReceivedTime >= gapTime) {
-//                    int dest
-//                    if (nodeAddress == 1) {
-//                        dest = 2
-//                        String s = "hello"
-////                        println "Sent BEACON!" + nodeAddress
-//                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
-//                    } else {
-////                        dest = 1
-//                    }
-//                    lastReceivedTime = System.currentTimeSeconds()
-//                }
+//                println currentTimeSeconds()
+                int currentTime = currentTimeSeconds()
+                int gapTime = (BEACON_DURATION/1000).intValue()
+                if (currentTime - lastReceivedTime >= gapTime) {
+                    int dest
+                    if (nodeAddress == 1) {
+                        dest = 2
+                        String s = "hello"
+//                        println "Sent BEACON!" + nodeAddress
+                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
+                    } else {
+//                        dest = 1
+                    }
+                    lastReceivedTime = currentTimeSeconds()
+                }
             }
         })
 
