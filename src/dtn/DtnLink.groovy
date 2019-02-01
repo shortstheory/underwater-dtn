@@ -32,6 +32,8 @@ class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE = 8
     public static final int DTN_PROTOCOL = 50
 
+    private final int RANDOM_DELAY = 5000
+
     int dtnGramsRec = 0
 
     private DtnStorage storage
@@ -89,21 +91,19 @@ class DtnLink extends UnetAgent {
         add(new TickerBehavior(BEACON_DURATION) {
             @Override
             void onTick() {
-//                super.onTick()
-//                println currentTimeSeconds()
+                super.onTick()
+                println currentTimeSeconds()
                 int currentTime = currentTimeSeconds()
                 int gapTime = (BEACON_DURATION/1000).intValue()
                 if (currentTime - lastReceivedTime >= gapTime) {
-                    int dest
-                    if (nodeAddress == 1) {
-                        dest = 2
-                        String s = "hello"
-//                        println "Sent BEACON!" + nodeAddress
-                        link.send(new DatagramReq(to: dest, data: s.getBytes()))
-                    } else {
-//                        dest = 1
-                    }
-                    lastReceivedTime = currentTimeSeconds()
+                    int randomDelay = (int)(Math.random()*RANDOM_DELAY)
+                    add(new WakerBehavior(randomDelay) {
+                        @Override
+                        void onWake() {
+                            super.onWake()
+                            link.send(new DatagramReq(to: Address.BROADCAST))
+                        }
+                    })
                 }
             }
         })
@@ -160,11 +160,9 @@ class DtnLink extends UnetAgent {
             ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
 
             for (String messageID : datagrams) {
-//                println "Sending Datagram " + messageID
                 sendDatagram(messageID, node)
             }
         } else if (msg instanceof DatagramNtf) {
-//            println "Received DGramNtf"
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
@@ -178,7 +176,7 @@ class DtnLink extends UnetAgent {
                     ntf.setProtocol(protocol)
                     ntf.setData(data)
                     // FIXME: ntf.setTtl(ttl)
-                    println(++dtnGramsRec)
+                    println("Messages Rec " + ++dtnGramsRec)
                     notify.send(ntf)
                 }
             }

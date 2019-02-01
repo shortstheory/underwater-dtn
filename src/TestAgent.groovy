@@ -10,6 +10,7 @@ class TestAgent extends UnetAgent{
     AgentID link
 
     int destNode
+    int msgsent = 0
 
     TestAgent(int destNode) {
         this.destNode = destNode
@@ -29,8 +30,9 @@ class TestAgent extends UnetAgent{
         link = agent("link")
         String data = createDataSize(100)
         byte[] bytes = data.getBytes()
-        add(new TickerBehavior(1*1000, {
+        add(new TickerBehavior(50*1000, {
 //            println "Executing tick!"
+            println "Messages Sent " + ++msgsent
             dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
 //            link.send(new DatagramReq(data: bytes, to: 1, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
         }))
