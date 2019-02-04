@@ -92,7 +92,6 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 super.onTick()
-                println currentTimeSeconds()
                 int currentTime = currentTimeSeconds()
                 int gapTime = (BEACON_DURATION/1000).intValue()
                 if (currentTime - lastReceivedTime >= gapTime) {
@@ -186,7 +185,7 @@ class DtnLink extends UnetAgent {
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
 
-            storage.deleteFile(originalMessageID, messageID)
+            storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
         } else if (msg instanceof DatagramFailureNtf) {
