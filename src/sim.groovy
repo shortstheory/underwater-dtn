@@ -1,14 +1,8 @@
 //!Simulation
 
 import org.arl.fjage.DiscreteEventSimulator
-import org.arl.fjage.RealTimePlatform
 import dtn.*
-import org.arl.fjage.shell.*
-import org.arl.unet.net.*
 import org.arl.unet.link.*
-import org.arl.unet.mac.CSMA
-import org.arl.unet.nodeinfo.*
-
 
 //platform = RealTimePlatform
 platform = DiscreteEventSimulator
@@ -16,12 +10,12 @@ platform = DiscreteEventSimulator
 
 println "Starting simulation!"
 
-def T = 20.minute
+def T = 24.hour
 
 //def testStack = { container ->
 //  container.add 'link', new ReliableLink()
 //  container.add 'dtnlink', new DtnLink()
-//  container.add 'testagent', new TestAgent()
+//  container.add 'testagent', new DatagramGenerator()
 //}
 
 
@@ -30,12 +24,12 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink()
 //    container.add 'mac', new CSMA()
-//    container.add 'testagent', new TestAgent(2)
+//    container.add 'testagent', new DatagramGenerator(2)
     }
   node '2', address: 2, location: [200.m, 0, 0], shell: true, stack: { container ->
     container.add 'link', new ReliableLink()
     container.add 'dtnlink', new DtnLink()
-    container.add 'testagent', new TestAgent(1)
+    container.add 'testagent', new DatagramGenerator(1)
 //    container.add 'mac', new CSMA()
   }
 }

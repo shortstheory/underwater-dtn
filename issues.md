@@ -7,3 +7,4 @@
 
 fixed:
 * telnet doesn't work for me
+* sending beacon at same causes X_X
