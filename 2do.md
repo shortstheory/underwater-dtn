@@ -8,10 +8,16 @@ issues:
 * passing ref of Agent to DtnStorage is bad
 
 pending:
+* create message triggered behaviors
+    * cyclic behavior
+    * mark link as alive and on getting DDN, send a message on that link on DDN
+    * tickerbehavior for periodic wakeups of that
 * short circuit
 * have a trigger for the calling the sweep behavior?
 
 done:
+* create the document
+* file github issue with code snippets for @TypeChecked and CSMA
 * create simulations
 * add buffer space checks
 * try out PDU classes

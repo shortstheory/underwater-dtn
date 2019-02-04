@@ -82,6 +82,7 @@ class DtnStorage {
     }
 
     Tuple2 deleteFile(String messageID) {
+        println("Deleting " + messageID + " w/ new files " + datagramMap.size() + "/" + db.size())
         int nextHop
         try {
             File file = new File(directory, messageID)
