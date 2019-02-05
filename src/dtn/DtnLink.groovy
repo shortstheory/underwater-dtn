@@ -3,6 +3,7 @@ package dtn
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
+import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
 import org.arl.fjage.OneShotBehavior
 import org.arl.fjage.Performative
@@ -45,6 +46,11 @@ class DtnLink extends UnetAgent {
     private AgentID nodeInfo
     private AgentID phy
     private AgentID mac
+    private AgentID[] links
+
+    private HashMap<Integer, AgentID> aliveLinks = new HashMap<>()
+
+    private CyclicBehavior datagramCycle
 
     int BEACON_DURATION = 100*1000
     int SWEEP_DURATION = 100*1000
@@ -69,6 +75,7 @@ class DtnLink extends UnetAgent {
     protected void startup() {
         nodeInfo = agentForService(Services.NODE_INFO)
         mac = agentForService(Services.MAC)
+        links = agentsForService(Services.LINK)
 
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
@@ -119,18 +126,35 @@ class DtnLink extends UnetAgent {
                 }
             }
         })
+
+        datagramCycle = new CyclicBehavior() {
+            @Override
+            void action() {
+                super.action()
+                // get recent links
+                Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
+                if (entry != null) {
+                    int node = entry.getKey()
+                    AgentID nodeLink = entry.getValue()
+                    String messageID = storage.getNextHopDatagrams(node)[0]
+                    sendDatagram(messageID, node, nodeLink)
+                }
+                // choose a message
+                // send
+                // sleep
+            }
+        }
     }
 
     AgentID getLinkWithReliability() {
-        return agent("link")
-        AgentID[] links = agentsForService(Services.LINK)
+//        return agent("link")
 
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 500)
             if (rsp.getPerformative() == Performative.CONFIRM &&
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
-                link != getAgentID()) {
+                link.getName() != getName()) {
                 return link
             }
         }
@@ -155,12 +179,13 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
-            int node = msg.getFrom()
-            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+             aliveLinks.put(msg.getFrom(), msg.getSender())
 
-            for (String messageID : datagrams) {
-                sendDatagram(messageID, node)
-            }
+//            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+//
+//            for (String messageID : datagrams) {
+//                sendDatagram(messageID, node)
+//            }
         } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
@@ -184,6 +209,7 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
+             println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
 
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
@@ -196,7 +222,7 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    void sendDatagram(String messageID, int node) {
+    void sendDatagram(String messageID, int node, AgentID nodeLink) {
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null && !storage.db.get(messageID).sent) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
@@ -204,7 +230,7 @@ class DtnLink extends UnetAgent {
                                                       to: node,
                                                       reliability: true)
             storage.trackDatagram(datagramReq.getMessageID(), messageID)
-            link.send(datagramReq)
+            nodeLink.send(datagramReq)
         }
     }
 
