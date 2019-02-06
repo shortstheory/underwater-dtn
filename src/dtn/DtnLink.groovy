@@ -1,12 +1,9 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
-import org.arl.fjage.Behavior
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
-import org.arl.fjage.OneShotBehavior
 import org.arl.fjage.Performative
 import org.arl.fjage.TickerBehavior
 import org.arl.fjage.WakerBehavior
@@ -19,14 +16,12 @@ import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
 import org.arl.unet.Parameter
-import org.arl.unet.Protocol
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
-import org.arl.unet.phy.RxFrameStartNtf
 
 //@TypeChecked
 @CompileStatic
@@ -54,8 +49,9 @@ class DtnLink extends UnetAgent {
 
     private CyclicBehavior datagramCycle
 
-    int BEACON_DURATION = 100*1000
-    int SWEEP_DURATION = 100*1000
+    int BEACON_PERIOD = 100*1000
+    int SWEEP_PERIOD = 100*1000
+    int DATAGRAM_PERIOD = 10*1000
 
     public int currentTimeSeconds() {
         return (currentTimeMillis()/1000).intValue()
@@ -97,12 +93,12 @@ class DtnLink extends UnetAgent {
             }
         }
 
-        add(new TickerBehavior(BEACON_DURATION) {
+        add(new TickerBehavior(BEACON_PERIOD) {
             @Override
             void onTick() {
                 super.onTick()
                 int currentTime = currentTimeSeconds()
-                int gapTime = (BEACON_DURATION/1000).intValue()
+                int gapTime = (BEACON_PERIOD/1000).intValue()
                 if (currentTime - lastReceivedTime >= gapTime) {
                     int randomDelay = (int)(Math.random()*RANDOM_DELAY)
                     add(new WakerBehavior(randomDelay) {
@@ -116,7 +112,7 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new TickerBehavior(SWEEP_DURATION) {
+        add(new TickerBehavior(SWEEP_PERIOD) {
             @Override
             void onTick() {
                 super.onTick()
@@ -129,26 +125,33 @@ class DtnLink extends UnetAgent {
             }
         })
 
+        add(new TickerBehavior(DATAGRAM_PERIOD) {
+            @Override
+            void onTick() {
+                super.onTick()
+                datagramCycle.restart()
+            }
+        })
+
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
                 // get recent links
-                println "CyclicActivated" + cyclicCalls++
-//                if (aliveLinks.size()>0) {
-//                    Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
-//                    if (entry != null) {
-//                        int node = entry.getKey()
-//                        AgentID nodeLink = entry.getValue()
-//                        String messageID = storage.getNextHopDatagrams(node)[0]
-//                        if (messageID != null) {
-//                            sendDatagram(messageID, node, nodeLink)
-//                        }
-//                    }
-//                    // choose a message
-//                    // send
-//                    // sleep
-//                }
-//                println("done2block")
+//                println "CyclicActivated" + cyclicCalls++
+                if (aliveLinks.size()>0) {
+                    Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
+                    if (entry != null) {
+                        int node = entry.getKey()
+                        AgentID nodeLink = entry.getValue()
+                        String messageID = storage.getNextHopDatagrams(node)[0]
+                        if (messageID != null && storage.db.get(messageID).attempts == 0) {
+                            sendDatagram(messageID, node, nodeLink)
+                        }
+                    }
+                    // choose a message
+                    // send
+                    // sleep
+                }
                 this.block()
 //                stop()
             }
@@ -192,7 +195,6 @@ class DtnLink extends UnetAgent {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
              aliveLinks.put(msg.getFrom(), agent("link"))
-             println("IsDC blocked - " + datagramCycle.isBlocked() + " " + currentTimeSeconds() + " " + msg.toString())
 //            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
 //
 //            for (String messageID : datagrams) {

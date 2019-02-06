@@ -1,5 +1,4 @@
 issues:
-* CyclicBehavior not blocking and resending same message many times
 * NPE occasionally in getLinkWithReliability
 * ttls are floats, but I want int/long
 * write32/48 but not write64 for floats?
@@ -8,14 +7,18 @@ issues:
 * passing ref of Agent to DtnStorage is bad
 
 pending:
-* create message triggered behaviors
-    * cyclic behavior
-    * mark link as alive and on getting DDN, send a message on that link on DDN
-    * tickerbehavior for periodic wakeups of that
+* code to run on sim start and sim end!!
+* multiple links for Cyclic
+* sorting of messages
 * short circuit
 * have a trigger for the calling the sweep behavior?
 
 done:
+* create message triggered behaviors
+    * cyclic behavior
+    * mark link as alive and on getting DDN, send a message on that link on DDN
+    * tickerbehavior for periodic wakeups of that
+* CyclicBehavior not blocking and resending same message many times
 * How do I get the instanceof an agentID to make sure I don't subscribe to DTNLink?
 * @TypeChecked breaks TickerBehavior
 * create the document
