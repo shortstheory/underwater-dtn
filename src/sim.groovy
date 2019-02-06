@@ -24,7 +24,7 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink()
 //    container.add 'mac', new CSMA()
-        container.add 'testagent', new DatagramGenerator(2)
+//        container.add 'testagent', new DatagramGenerator(2)
     }
   node '2', address: 2, location: [200.m, 0, 0], shell: true, stack: { container ->
     container.add 'link', new ReliableLink()

@@ -34,7 +34,7 @@ class DtnStorage {
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
-        db.get(oldMessageID).sent = true
+        db.get(oldMessageID).attempts++
         datagramMap.put(newMessageID, oldMessageID)
     }
 
@@ -73,7 +73,7 @@ class DtnStorage {
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                                                sent: false))
+                                                 attempts: 0))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID

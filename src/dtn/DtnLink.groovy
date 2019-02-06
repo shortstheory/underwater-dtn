@@ -3,6 +3,7 @@ package dtn
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import org.arl.fjage.AgentID
+import org.arl.fjage.Behavior
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
 import org.arl.fjage.OneShotBehavior
@@ -36,6 +37,7 @@ class DtnLink extends UnetAgent {
     private final int RANDOM_DELAY = 5000
 
     int dtnGramsRec = 0
+    int cyclicCalls = 0
 
     private DtnStorage storage
     private int nodeAddress
@@ -127,23 +129,30 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        datagramCycle = new CyclicBehavior() {
+        datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                super.action()
                 // get recent links
-                Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
-                if (entry != null) {
-                    int node = entry.getKey()
-                    AgentID nodeLink = entry.getValue()
-                    String messageID = storage.getNextHopDatagrams(node)[0]
-                    sendDatagram(messageID, node, nodeLink)
-                }
-                // choose a message
-                // send
-                // sleep
+                println "CyclicActivated" + cyclicCalls++
+//                if (aliveLinks.size()>0) {
+//                    Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
+//                    if (entry != null) {
+//                        int node = entry.getKey()
+//                        AgentID nodeLink = entry.getValue()
+//                        String messageID = storage.getNextHopDatagrams(node)[0]
+//                        if (messageID != null) {
+//                            sendDatagram(messageID, node, nodeLink)
+//                        }
+//                    }
+//                    // choose a message
+//                    // send
+//                    // sleep
+//                }
+//                println("done2block")
+                this.block()
+//                stop()
             }
-        }
+        })
     }
 
     AgentID getLinkWithReliability() {
@@ -152,12 +161,15 @@ class DtnLink extends UnetAgent {
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 500)
+            println("link: " + link.getName())
             if (rsp.getPerformative() == Performative.CONFIRM &&
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
                 link.getName() != getName()) {
+                println("Candidate Link " + link.getName())
                 return link
             }
         }
+        println "No link with reliability found"
         return null
     }
 
@@ -179,8 +191,8 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
-             aliveLinks.put(msg.getFrom(), msg.getSender())
-
+             aliveLinks.put(msg.getFrom(), agent("link"))
+             println("IsDC blocked - " + datagramCycle.isBlocked() + " " + currentTimeSeconds() + " " + msg.toString())
 //            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
 //
 //            for (String messageID : datagrams) {
@@ -209,22 +221,25 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-             println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
+            println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
 
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
+            datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
              // we reset the sent flag in hope of resending the message later on
-             String messageID = msg.getInReplyTo()
-             String originalMessageID = storage.getOriginalMessageID(messageID)
-             storage.db.get(originalMessageID).sent = false
+//             String messageID = msg.getInReplyTo()
+//             String originalMessageID = storage.getOriginalMessageID(messageID)
+//             storage.db.get(originalMessageID).
         }
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
+        println "Send " + messageID + " to " + node + " on " + nodeLink
         byte[] pdu = storage.getPDU(messageID)
-        if (pdu != null && !storage.db.get(messageID).sent) {
+        if (pdu != null) {
+//        if (pdu != null && !storage.db.get(messageID).sent) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                       data: pdu,
                                                       to: node,

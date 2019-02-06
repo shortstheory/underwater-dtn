@@ -1,6 +1,6 @@
 issues:
-* @TypeChecked breaks TickerBehavior
-* How do I get the instanceof an agentID to make sure I don't subscribe to DTNLink?
+* CyclicBehavior not blocking and resending same message many times
+* NPE occasionally in getLinkWithReliability
 * ttls are floats, but I want int/long
 * write32/48 but not write64 for floats?
 * CSMA MAC isn't working
@@ -16,6 +16,8 @@ pending:
 * have a trigger for the calling the sweep behavior?
 
 done:
+* How do I get the instanceof an agentID to make sure I don't subscribe to DTNLink?
+* @TypeChecked breaks TickerBehavior
 * create the document
 * file github issue with code snippets for @TypeChecked and CSMA
 * create simulations
