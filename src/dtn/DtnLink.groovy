@@ -33,6 +33,7 @@ class DtnLink extends UnetAgent {
 
     int dtnGramsRec = 0
     int cyclicCalls = 0
+    int MTU
 
     private DtnStorage storage
     private int nodeAddress
@@ -45,9 +46,11 @@ class DtnLink extends UnetAgent {
     private AgentID mac
     private AgentID[] links
 
+    // node - link pair; right now we only use one link per node
     private HashMap<Integer, AgentID> aliveLinks = new HashMap<>()
 
     private CyclicBehavior datagramCycle
+    private TickerBehavior beaconBehavior
 
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
@@ -93,29 +96,10 @@ class DtnLink extends UnetAgent {
             }
         }
 
-        add(new TickerBehavior(BEACON_PERIOD) {
-            @Override
-            void onTick() {
-                super.onTick()
-                int currentTime = currentTimeSeconds()
-                int gapTime = (BEACON_PERIOD/1000).intValue()
-                if (currentTime - lastReceivedTime >= gapTime) {
-                    int randomDelay = (int)(Math.random()*RANDOM_DELAY)
-                    add(new WakerBehavior(randomDelay) {
-                        @Override
-                        void onWake() {
-                            super.onWake()
-                            link.send(new DatagramReq(to: Address.BROADCAST))
-                        }
-                    })
-                }
-            }
-        })
-
+        beaconBehavior = (TickerBehavior)add(createBeaconBehavior())
         add(new TickerBehavior(SWEEP_PERIOD) {
             @Override
             void onTick() {
-                super.onTick()
                 ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
                 // now send DFNs for all of these
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
@@ -128,7 +112,6 @@ class DtnLink extends UnetAgent {
         add(new TickerBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
-                super.onTick()
                 datagramCycle.restart()
             }
         })
@@ -138,8 +121,7 @@ class DtnLink extends UnetAgent {
             void action() {
                 // get recent links
 //                println "CyclicActivated" + cyclicCalls++
-                if (aliveLinks.size()>0) {
-                    Map.Entry<Integer, AgentID> entry = aliveLinks.entrySet().first()
+                for (Map.Entry<Integer, AgentID> entry : aliveLinks.entrySet()) {
                     if (entry != null) {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
@@ -159,13 +141,11 @@ class DtnLink extends UnetAgent {
     }
 
     AgentID getLinkWithReliability() {
-//        return agent("link")
-
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
-            Message rsp = request(req, 500)
+            Message rsp = request(req, 1000)
             println("link: " + link.getName())
-            if (rsp.getPerformative() == Performative.CONFIRM &&
+            if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
                 link.getName() != getName()) {
                 println("Candidate Link " + link.getName())
@@ -214,7 +194,7 @@ class DtnLink extends UnetAgent {
                     ntf.setProtocol(protocol)
                     ntf.setData(data)
                     // FIXME: ntf.setTtl(ttl)
-                    println("Messages Rec " + ++dtnGramsRec)
+                    println("Messages Rec at" + nodeAddress + " " + ++dtnGramsRec)
                     notify.send(ntf)
                 }
             }
@@ -251,10 +231,43 @@ class DtnLink extends UnetAgent {
         }
     }
 
+    TickerBehavior createBeaconBehavior() {
+        return new TickerBehavior(BEACON_PERIOD) {
+            @Override
+            void onTick() {
+                super.onTick()
+                int currentTime = currentTimeSeconds()
+                int gapTime = (BEACON_PERIOD / 1000).intValue()
+                if (currentTime - lastReceivedTime >= gapTime) {
+                    int randomDelay = (int) (Math.random() * RANDOM_DELAY)
+                    add(new WakerBehavior(randomDelay) {
+                        @Override
+                        void onWake() {
+                            link.send(new DatagramReq(to: Address.BROADCAST))
+                        }
+                    })
+                }
+            }
+        }
+    }
+
     int getMTU() {
         if (link != null) {
             return (int)get(link, DatagramParam.MTU) - HEADER_SIZE
         }
         return 0
+    }
+
+// FIXME: The period of a TickerBehavior cannot be modified!
+    void setBEACON_PERIOD(int period) {
+        BEACON_PERIOD = period
+        if (BEACON_PERIOD == 0) {
+            // FIXME: should I use stop instead?
+            println "Stopped beacon"
+            beaconBehavior.stop()
+        } else {
+            println "Changed beacon interval"
+            beaconBehavior = (TickerBehavior)add(createBeaconBehavior())
+        }
     }
 }

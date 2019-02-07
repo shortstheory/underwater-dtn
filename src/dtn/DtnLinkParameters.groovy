@@ -8,7 +8,8 @@ import org.arl.unet.Parameter;
 //@TypeChecked
 @CompileStatic
 enum DtnLinkParameters implements Parameter {
-    BEACON_DURATION,
-    SWEEP_DURATION,
+    BEACON_PERIOD,
+    SWEEP_PERIOD,
+    DATAGRAM_PERIOD,
     MTU
 }

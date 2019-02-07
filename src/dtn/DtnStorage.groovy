@@ -1,11 +1,9 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeChecked
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
-import org.arl.unet.Protocol
 
 import java.nio.file.Files;
 
@@ -13,7 +11,7 @@ import java.nio.file.Files;
 @CompileStatic
 class DtnStorage {
     private final String directory
-    HashMap<String, DtnPDUMetadata> db
+    HashMap<String, DtnPduMetadata> db
 
     // New DatagramReqID - Old DatagramReqID
     HashMap<String, String> datagramMap
@@ -45,9 +43,9 @@ class DtnStorage {
     ArrayList<String> getNextHopDatagrams(int nextHop) {
         ArrayList<String> data = new ArrayList<>()
 
-        for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
+        for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
-            DtnPDUMetadata metadata = entry.getValue()
+            DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next sweep
@@ -71,7 +69,7 @@ class DtnStorage {
         try {
             File file = new File(directory, messageID)
             Files.write(file.toPath(), pduBytes)
-            db.put(messageID, new DtnPDUMetadata(nextHop: nextHop,
+            db.put(messageID, new DtnPduMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
                                                  attempts: 0))
             return true
@@ -107,9 +105,9 @@ class DtnStorage {
     ArrayList<Tuple2> deleteExpiredDatagrams() {
         ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
 
-        for (Map.Entry<String, DtnPDUMetadata> entry : db.entrySet()) {
+        for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
-            DtnPDUMetadata metadata = entry.getValue()
+            DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
 //                expiredDatagrams.add(deleteFile(messageID))
             }

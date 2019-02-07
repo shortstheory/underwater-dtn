@@ -11,9 +11,11 @@ class DatagramGenerator extends UnetAgent{
 
     int destNode
     int msgsent = 0
+    int messagePeriod
 
-    DatagramGenerator(int destNode) {
+    DatagramGenerator(int destNode, int period) {
         this.destNode = destNode
+        messagePeriod = period
     }
 
     private static String createDataSize(int msgSize) {
@@ -30,11 +32,9 @@ class DatagramGenerator extends UnetAgent{
         link = agent("link")
         String data = createDataSize(100)
         byte[] bytes = data.getBytes()
-        add(new TickerBehavior(300*1000, {
-//            println "Executing tick!"
-            println "Messages Sent " + ++msgsent
+        add(new TickerBehavior(messagePeriod, {
+            println "Messages Sent to " + destNode + ": " + ++msgsent
             dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
-//            link.send(new DatagramReq(data: bytes, to: 1, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
         }))
     }
 }

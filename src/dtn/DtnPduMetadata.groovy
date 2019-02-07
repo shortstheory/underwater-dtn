@@ -5,7 +5,7 @@ import groovy.transform.TypeChecked;
 
 //@TypeChecked
 @CompileStatic
-class DtnPDUMetadata {
+class DtnPduMetadata {
     int nextHop
     int expiryTime
     int attempts

@@ -1,19 +1,24 @@
 issues:
-* NPE occasionally in getLinkWithReliability
-* ttls are floats, but I want int/long
-* write32/48 but not write64 for floats?
+* NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
 * CSMA MAC isn't working
-* without reliaiblity, reliableLink does not send any messages!!
-* passing ref of Agent to DtnStorage is bad
 
 pending:
+* multiple links per node
+* multihop router tests
 * code to run on sim start and sim end!!
 * multiple links for Cyclic
 * sorting of messages
 * short circuit
 * have a trigger for the calling the sweep behavior?
+* configurable containers
+* make MTU readonly
 
 done:
+* TickerBehavior doesn't have a configurable period
+* without reliaiblity, reliableLink does not send any messages!!
+* write32/48 but not write64 for floats?
+* passing ref of Agent to DtnStorage is bad
+* ttls are floats, but I want int/long
 * create message triggered behaviors
     * cyclic behavior
     * mark link as alive and on getting DDN, send a message on that link on DDN
