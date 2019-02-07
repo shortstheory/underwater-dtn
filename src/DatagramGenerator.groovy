@@ -9,17 +9,18 @@ class DatagramGenerator extends UnetAgent{
     AgentID dtnLink
     AgentID link
 
-    int destNode
+    int[] destNodes
     int msgsent = 0
     int messagePeriod
 
-    DatagramGenerator(int destNode, int period) {
-        this.destNode = destNode
+    DatagramGenerator(int[] destNodes, int period) {
+        this.destNodes = destNodes
         messagePeriod = period
     }
 
     private static String createDataSize(int msgSize) {
-        StringBuilder sb = new StringBuilder(msgSize);
+        StringBuilder sb
+        sb = new StringBuilder(msgSize);
         for (int i = 0; i < msgSize; i++) {
             sb.append('a');
         }
@@ -33,8 +34,10 @@ class DatagramGenerator extends UnetAgent{
         String data = createDataSize(100)
         byte[] bytes = data.getBytes()
         add(new TickerBehavior(messagePeriod, {
-            println "Messages Sent to " + destNode + ": " + ++msgsent
-            dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
+            for (int destNode : destNodes) {
+                println "Messages Sent to " + destNode + ": " + ++msgsent
+                dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
+            }
         }))
     }
 }

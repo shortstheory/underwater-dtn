@@ -1,17 +1,20 @@
 issues:
 * NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
 * CSMA MAC isn't working
+* I can't change defaultLink of Router()
 
 pending:
+* should I send a DFN if I don't have a route to node?
+* note about fxns in CyclicBehavior
 * multiple links per node
+* multiple links for Cyclic
 * multihop router tests
 * code to run on sim start and sim end!!
-* multiple links for Cyclic
 * sorting of messages
-* short circuit
 * have a trigger for the calling the sweep behavior?
 * configurable containers
 * make MTU readonly
+* short circuit
 
 done:
 * TickerBehavior doesn't have a configurable period

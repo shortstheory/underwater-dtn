@@ -32,13 +32,15 @@ class DtnLink extends UnetAgent {
     private final int RANDOM_DELAY = 5000
 
     int dtnGramsRec = 0
-    int cyclicCalls = 0
+    int failedDatagrams
+    int successfulDatagrams
     int MTU
 
     private DtnStorage storage
     private int nodeAddress
     private long lastReceivedTime = 0
 
+    // and we are using only 1 link
     private AgentID link
     private AgentID notify
     private AgentID nodeInfo
@@ -47,7 +49,7 @@ class DtnLink extends UnetAgent {
     private AgentID[] links
 
     // node - link pair; right now we only use one link per node
-    private HashMap<Integer, AgentID> aliveLinks = new HashMap<>()
+    private HashMap<Integer, AgentID> liveLinks = new HashMap<>()
 
     private CyclicBehavior datagramCycle
     private TickerBehavior beaconBehavior
@@ -121,7 +123,10 @@ class DtnLink extends UnetAgent {
             void action() {
                 // get recent links
 //                println "CyclicActivated" + cyclicCalls++
-                for (Map.Entry<Integer, AgentID> entry : aliveLinks.entrySet()) {
+                if (nodeAddress == 3) {
+//                    println "Node3"
+                }
+                for (Map.Entry<Integer, AgentID> entry : liveLinks.entrySet()) {
                     if (entry != null) {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
@@ -134,8 +139,7 @@ class DtnLink extends UnetAgent {
                     // send
                     // sleep
                 }
-                this.block()
-//                stop()
+                block()
             }
         })
     }
@@ -174,7 +178,7 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
-             aliveLinks.put(msg.getFrom(), agent("link"))
+             liveLinks.put(msg.getFrom(), agent("link"))
 //            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
 //
 //            for (String messageID : datagrams) {
