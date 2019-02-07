@@ -198,7 +198,7 @@ class DtnLink extends UnetAgent {
                     ntf.setProtocol(protocol)
                     ntf.setData(data)
                     // FIXME: ntf.setTtl(ttl)
-                    println("Messages Rec at" + nodeAddress + " " + ++dtnGramsRec)
+//                    println("Messages Rec at" + nodeAddress + " " + ++dtnGramsRec)
                     notify.send(ntf)
                 }
             }
@@ -207,7 +207,7 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-            println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
+//            println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
 
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
@@ -222,7 +222,7 @@ class DtnLink extends UnetAgent {
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
-        println "Send " + messageID + " to " + node + " on " + nodeLink
+//        println "Send " + messageID + " to " + node + " on " + nodeLink
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null) {
 //        if (pdu != null && !storage.db.get(messageID).sent) {
@@ -265,10 +265,9 @@ class DtnLink extends UnetAgent {
 // FIXME: The period of a TickerBehavior cannot be modified!
     void setBEACON_PERIOD(int period) {
         BEACON_PERIOD = period
+        beaconBehavior.stop()
         if (BEACON_PERIOD == 0) {
-            // FIXME: should I use stop instead?
             println "Stopped beacon"
-            beaconBehavior.stop()
         } else {
             println "Changed beacon interval"
             beaconBehavior = (TickerBehavior)add(createBeaconBehavior())

@@ -30,12 +30,12 @@ class DatagramGenerator extends UnetAgent{
     @Override
     protected void startup() {
         dtnLink = agent("dtnlink")
-        link = agent("link")
+//        link = agent("link")
         String data = createDataSize(100)
         byte[] bytes = data.getBytes()
         add(new TickerBehavior(messagePeriod, {
             for (int destNode : destNodes) {
-                println "Messages Sent to " + destNode + ": " + ++msgsent
+//                println "Messages Sent to " + destNode + ": " + ++msgsent
                 dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
             }
         }))
