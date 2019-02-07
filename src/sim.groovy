@@ -26,6 +26,7 @@ int[] dest2 = [1]
 int[] dest3 = [1, 2]
 
 def trace = new NamTracer()
+trace.open('logs/trace.nam')
 
 simulate T, {
     node '1', address: 1, location: [0, 0, 0], shell: 5000, stack: { container ->
@@ -48,5 +49,7 @@ simulate T, {
     }
     float loss = trace.txCount ? 100*trace.dropCount/trace.txCount : 0
     println sprintf('%6d\t\t%6d\t\t%5.1f\t\t%7.3f\t\t%7.3f',
-    [trace.txCount, trace.rxCount, loss, trace.offeredLoad, trace.throughput])
+            [trace.txCount, trace.rxCount, loss, trace.offeredLoad, trace.throughput])
 }
+
+
