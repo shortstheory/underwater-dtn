@@ -1,6 +1,8 @@
 package dtn
 
 import groovy.transform.CompileStatic
+import org.apache.commons.lang3.tuple.MutablePair
+import org.apache.commons.lang3.tuple.Pair
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
@@ -36,7 +38,6 @@ class DtnLink extends UnetAgent {
 
     private DtnStorage storage
     private int nodeAddress
-    private long lastReceivedTime = 0
 
     // and we are using only 1 link
     private AgentID link
@@ -46,11 +47,10 @@ class DtnLink extends UnetAgent {
     private AgentID mac
     private AgentID[] links
 
-    // node - link pair; right now we only use one link per node
-    private HashMap<Integer, AgentID> liveLinks = new HashMap<>()
-
     private CyclicBehavior datagramCycle
     private TickerBehavior beaconBehavior
+
+    private DtnUtility utility
 
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
@@ -82,6 +82,7 @@ class DtnLink extends UnetAgent {
         notify = topic()
 
         storage = new DtnStorage(this, Integer.toString(nodeAddress))
+        utility = new DtnUtility()
 
         link = getLinkWithReliability()
 
@@ -168,12 +169,8 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
-             liveLinks.put(msg.getFrom(), agent("link"))
-//            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-//
-//            for (String messageID : datagrams) {
-//                sendDatagram(messageID, node)
-//            }
+
+//             liveLinks.put(msg.getFrom(), new Tuple2<AgentID, Integer>(agent("link"), currentTimeSeconds())
         } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it

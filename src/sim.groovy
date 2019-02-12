@@ -15,7 +15,7 @@ platform = DiscreteEventSimulator
 println "Starting simulation!"
 
 def T = 1.hour
-def f = 300*1000
+def f = 100*1000
 
 int[] dest1 = [2]
 int[] dest2 = [1]
