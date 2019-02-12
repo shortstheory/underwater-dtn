@@ -1,15 +1,17 @@
 issues:
 * NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
 * CSMA MAC isn't working
-* I can't change defaultLink of Router()
+* I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
 * some unet3 telnet commands do not work
 * collect trace.nam stats and use them
 * setBEACON_BEHAVIOR() looks bad
 
 router << new DatagramReq(to: 3, data: [1,2,3])
-
+link << new DatagramReq(to: 2, data: [1,2,3])
+link << new DatagramReq(to: 2, data: [1,2,3])
 
 pending:
+* delete old links
 * should I send a DFN if I don't have a route to node?
 * note about fxns in CyclicBehavior
 * multiple links per node

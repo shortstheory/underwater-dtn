@@ -32,8 +32,6 @@ class DtnLink extends UnetAgent {
     private final int RANDOM_DELAY = 5000
 
     int dtnGramsRec = 0
-    int failedDatagrams
-    int successfulDatagrams
     int MTU
 
     private DtnStorage storage
@@ -106,7 +104,7 @@ class DtnLink extends UnetAgent {
                 // now send DFNs for all of these
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
                     notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
-                                                        to: (int)expiredDatagram.getSecond()))
+                                                       to: (int)expiredDatagram.getSecond()))
                 }
             }
         })
@@ -121,23 +119,16 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                // get recent links
-//                println "CyclicActivated" + cyclicCalls++
-                if (nodeAddress == 3) {
-//                    println "Node3"
-                }
                 for (Map.Entry<Integer, AgentID> entry : liveLinks.entrySet()) {
                     if (entry != null) {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
                         String messageID = storage.getNextHopDatagrams(node)[0]
+                        // this logic blocks the queue if we get a errant DG! Not good!
                         if (messageID != null && storage.db.get(messageID).attempts == 0) {
                             sendDatagram(messageID, node, nodeLink)
                         }
                     }
-                    // choose a message
-                    // send
-                    // sleep
                 }
                 block()
             }
@@ -148,15 +139,14 @@ class DtnLink extends UnetAgent {
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 1000)
-            println("link: " + link.getName())
             if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
-                link.getName() != getName()) {
+                link.getName() != getName()) { // we don't want to use the DtnLink!
                 println("Candidate Link " + link.getName())
                 return link
             }
         }
-        println "No link with reliability found"
+        println("No link with reliability found")
         return null
     }
 
@@ -198,17 +188,14 @@ class DtnLink extends UnetAgent {
                     ntf.setProtocol(protocol)
                     ntf.setData(data)
                     // FIXME: ntf.setTtl(ttl)
-//                    println("Messages Rec at" + nodeAddress + " " + ++dtnGramsRec)
                     notify.send(ntf)
                 }
             }
-            // we don't need to handle other protocol numbers
+        // we don't need to handle other protocol numbers
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-//            println("Deleting " + messageID + " w/ new files " + storage.datagramMap.size() + "/" + storage.db.size() + " on node " + nodeAddress)
-
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
@@ -222,10 +209,8 @@ class DtnLink extends UnetAgent {
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
-//        println "Send " + messageID + " to " + node + " on " + nodeLink
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null) {
-//        if (pdu != null && !storage.db.get(messageID).sent) {
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                       data: pdu,
                                                       to: node,
