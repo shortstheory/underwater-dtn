@@ -3,6 +3,7 @@ package dtn
 import groovy.transform.CompileStatic
 import org.apache.commons.lang3.tuple.MutablePair
 import org.apache.commons.lang3.tuple.Pair
+import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
@@ -31,9 +32,6 @@ class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE = 8
     public static final int DTN_PROTOCOL = 50
 
-    private final int RANDOM_DELAY = 5000
-
-    int dtnGramsRec = 0
     int MTU
 
     private DtnStorage storage
@@ -55,21 +53,23 @@ class DtnLink extends UnetAgent {
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
+    int RANDOM_DELAY = 5000
 
-    public int currentTimeSeconds() {
+
+    int currentTimeSeconds() {
         return (currentTimeMillis()/1000).intValue()
+    }
+
+    List<Parameter> getParameterList() {
+        allOf(DtnLinkParameters)
     }
 
     @Override
     protected void setup() {
         register(Services.LINK)
         register(Services.DATAGRAM)
-
+        // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
-    }
-
-    List<Parameter> getParameterList() {
-        allOf(DtnLinkParameters)
     }
 
     @Override
@@ -82,9 +82,10 @@ class DtnLink extends UnetAgent {
         notify = topic()
 
         storage = new DtnStorage(this, Integer.toString(nodeAddress))
-        utility = new DtnUtility()
+        utility = new DtnUtility(this)
 
         link = getLinkWithReliability()
+        utility.addLink(link)
 
         if (link != null) {
             subscribe(link)
@@ -110,17 +111,10 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new TickerBehavior(DATAGRAM_PERIOD) {
-            @Override
-            void onTick() {
-                datagramCycle.restart()
-            }
-        })
-
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                for (Map.Entry<Integer, AgentID> entry : liveLinks.entrySet()) {
+                for (Map.Entry<Integer, AgentID> entry : utility.getNodeLiveLinks().entrySet()) {
                     if (entry != null) {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
@@ -134,6 +128,15 @@ class DtnLink extends UnetAgent {
                 block()
             }
         })
+
+        add(new TickerBehavior(DATAGRAM_PERIOD) {
+            @Override
+            void onTick() {
+                utility.deleteExpiredLinks()
+                datagramCycle.restart()
+            }
+        })
+
     }
 
     AgentID getLinkWithReliability() {
@@ -169,9 +172,9 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
             // FIXME: should this only be for SNOOP?
-
-//             liveLinks.put(msg.getFrom(), new Tuple2<AgentID, Integer>(agent("link"), currentTimeSeconds())
-        } else if (msg instanceof DatagramNtf) {
+            // listen for SNOOP
+             utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
+         } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
@@ -208,6 +211,7 @@ class DtnLink extends UnetAgent {
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         byte[] pdu = storage.getPDU(messageID)
         if (pdu != null) {
+            println("Sent DATAGRAM")
             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                       data: pdu,
                                                       to: node,
@@ -221,20 +225,24 @@ class DtnLink extends UnetAgent {
         return new TickerBehavior(BEACON_PERIOD) {
             @Override
             void onTick() {
-                super.onTick()
-                int currentTime = currentTimeSeconds()
-                int gapTime = (BEACON_PERIOD / 1000).intValue()
-                if (currentTime - lastReceivedTime >= gapTime) {
-                    int randomDelay = (int) (Math.random() * RANDOM_DELAY)
-                    add(new WakerBehavior(randomDelay) {
-                        @Override
-                        void onWake() {
-                            link.send(new DatagramReq(to: Address.BROADCAST))
-                        }
-                    })
+                int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
+                for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
+                    int lastTransmission = utility.getLastTransmission(linkID)
+                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
+                        add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
+                            @Override
+                            void onWake() {
+                                linkID.send(new DatagramReq(to: Address.BROADCAST))
+                            }
+                        })
+                    }
                 }
             }
         }
+    }
+
+    Object getProperty(AgentID aid, Parameter param) {
+        return get(aid, param)
     }
 
     int getMTU() {
