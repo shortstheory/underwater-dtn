@@ -6,7 +6,7 @@ import org.arl.fjage.Agent
 import org.arl.unet.link.ReliableLinkParam
 
 @CompileStatic
-class DtnUtility {
+class DtnLinkInfo {
     private int LINK_EXPIRY_TIME = 10*60 // 10 mins before we remove a link's "ALIVE" status
     private DtnLink dtnLink
 
@@ -16,7 +16,7 @@ class DtnUtility {
     private HashMap<AgentID, AgentID> linkPhyMap
 
 
-    DtnUtility(DtnLink dtnLink) {
+    DtnLinkInfo(DtnLink dtnLink) {
         this.dtnLink = dtnLink
         nodeLiveLinks = new HashMap<>()
         linkLastTransmission = new HashMap<>()
@@ -32,14 +32,6 @@ class DtnUtility {
         return nodeLiveLinks
     }
 
-    void updateTransmissionTimes(AgentID id) {
-//        for (Map.Entry<AgentID, AgentID> entry : linkPhyMap.entrySet()) {
-//            if (entry.value() == id) {
-//                linkLastTransmission.
-//            }
-//        }
-    }
-
     int getLastTransmission(AgentID link) {
         return linkLastTransmission.getOrDefault(link, 0)
     }
@@ -51,8 +43,8 @@ class DtnUtility {
         }
     }
 
-    void updateLinkMaps(Integer node, AgentID topic) {
-        AgentID phy = topic.getOwner().getAgentID()
+    void updateLinkMaps(Integer node, AgentID phy_topic) {
+        AgentID phy = phy_topic.getOwner().getAgentID()
         for (Map.Entry<AgentID, AgentID> entry : linkPhyMap.entrySet()) {
             AgentID linkID = entry.getKey()
             AgentID phyID = entry.getValue()

@@ -5,12 +5,17 @@ issues:
 * some unet3 telnet commands do not work
 * collect trace.nam stats and use them
 * setBEACON_BEHAVIOR() looks bad
+* agent.stop() is called several times?
 
 router << new DatagramReq(to: 3, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 
 pending:
+* increase timeout
+* simulations
+* improve stats collection
+
 * delete old links
 * should I send a DFN if I don't have a route to node?
 * note about fxns in CyclicBehavior
