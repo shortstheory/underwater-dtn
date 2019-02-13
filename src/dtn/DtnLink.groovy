@@ -239,6 +239,7 @@ class DtnLink extends UnetAgent {
              String failedmsg =  storage.getOriginalMessageID(msg.getInReplyTo())
 //             println "Failure for " + failedmsg + " original/" + msg.getInReplyTo() + " " + storage.db.get(failedmsg).attempts
              stats.datagrams_failed++
+             storage.removeFailedEntry(msg.getInReplyTo())
              linkState = LinkState.READY
              // we reset the sent flag in hope of resending the message later on
 //             String messageID = msg.getInReplyTo()
@@ -250,7 +251,7 @@ class DtnLink extends UnetAgent {
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
             linkState = LinkState.WAITING
-            add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
+            add(new WakerBehavior((long)Math.random() * RANDOM_DELAY) {
                 @Override
                 void onWake() {
                     byte[] pdu = storage.getPDU(messageID)

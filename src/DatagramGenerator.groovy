@@ -37,7 +37,7 @@ class DatagramGenerator extends UnetAgent{
             for (int destNode : destNodes) {
 //                println "Messages Sent to " + destNode + ": " + ++msgsent
 //                link.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
-                dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
+                dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 100, protocol: DtnLink.DTN_PROTOCOL))
             }
         }))
     }

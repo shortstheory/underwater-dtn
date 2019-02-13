@@ -103,9 +103,12 @@ class DtnStorage {
     }
 
     ArrayList<Tuple2> deleteExpiredDatagrams() {
+        // FIXME: This is very very broken CME
         ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
 
-        for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
+        Iterator it = db.entrySet().iterator()
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry)it.next()
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
@@ -150,5 +153,9 @@ class DtnStorage {
             return encodePdu(data, ttl, protocol)
         }
         return null
+    }
+
+    void removeFailedEntry(String newMessageID) {
+        datagramMap.remove(newMessageID)
     }
 }

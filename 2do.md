@@ -16,6 +16,7 @@ link << new DatagramReq(to: 2, data: [1,2,3])
 
 pending:
 * increase timeout
+* have max retry before FAIL
 * simulations
 
 * delete old links
