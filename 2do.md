@@ -53,6 +53,22 @@ done:
 * telnet doesn't work for me
 * sending beacon at same causes X_X
 
+experimental:
+        Container[] containers = platform.getContainers()
+//        for (Container container : containers) {
+//            println "gotContainer"
+//        }
+        DtnLink l
+        for (AgentID agentID : containers[0].getAgents()) {
+            if (agentID.getName() == "dtnlink") {
+                AgentID agent = agentID
+
+                l = containers[0].getAgent(agent)
+                stats = l.getStats()
+                println "Ref2Dtn"
+            }
+        }
+
 
 link << new DatagramReq(to: 1)
 l = agent("link")

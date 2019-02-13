@@ -1,6 +1,7 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.google.gson.Gson
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
 import dtn.*
@@ -31,10 +32,12 @@ int[] dest1 = [2]
 int[] dest2 = [1]
 int[] dest3 = [1, 2]
 
+int nodeCount = 3
+
 println '''
 TX Count\tRX Count\tLoss %\t\tOffered Load\tThroughput
 --------\t--------\t------\t\t------------\t----------'''
-
+DtnStats stats
 for (def i = 0; i < 10; i++) {
     // add housekeeping here
     FileUtils.deleteDirectory(new File("1"))
@@ -61,9 +64,15 @@ for (def i = 0; i < 10; i++) {
 //        container.add 'router', new Router()
         }
     }
+    for (int stat = 1; stat <= nodeCount; stat++) {
+        Gson gson = new Gson()
+        String json = new File(Integer.toString(stat)+".json").text
+        DtnStats dtnStats = gson.fromJson(json, DtnStats.class)
+        dtnStats.printStats()
+    }
     float loss = trace.txCount ? 100*trace.dropCount/trace.txCount : 0
-    Container[] containers = platform.getContainers()
     println sprintf('%6d\t\t%6d\t\t%5.1f\t\t%7.3f\t\t%7.3f',
             [trace.txCount, trace.rxCount, loss, trace.offeredLoad, trace.throughput])
+
 }
 

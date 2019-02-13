@@ -80,7 +80,7 @@ class DtnLink extends UnetAgent {
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
 
-        stats = new DtnStats()
+        stats = new DtnStats(nodeAddress)
         storage = new DtnStorage(this, Integer.toString(nodeAddress))
         utility = new DtnLinkInfo(this)
 
@@ -271,17 +271,13 @@ class DtnLink extends UnetAgent {
         }
     }
 
+    DtnStats getStats() {
+        return stats
+    }
+
     @Override
     void stop() {
         super.stop()
-        stats.datagrams_buffer = new File(Integer.toString(nodeAddress)).listFiles().length
-        println "Node " + nodeAddress + " stats\n========="
-        println "DRs sent:        " + stats.datagrams_sent
-        println "DRs received:    " + stats.datagrams_received
-        println "DRs failed:      " + stats.datagrams_failed
-        println "DRs succeeded:   " + stats.datagrams_success
-        println "DRs received  :  " + stats.datagrams_requested
-        println "DRs in storage:  " + stats.datagrams_buffer
-        println "Beacons snooped: " + stats.beacons_snooped
+        stats.writeToFile()
     }
 }
