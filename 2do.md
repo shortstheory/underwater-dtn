@@ -1,4 +1,7 @@
 issues:
+* SAME DG keeps failing!!!
+    * probably because they all fail at the same time?!
+* waiting for a DFN blocks the rest of the queue
 * NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
 * CSMA MAC isn't working
 * I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
@@ -14,7 +17,6 @@ link << new DatagramReq(to: 2, data: [1,2,3])
 pending:
 * increase timeout
 * simulations
-* improve stats collection
 
 * delete old links
 * should I send a DFN if I don't have a route to node?
@@ -30,6 +32,7 @@ pending:
 * short circuit
 
 done:
+* improve stats collection
 * TickerBehavior doesn't have a configurable period
 * without reliaiblity, reliableLink does not send any messages!!
 * write32/48 but not write64 for floats?

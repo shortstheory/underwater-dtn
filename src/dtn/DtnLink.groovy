@@ -22,6 +22,7 @@ import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
+import sun.awt.image.ImageWatched
 
 //@TypeChecked
 @CompileStatic
@@ -63,12 +64,24 @@ class DtnLink extends UnetAgent {
         allOf(DtnLinkParameters)
     }
 
+    enum DatagramPriority {
+        ARRIVAL, EXPIRY, RANDOM
+    }
+
+    enum LinkState {
+        READY, WAITING
+    }
+
+    LinkState linkState
+
     @Override
     protected void setup() {
         register(Services.LINK)
         register(Services.DATAGRAM)
         // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
+
+        linkState = LinkState.READY
     }
 
     @Override
@@ -121,10 +134,13 @@ class DtnLink extends UnetAgent {
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = datagrams[0]
                         // this logic blocks the queue if we get a errant DG! Not good!
-                        // FIXME: this logic makes it impossible to retry a DG!
-                        if (messageID != null && storage.db.get(messageID).attempts == 0) {
+                        // FIXME: this logic makes it impossible to send another DG on failure!
+                        if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
                             sendDatagram(messageID, node, nodeLink)
                         }
+//                        else if (messageID != null && storage.db.get(messageID).attempts != 0) {
+//                            println nodeAddress + "DatagramClogged!!" + messageID
+//                        }
                     }
                 }
                 block()
@@ -139,6 +155,17 @@ class DtnLink extends UnetAgent {
             }
         })
 
+    }
+
+    String selectNextDatagram(ArrayList<String> datagrams, DatagramPriority priority) {
+        switch (priority) {
+        case DatagramPriority.ARRIVAL:
+            break
+        case DatagramPriority.EXPIRY:
+            break
+        case DatagramPriority.RANDOM:
+            break
+        }
     }
 
     AgentID getLinkWithReliability() {
@@ -197,6 +224,7 @@ class DtnLink extends UnetAgent {
                 }
             }
         // we don't need to handle other protocol numbers
+         // once we have received a Datagram, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
@@ -204,10 +232,14 @@ class DtnLink extends UnetAgent {
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
+            linkState = LinkState.READY
             datagramCycle.restart()
             stats.datagrams_success++
          } else if (msg instanceof DatagramFailureNtf) {
+             String failedmsg =  storage.getOriginalMessageID(msg.getInReplyTo())
+//             println "Failure for " + failedmsg + " original/" + msg.getInReplyTo() + " " + storage.db.get(failedmsg).attempts
              stats.datagrams_failed++
+             linkState = LinkState.READY
              // we reset the sent flag in hope of resending the message later on
 //             String messageID = msg.getInReplyTo()
 //             String originalMessageID = storage.getOriginalMessageID(messageID)
@@ -216,15 +248,27 @@ class DtnLink extends UnetAgent {
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
-        byte[] pdu = storage.getPDU(messageID)
-        if (pdu != null) {
-            DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                                      data: pdu,
-                                                      to: node,
-                                                      reliability: true)
-            storage.trackDatagram(datagramReq.getMessageID(), messageID)
-            nodeLink.send(datagramReq)
-            stats.datagrams_sent++
+        if (linkState == LinkState.READY) {
+            linkState = LinkState.WAITING
+            add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
+                @Override
+                void onWake() {
+                    byte[] pdu = storage.getPDU(messageID)
+                    if (pdu != null) {
+                        if (storage.db.get(messageID).attempts > 0) {
+                            stats.datagrams_resent++
+                            println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
+                        }
+                        DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                data: pdu,
+                                to: node,
+                                reliability: true)
+                        storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                        nodeLink.send(datagramReq)
+                        stats.datagrams_sent++
+                    }
+                }
+            })
         }
     }
 

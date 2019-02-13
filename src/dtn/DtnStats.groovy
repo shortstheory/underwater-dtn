@@ -16,6 +16,7 @@ class DtnStats {
     public int datagrams_received = 0
     public int datagrams_failed = 0
     public int datagrams_success = 0
+    public int datagrams_resent = 0
 
     DtnStats(int nodeAddress) {
         address = nodeAddress
@@ -40,7 +41,7 @@ class DtnStats {
     }
 
     void printValues() {
-        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f',
+        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f',
                 [address,
                 datagrams_sent,
                 datagrams_received,
@@ -48,9 +49,10 @@ class DtnStats {
                 datagrams_success,
                 datagrams_requested,
                 datagrams_buffer,
+                datagrams_resent,
                 beacons_snooped,
                 (float)datagrams_failed/datagrams_sent,
-                (float)datagrams_sent/datagrams_requested
+                (float)datagrams_success/datagrams_requested
                 ])
     }
 }
