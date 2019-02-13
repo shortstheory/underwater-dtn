@@ -25,18 +25,23 @@ channel.pDecoding = 1                   // pc
 
 println "Starting simulation!"
 
-def T = 1.hour
-def f = 10*1000
+def T = 3.hour
+def f = 100*1000
+def dist = 200.m
 
 int[] dest1 = [2]
-int[] dest2 = [1]
-int[] dest3 = [1, 2]
+int[] dest2 = [3]
+int[] dest3 = [1]
 
 int nodeCount = 3
 
+//println '''
+//TX Count\tRX Count\tLoss %\t\tOffered Load\tThroughput
+//--------\t--------\t------\t\t------------\t----------'''
+
 println '''
-TX Count\tRX Count\tLoss %\t\tOffered Load\tThroughput
---------\t--------\t------\t\t------------\t----------'''
+Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tBeac\tF%  \tTx%'''
+
 DtnStats stats
 for (def i = 0; i < 10; i++) {
     // add housekeeping here
@@ -50,13 +55,13 @@ for (def i = 0; i < 10; i++) {
             //    container.add 'mac', new CSMA()
             container.add 'testagent', new DatagramGenerator(dest1, f)
         }
-        node '2', address: 2, location: [2000.m, 0, 0], shell: 5001, stack: { container ->
+        node '2', address: 2, location: [dist, 0, 0], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
             container.add 'testagent', new DatagramGenerator(dest2, f)
             //    container.add 'mac', new CSMA()
         }
-        node '3', address: 3, location: [0, 2000.m, 0], shell: true, stack: { container ->
+        node '3', address: 3, location: [0, dist, 0], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
             container.add 'testagent', new DatagramGenerator(dest3, f)
@@ -64,15 +69,16 @@ for (def i = 0; i < 10; i++) {
 //        container.add 'router', new Router()
         }
     }
+    println("")
     for (int stat = 1; stat <= nodeCount; stat++) {
         Gson gson = new Gson()
         String json = new File(Integer.toString(stat)+".json").text
         DtnStats dtnStats = gson.fromJson(json, DtnStats.class)
-        dtnStats.printStats()
+        dtnStats.printValues()
     }
-    float loss = trace.txCount ? 100*trace.dropCount/trace.txCount : 0
-    println sprintf('%6d\t\t%6d\t\t%5.1f\t\t%7.3f\t\t%7.3f',
-            [trace.txCount, trace.rxCount, loss, trace.offeredLoad, trace.throughput])
+//    float loss = trace.txCount ? 100*trace.dropCount/trace.txCount : 0
+//    println sprintf('%6d\t\t%6d\t\t%5.1f\t\t%7.3f\t\t%7.3f',
+//            [trace.txCount, trace.rxCount, loss, trace.offeredLoad, trace.throughput])
 
 }
 

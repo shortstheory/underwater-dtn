@@ -38,4 +38,19 @@ class DtnStats {
         println "DRs in storage:  " + datagrams_buffer
         println "Beacons snooped: " + beacons_snooped
     }
+
+    void printValues() {
+        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f',
+                [address,
+                datagrams_sent,
+                datagrams_received,
+                datagrams_failed,
+                datagrams_success,
+                datagrams_requested,
+                datagrams_buffer,
+                beacons_snooped,
+                (float)datagrams_failed/datagrams_sent,
+                (float)datagrams_sent/datagrams_requested
+                ])
+    }
 }
