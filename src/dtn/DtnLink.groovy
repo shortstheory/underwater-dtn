@@ -234,6 +234,7 @@ class DtnLink extends UnetAgent {
                 stats.delivery_times.add(deliveryTime)
             }
             storage.deleteFile(originalMessageID)
+            storage.db.remove(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
             linkState = LinkState.READY

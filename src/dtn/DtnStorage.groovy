@@ -94,7 +94,7 @@ class DtnStorage {
                 }
             }
             datagramMap.remove(key)
-            db.remove(messageID)
+//            db.remove(messageID)
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + db.size()
         }
@@ -112,9 +112,11 @@ class DtnStorage {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-//                expiredDatagrams.add(deleteFile(messageID))
+                expiredDatagrams.add(deleteFile(messageID))
+                it.remove()
             }
         }
+        println("Deleting " +expiredDatagrams.size())
         return expiredDatagrams
     }
 
@@ -144,12 +146,14 @@ class DtnStorage {
     // this method will automatically set the TTL correctly for sending the PDU
     byte[] getPDU(String messageID, boolean adjustTtl) {
         byte[] pduBytes = new File(directory, messageID).text.getBytes()
-        Tuple pduTuple = decodePdu(pduBytes)
-        int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
-        int protocol = (int)pduTuple.get(1)
-        byte[] data = (byte[])pduTuple.get(2)
-        if (ttl > 0) {
-            return encodePdu(data, ttl, protocol)
+        if (pduBytes != null) {
+            Tuple pduTuple = decodePdu(pduBytes)
+            int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int) pduTuple.get(0)
+            int protocol = (int) pduTuple.get(1)
+            byte[] data = (byte[]) pduTuple.get(2)
+            if (ttl > 0) {
+                return encodePdu(data, ttl, protocol)
+            }
         }
         return null
     }

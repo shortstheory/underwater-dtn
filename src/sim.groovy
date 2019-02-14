@@ -26,8 +26,12 @@ channel.pDecoding = 1                   // pc
 println "Starting simulation!"
 
 def T = 3.hour
-def f = 100*1000
+def f = 1*1000
 def dist = 200.m
+
+//int[] dest1 = [2,3]
+//int[] dest2 = [3,1]
+//int[] dest3 = [1,2]
 
 int[] dest1 = [2]
 int[] dest2 = [3]
