@@ -1,0 +1,71 @@
+/usr/lib/jvm/java-8-openjdk-amd64/bin/java -javaagent:/snap/intellij-idea-community/120/lib/idea_rt.jar=45507:/snap/intellij-idea-community/120/bin -Dfile.encoding=UTF-8 -classpath /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/charsets.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/java-atk-wrapper.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jsse.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management-agent.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/resources.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar:/home/nic/nus/dtn/out/production/dtn:/home/nic/nus/UnetStack3-prerelease-20190128/lib/cloning-1.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-fileupload-1.3.3.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-io-2.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-lang3-3.6.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/fjage-1.5.1.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/groovy-all-2.4.15.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/gson-2.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/javax.servlet-api-3.1.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jcommon-1.0.23.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-http-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-io-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-security-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-servlet-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-util-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-xml-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jfreechart-1.0.19.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jline-3.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jSerialComm-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jtransforms-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/junit-4.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/objenesis-1.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/openrq-3.3.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-framework-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-simulator-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-stack-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-api-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-common-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-servlet-9.4.12.v20180830.jar:/home/nic/nus/commons-math3-3.6.1/commons-math3-3.6.1.jar org.arl.fjage.shell.GroovyBoot cls://org.arl.unet.sim.initrc src/sim.groovy
+Starting simulation!
+
+===========
+Size - 0 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		 64		 38		 29		 35		 35		  0		 29		264		 11		 16		0.453	1.000	26.60	29.24
+  2		 68		 36		 33		 35		 35		  0		 33		220		 34		 52		0.485	1.000	29.29	29.33
+  3		 57		 48		 22		 35		 35		  0		 22		247		 23		 35		0.386	1.000	20.94	25.46
+
+===========
+Size - 100 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		 64		 38		 29		 35		 35		  0		 29		236		 41		 54		0.453	1.000	27.11	29.15
+  2		 64		 44		 29		 35		 35		  0		 29		260		 18		 27		0.453	1.000	27.00	33.19
+  3		 67		 41		 32		 35		 35		  0		 32		268		  8		 13		0.478	1.000	29.37	32.91
+
+===========
+Size - 200 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		128		 39		 98		 29		 35		  0		 97		896		 94		164		0.766	0.829	199.41	281.05
+  2		127		 45		100		 27		 35		  0		 97		919		 99		157		0.787	0.771	141.22	147.40
+  3		128		 37		 96		 31		 35		  0		 96		901		 99		171		0.750	0.886	184.94	206.54
+
+===========
+Size - 300 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		118		 26		 98		 19		 35		  0		 95		1306		151		240		0.831	0.543	176.21	162.85
+  2		121		 33		 99		 22		 35		  0		 95		1313		133		222		0.818	0.629	311.50	458.67
+  3		117		 31		100		 16		 35		  0		 95		1283		167		255		0.855	0.457	263.13	299.92
+
+===========
+Size - 400 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		107		 20		 99		  7		 35		  0		 95		1426		218		321		0.925	0.200	522.86	534.44
+  2		109		 13		 96		 13		 35		  0		 92		1428		212		320		0.881	0.371	307.38	323.67
+  3		106		 21		 98		  7		 35		  0		 93		1410		251		343		0.925	0.200	603.71	659.18
+
+===========
+Size - 500 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		 95		  9		 87		  7		 35		  0		 85		1613		242		357		0.916	0.200	649.71	662.28
+  2		 94		 20		 90		  3		 35		  0		 86		1627		248		372		0.957	0.086	866.33	686.47
+  3		 93		 16		 88		  4		 35		  0		 87		1752		170		243		0.946	0.114	785.75	868.90
+
+===========
+Size - 600 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 
+  1		 93		 15		 88		  4		 35		  0		 85		1649		204		284		0.946	0.114	611.00	440.06
+  2		 93		 17		 86		  6		 35		  0		 83		1566		248		368		0.925	0.171	328.83	401.53
+  3		 92		 18		 88		  3		 35		  0		 86		1539		287		396		0.957	0.086	442.00	551.01
+
+===========
+Size - 700 Freq - 100000 Dist - 200 TTL - 10000
+
+    Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+> 

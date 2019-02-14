@@ -1,14 +1,6 @@
 issues:
-* SAME DG keeps failing!!!
-    * probably because they all fail at the same time?!
-* waiting for a DFN blocks the rest of the queue
-* NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
-* CSMA MAC isn't working
-* I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
-* some unet3 telnet commands do not work
-* collect trace.nam stats and use them
-* setBEACON_BEHAVIOR() looks bad
-* agent.stop() is called several times?
+2 recipients for node == much longer delivery times
+
 
 router << new DatagramReq(to: 3, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
@@ -36,7 +28,20 @@ pending:
 * make MTU readonly
 * short circuit
 
+later:
+* I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
+
 done:
+* waiting for a DFN blocks the rest of the queue
+* NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
+* some unet3 telnet commands do not work
+* collect trace.nam stats and use them
+* setBEACON_BEHAVIOR() looks bad
+* agent.stop() is called several times?
+
+* CSMA MAC isn't working
+* SAME DG keeps failing!!!
+    * probably because they all fail at the same time?!
 * delete old links
 * improve stats collection
 * increase timeout

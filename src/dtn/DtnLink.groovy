@@ -5,6 +5,7 @@ import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
 import org.arl.fjage.Performative
+import org.arl.fjage.PoissonBehavior
 import org.arl.fjage.TickerBehavior
 import org.arl.fjage.WakerBehavior
 import org.arl.unet.Address
@@ -48,7 +49,7 @@ class DtnLink extends UnetAgent {
     private AgentID[] links
 
     private CyclicBehavior datagramCycle
-    private TickerBehavior beaconBehavior
+    private PoissonBehavior beaconBehavior
 
     private DtnLinkInfo utility
 
@@ -113,7 +114,7 @@ class DtnLink extends UnetAgent {
             }
         }
 
-        beaconBehavior = (TickerBehavior)add(createBeaconBehavior())
+        beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
         add(new TickerBehavior(SWEEP_PERIOD) {
             @Override
             void onTick() {
@@ -149,7 +150,7 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new TickerBehavior(DATAGRAM_PERIOD) {
+        add(new PoissonBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
                 utility.deleteExpiredLinks()
@@ -284,20 +285,20 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    TickerBehavior createBeaconBehavior() {
-        return new TickerBehavior(BEACON_PERIOD) {
+    PoissonBehavior createBeaconBehavior() {
+        return new PoissonBehavior(BEACON_PERIOD) {
             @Override
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
                 for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
                     int lastTransmission = utility.getLastTransmission(linkID)
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
-                        add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
-                            @Override
-                            void onWake() {
+//                        add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
+//                            @Override
+//                            void onWake() {
                                 linkID.send(new DatagramReq(to: Address.BROADCAST))
-                            }
-                        })
+//                            }
+//                        })
                     }
                 }
             }
@@ -323,7 +324,7 @@ class DtnLink extends UnetAgent {
             println "Stopped beacon"
         } else {
             println "Changed beacon interval"
-            beaconBehavior = (TickerBehavior)add(createBeaconBehavior())
+            beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
         }
     }
 
