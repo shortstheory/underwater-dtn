@@ -26,8 +26,11 @@ channel.pDecoding = 1                   // pc
 println "Starting simulation!"
 
 def T = 3.hour
-def f = 1*1000
+
 def dist = 200.m
+def msgSize = 100
+def msgFreq = 100*1000
+def msgTtl = 10000
 
 //int[] dest1 = [2,3]
 //int[] dest2 = [3,1]
@@ -57,18 +60,18 @@ for (def i = 0; i < 10; i++) {
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
             //    container.add 'mac', new CSMA()
-            container.add 'testagent', new DatagramGenerator(dest1, f)
+            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl)
         }
         node '2', address: 2, location: [dist, 0, 0], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
-            container.add 'testagent', new DatagramGenerator(dest2, f)
+            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl)
             //    container.add 'mac', new CSMA()
         }
         node '3', address: 3, location: [0, dist, 0], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
-            container.add 'testagent', new DatagramGenerator(dest3, f)
+            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl)
             //    container.add 'mac', new CSMA()
 //        container.add 'router', new Router()
         }

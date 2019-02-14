@@ -14,7 +14,7 @@ router << new DatagramReq(to: 3, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 
-TSA = currentTime - (expiryTime - ttl)
+You can do it.remove! But not directly from the Map!!
 
 pending:
 * increase timeout

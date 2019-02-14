@@ -94,7 +94,7 @@ class DtnStorage {
                 }
             }
             datagramMap.remove(key)
-//            db.remove(messageID)
+//            db.remove(messageID) removing it this way will cause a CME!!, must remove through it
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + db.size()
         }
@@ -103,7 +103,6 @@ class DtnStorage {
     }
 
     ArrayList<Tuple2> deleteExpiredDatagrams() {
-        // FIXME: This is very very broken CME
         ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
 
         Iterator it = db.entrySet().iterator()
@@ -116,7 +115,6 @@ class DtnStorage {
                 it.remove()
             }
         }
-        println("Deleting " +expiredDatagrams.size())
         return expiredDatagrams
     }
 

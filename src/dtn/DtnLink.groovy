@@ -20,6 +20,7 @@ import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
+import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
 import sun.awt.image.ImageWatched
@@ -250,13 +251,15 @@ class DtnLink extends UnetAgent {
             //             String messageID = msg.getInReplyTo()
             //             String originalMessageID = storage.getOriginalMessageID(messageID)
             //             storage.db.get(originalMessageID).
-        }
+        } else if (msg instanceof CollisionNtf) {
+             println "Frame collision u_u"
+         }
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
             linkState = LinkState.WAITING
-            add(new WakerBehavior(Math.random()*RANDOM_DELAY) {
+            add(new WakerBehavior(Math.round(Math.random()*RANDOM_DELAY)) {
                 @Override
                 void onWake() {
                     byte[] pdu = storage.getPDU(messageID, true)

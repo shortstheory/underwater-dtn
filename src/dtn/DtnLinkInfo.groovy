@@ -57,13 +57,14 @@ class DtnLinkInfo {
     }
 
     void deleteExpiredLinks() {
-//        for (Map.Entry<Integer, AgentID> entry : nodeLiveLinks.entrySet()) {
-//            int node = entry.getKey()
-//            AgentID id = entry.getValue()
-//            if (dtnLink.currentTimeSeconds() > linkLastTransmission.get(id) + LINK_EXPIRY_TIME) {
-//                nodeLiveLinks.remove(node)
-//            }
-//        }
+        Iterator it = nodeLiveLinks.entrySet().iterator()
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry)it.next()
+            int node = entry.getKey()
+            AgentID id = entry.getValue()
+            if (dtnLink.currentTimeSeconds() > linkLastTransmission.get(id) + LINK_EXPIRY_TIME) {
+                it.remove()
+            }
+        }
     }
-
 }
