@@ -142,13 +142,13 @@ class DtnStorage {
     }
 
     // this method will automatically set the TTL correctly for sending the PDU
-    byte[] getPDU(String messageID) {
+    byte[] getPDU(String messageID, boolean adjustTtl) {
         byte[] pduBytes = new File(directory, messageID).text.getBytes()
         Tuple pduTuple = decodePdu(pduBytes)
 
         int protocol = (int)pduTuple.get(1)
         byte[] data = (byte[])pduTuple.get(2)
-        int ttl = db.get(messageID).expiryTime - dtnLink.currentTimeSeconds()
+        int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : db.get(messageID).expiryTime
         if (ttl > 0) {
             return encodePdu(data, ttl, protocol)
         }
@@ -157,5 +157,12 @@ class DtnStorage {
 
     void removeFailedEntry(String newMessageID) {
         datagramMap.remove(newMessageID)
+    }
+
+    int getTimeSinceArrival(String messageID) {
+        Tuple pduInfo = decodePdu(getPDU(messageID, false))
+        int ttl = (int)pduInfo.get(0)
+        int expiryTime = db.get(messageID).expiryTime
+        return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
     }
 }

@@ -229,6 +229,7 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
+            println("It took - " + storage.getTimeSinceArrival(originalMessageID) + " for " +messageID)
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
@@ -254,7 +255,7 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior((long)Math.random() * RANDOM_DELAY) {
                 @Override
                 void onWake() {
-                    byte[] pdu = storage.getPDU(messageID)
+                    byte[] pdu = storage.getPDU(messageID, true)
                     if (pdu != null) {
                         if (storage.db.get(messageID).attempts > 0) {
                             stats.datagrams_resent++
