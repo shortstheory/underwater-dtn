@@ -20,6 +20,7 @@ import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.nodeinfo.NodeInfoParam
+import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
@@ -252,7 +253,9 @@ class DtnLink extends UnetAgent {
             //             String originalMessageID = storage.getOriginalMessageID(messageID)
             //             storage.db.get(originalMessageID).
         } else if (msg instanceof CollisionNtf) {
-             println "Frame collision u_u"
+            stats.frame_collisions++
+        } else if (msg instanceof BadFrameNtf) {
+             stats.bad_frames++
          }
     }
 

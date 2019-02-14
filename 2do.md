@@ -16,12 +16,14 @@ link << new DatagramReq(to: 2, data: [1,2,3])
 
 You can do it.remove! But not directly from the Map!!
 
+'%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
+
 pending:
-* increase timeout
+* next DG selecting logic
+* change to poissonbehavior for beacon
 * have max retry before FAIL
 * simulations
 
-* delete old links
 * should I send a DFN if I don't have a route to node?
 * note about fxns in CyclicBehavior
 * multiple links per node
@@ -35,7 +37,9 @@ pending:
 * short circuit
 
 done:
+* delete old links
 * improve stats collection
+* increase timeout
 * TickerBehavior doesn't have a configurable period
 * without reliaiblity, reliableLink does not send any messages!!
 * write32/48 but not write64 for floats?
