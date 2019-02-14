@@ -229,30 +229,33 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-            println("It took - " + storage.getTimeSinceArrival(originalMessageID) + " for " +messageID)
+            int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
+            if (deliveryTime >= 0) {
+                stats.delivery_times.add(deliveryTime)
+            }
             storage.deleteFile(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
             linkState = LinkState.READY
             datagramCycle.restart()
             stats.datagrams_success++
-         } else if (msg instanceof DatagramFailureNtf) {
+        } else if (msg instanceof DatagramFailureNtf) {
              String failedmsg =  storage.getOriginalMessageID(msg.getInReplyTo())
-//             println "Failure for " + failedmsg + " original/" + msg.getInReplyTo() + " " + storage.db.get(failedmsg).attempts
+            //             println "Failure for " + failedmsg + " original/" + msg.getInReplyTo() + " " + storage.db.get(failedmsg).attempts
              stats.datagrams_failed++
              storage.removeFailedEntry(msg.getInReplyTo())
              linkState = LinkState.READY
              // we reset the sent flag in hope of resending the message later on
-//             String messageID = msg.getInReplyTo()
-//             String originalMessageID = storage.getOriginalMessageID(messageID)
-//             storage.db.get(originalMessageID).
+            //             String messageID = msg.getInReplyTo()
+            //             String originalMessageID = storage.getOriginalMessageID(messageID)
+            //             storage.db.get(originalMessageID).
         }
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
             linkState = LinkState.WAITING
-            add(new WakerBehavior((long)Math.random() * RANDOM_DELAY) {
+            add(new WakerBehavior(Math.random()*RANDOM_DELAY) {
                 @Override
                 void onWake() {
                     byte[] pdu = storage.getPDU(messageID, true)

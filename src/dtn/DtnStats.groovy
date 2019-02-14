@@ -2,6 +2,7 @@ package dtn
 
 import com.google.gson.Gson
 import groovy.transform.CompileStatic
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 
 import java.nio.file.Files
 
@@ -17,6 +18,8 @@ class DtnStats {
     public int datagrams_failed = 0
     public int datagrams_success = 0
     public int datagrams_resent = 0
+
+    public ArrayList<Integer> delivery_times = new ArrayList<>()
 
     DtnStats(int nodeAddress) {
         address = nodeAddress
@@ -40,8 +43,24 @@ class DtnStats {
         println "Beacons snooped: " + beacons_snooped
     }
 
+    double getMean(ArrayList<Integer> list) {
+        DescriptiveStatistics stats = new DescriptiveStatistics()
+        for (Integer x : list) {
+            stats.addValue(x)
+        }
+        return stats.getMean()
+    }
+
+    double getStandardDeviation(ArrayList<Integer> list) {
+        DescriptiveStatistics stats = new DescriptiveStatistics()
+        for (Integer x : list) {
+            stats.addValue(x)
+        }
+        return stats.getStandardDeviation()
+    }
+
     void printValues() {
-        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f',
+        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
                 [address,
                 datagrams_sent,
                 datagrams_received,
@@ -52,7 +71,9 @@ class DtnStats {
                 datagrams_resent,
                 beacons_snooped,
                 (float)datagrams_failed/datagrams_sent,
-                (float)datagrams_success/datagrams_requested
+                (float)datagrams_success/datagrams_requested,
+                getMean(delivery_times),
+                getStandardDeviation(delivery_times)
                 ])
     }
 }

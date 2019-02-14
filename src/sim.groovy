@@ -40,7 +40,7 @@ int nodeCount = 3
 //--------\t--------\t------\t\t------------\t----------'''
 
 println '''
-Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tRsnt\tBeac\tF%  \tTx%'''
+Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tRsnt\tBeac\tF%  \tTx%\t\tMean\tSD'''
 
 DtnStats stats
 for (def i = 0; i < 10; i++) {

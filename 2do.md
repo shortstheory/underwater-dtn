@@ -14,6 +14,8 @@ router << new DatagramReq(to: 3, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])
 
+TSA = currentTime - (expiryTime - ttl)
+
 pending:
 * increase timeout
 * have max retry before FAIL

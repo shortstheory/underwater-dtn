@@ -118,10 +118,10 @@ class DtnStorage {
         return expiredDatagrams
     }
 
-    byte[] encodePdu(byte[] data, int ttl, int protocol) {
+    byte[] encodePdu(byte[] data, int Ttl, int protocol) {
         // ttl + protocol = 8 bytes?
         OutputPDU pdu = new OutputPDU(data.length + 8)
-        pdu.write32(ttl)
+        pdu.write32(Ttl)
         pdu.write32(protocol)
         pdu.write(data)
         return pdu.toByteArray()
@@ -145,10 +145,9 @@ class DtnStorage {
     byte[] getPDU(String messageID, boolean adjustTtl) {
         byte[] pduBytes = new File(directory, messageID).text.getBytes()
         Tuple pduTuple = decodePdu(pduBytes)
-
+        int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
         int protocol = (int)pduTuple.get(1)
         byte[] data = (byte[])pduTuple.get(2)
-        int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : db.get(messageID).expiryTime
         if (ttl > 0) {
             return encodePdu(data, ttl, protocol)
         }
@@ -160,9 +159,13 @@ class DtnStorage {
     }
 
     int getTimeSinceArrival(String messageID) {
-        Tuple pduInfo = decodePdu(getPDU(messageID, false))
-        int ttl = (int)pduInfo.get(0)
-        int expiryTime = db.get(messageID).expiryTime
-        return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
+        byte[] pdu = getPDU(messageID, false)
+        if (pdu != null) {
+            Tuple pduInfo = decodePdu(pdu)
+            int ttl = (int)pduInfo.get(0)
+            int expiryTime = db.get(messageID).expiryTime
+            return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
+        }
+        return -1 // this happens when we deleted the PDU before the DDN reached us!
     }
 }
