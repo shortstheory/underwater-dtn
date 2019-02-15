@@ -16,7 +16,8 @@ import org.arl.unet.sim.channels.ProtocolChannelModel
 platform = DiscreteEventSimulator
 
 channel.model = BasicAcousticChannel
-
+//channel.model = ProtocolChannelModel
+//
 //channel.soundSpeed = 1500.mps           // c
 //channel.communicationRange = 2000.m     // Rc
 //channel.detectionRange = 2500.m         // Rd
@@ -27,11 +28,6 @@ channel.model = BasicAcousticChannel
 println "Starting simulation!"
 
 def T = 1.hour
-
-def dist = 200.m
-def msgSize = 0
-def msgFreq = 100*1000
-def msgTtl = 10000
 
 //int[] dest1 = [2,3]
 //int[] dest2 = [3,1]
@@ -47,10 +43,16 @@ int nodeCount = 3
 //TX Count\tRX Count\tLoss %\t\tOffered Load\tThroughput
 //--------\t--------\t------\t\t------------\t----------'''
 
-DtnStats stats
-for (def i = 0; i < 10; i++) {
+
+def msgSize = 200
+def msgFreq = 100*1000
+def msgTtl = 10000
+def dist = 200.m
+
+for (def i = 0; i < 3; i++) {
     // add housekeeping here
-    msgSize = i * 100
+
+
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     FileUtils.deleteDirectory(new File("1"))
     FileUtils.deleteDirectory(new File("2"))

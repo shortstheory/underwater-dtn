@@ -1,6 +1,7 @@
 issues:
 2 recipients for node == much longer delivery times
 
+BasicChannelMode is better!
 
 router << new DatagramReq(to: 3, data: [1,2,3])
 link << new DatagramReq(to: 2, data: [1,2,3])

@@ -36,6 +36,10 @@ class DtnStorage {
         datagramMap.put(newMessageID, oldMessageID)
     }
 
+    DtnPduMetadata getDatagramMetadata(String messageID) {
+        return db.get(messageID)
+    }
+
     String getOriginalMessageID(String newMessageID) {
         return datagramMap.get(newMessageID)
     }

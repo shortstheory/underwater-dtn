@@ -25,6 +25,7 @@ import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
+import org.omg.CORBA.INTERNAL
 import sun.awt.image.ImageWatched
 
 //@TypeChecked
@@ -135,9 +136,8 @@ class DtnLink extends UnetAgent {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                        String messageID = datagrams[0]
+                        String messageID = selectNextDatagram(datagrams, DatagramPriority.ARRIVAL)
                         // this logic blocks the queue if we get a errant DG! Not good!
-                        // FIXME: this logic makes it impossible to send another DG on failure!
                         if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
                             sendDatagram(messageID, node, nodeLink)
                         }
@@ -163,11 +163,20 @@ class DtnLink extends UnetAgent {
     String selectNextDatagram(ArrayList<String> datagrams, DatagramPriority priority) {
         switch (priority) {
         case DatagramPriority.ARRIVAL:
-            break
+            return (datagrams.size()) ? datagrams.get(0) : null
         case DatagramPriority.EXPIRY:
-            break
+            int minExpiryTime = Integer.MAX_VALUE
+            String messageID
+            for (String id : datagrams) {
+                DtnPduMetadata metadata = storage.getDatagramMetadata(id)
+                if (metadata != null & metadata.expiryTime < minExpiryTime) {
+                    messageID = id
+                    minExpiryTime = metadata.expiryTime
+                }
+            }
+            return messageID
         case DatagramPriority.RANDOM:
-            break
+            return (datagrams.size()) ? datagrams.get(new Random().nextInt(datagrams.size())) : null
         }
     }
 
