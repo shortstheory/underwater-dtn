@@ -124,6 +124,7 @@ class DtnLink extends UnetAgent {
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
                     notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
                                                        to: (int)expiredDatagram.getSecond()))
+                    stats.datagrams_expired++
                 }
             }
         })
@@ -136,7 +137,7 @@ class DtnLink extends UnetAgent {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                        String messageID = selectNextDatagram(datagrams, DatagramPriority.ARRIVAL)
+                        String messageID = selectNextDatagram(datagrams, DatagramPriority.RANDOM)
                         // this logic blocks the queue if we get a errant DG! Not good!
                         if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
                             sendDatagram(messageID, node, nodeLink)
@@ -213,8 +214,6 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
-            // FIXME: should this only be for SNOOP?
-            // listen for SNOOP
              stats.beacons_snooped++
              utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
@@ -223,9 +222,9 @@ class DtnLink extends UnetAgent {
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
                 if (pduTuple != null) {
-                    int ttl = (int) pduTuple.get(0)
-                    int protocol = (int) pduTuple.get(1)
-                    byte[] data = (byte[]) pduTuple.get(2)
+                    int ttl = (int)pduTuple.get(0)
+                    int protocol = (int)pduTuple.get(1)
+                    byte[] data = (byte[])pduTuple.get(2)
 
                     DatagramNtf ntf = new DatagramNtf()
                     ntf.setProtocol(protocol)
@@ -235,8 +234,7 @@ class DtnLink extends UnetAgent {
                     stats.datagrams_received++
                 }
             }
-        // we don't need to handle other protocol numbers
-         // once we have received a Datagram, we can send another one
+        // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
@@ -245,27 +243,20 @@ class DtnLink extends UnetAgent {
             if (deliveryTime >= 0) {
                 stats.delivery_times.add(deliveryTime)
             }
-            storage.deleteFile(originalMessageID)
-            storage.db.remove(originalMessageID)
+            storage.setDelivered(originalMessageID)
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
             linkState = LinkState.READY
             datagramCycle.restart()
             stats.datagrams_success++
         } else if (msg instanceof DatagramFailureNtf) {
-             String failedmsg =  storage.getOriginalMessageID(msg.getInReplyTo())
-            //             println "Failure for " + failedmsg + " original/" + msg.getInReplyTo() + " " + storage.db.get(failedmsg).attempts
-             stats.datagrams_failed++
-             storage.removeFailedEntry(msg.getInReplyTo())
-             linkState = LinkState.READY
-             // we reset the sent flag in hope of resending the message later on
-            //             String messageID = msg.getInReplyTo()
-            //             String originalMessageID = storage.getOriginalMessageID(messageID)
-            //             storage.db.get(originalMessageID).
+            stats.datagrams_failed++
+            storage.removeFailedEntry(msg.getInReplyTo())
+            linkState = LinkState.READY
         } else if (msg instanceof CollisionNtf) {
             stats.frame_collisions++
         } else if (msg instanceof BadFrameNtf) {
-             stats.bad_frames++
+            stats.bad_frames++
          }
     }
 
@@ -282,9 +273,9 @@ class DtnLink extends UnetAgent {
                             println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
                         }
                         DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                data: pdu,
-                                to: node,
-                                reliability: true)
+                                                                    data: pdu,
+                                                                    to: node,
+                                                                    reliability: true)
                         storage.trackDatagram(datagramReq.getMessageID(), messageID)
                         nodeLink.send(datagramReq)
                         stats.datagrams_sent++
@@ -302,12 +293,7 @@ class DtnLink extends UnetAgent {
                 for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
                     int lastTransmission = utility.getLastTransmission(linkID)
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
-//                        add(new WakerBehavior((Math.random() * RANDOM_DELAY)) {
-//                            @Override
-//                            void onWake() {
-                                linkID.send(new DatagramReq(to: Address.BROADCAST))
-//                            }
-//                        })
+                        linkID.send(new DatagramReq(to: Address.BROADCAST))
                     }
                 }
             }
@@ -325,7 +311,6 @@ class DtnLink extends UnetAgent {
         return 0
     }
 
-// FIXME: The period of a TickerBehavior cannot be modified!
     void setBEACON_PERIOD(int period) {
         BEACON_PERIOD = period
         beaconBehavior.stop()

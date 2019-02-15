@@ -7,14 +7,13 @@ import org.arl.unet.OutputPDU
 
 import java.nio.file.Files;
 
-//@TypeChecked
 @CompileStatic
 class DtnStorage {
     private final String directory
     HashMap<String, DtnPduMetadata> db
 
     // New DatagramReqID - Old DatagramReqID
-    HashMap<String, String> datagramMap
+    private HashMap<String, String> datagramMap
 
     DtnLink dtnLink
 
@@ -46,13 +45,12 @@ class DtnStorage {
 
     ArrayList<String> getNextHopDatagrams(int nextHop) {
         ArrayList<String> data = new ArrayList<>()
-
         for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
-            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime || metadata.delivered) {
                 // we don't delete here, as it will complicate the logic
-                // instead, it will be deleted by the next sweep
+                // instead, it will be deleted by the next DtnLink sweep
                 continue
             }
             if (metadata.nextHop == nextHop) {
@@ -75,7 +73,8 @@ class DtnStorage {
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPduMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                                                 attempts: 0))
+                                                 attempts: 0,
+                                                 delivered: false))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -114,12 +113,19 @@ class DtnStorage {
             Map.Entry entry = (Map.Entry)it.next()
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
-            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+            if (metadata.delivered) {
+                deleteFile(messageID)
+                it.remove()
+            } else if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 expiredDatagrams.add(deleteFile(messageID))
                 it.remove()
             }
         }
         return expiredDatagrams
+    }
+
+    void setDelivered(String messageID) {
+        db.get(messageID).delivered = true
     }
 
     byte[] encodePdu(byte[] data, int Ttl, int protocol) {
@@ -141,23 +147,26 @@ class DtnStorage {
         int protocol = pdu.read32()
         byte[] data = Arrays.copyOfRange(pduBytes, 8, pduBytes.length)
 
-        Tuple decodedPDU = new Tuple(ttl, protocol, data)
-        return decodedPDU
+        return new Tuple(ttl, protocol, data)
     }
 
-    // this method will automatically set the TTL correctly for sending the PDU
     byte[] getPDU(String messageID, boolean adjustTtl) {
-        byte[] pduBytes = new File(directory, messageID).text.getBytes()
-        if (pduBytes != null) {
-            Tuple pduTuple = decodePdu(pduBytes)
-            int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int) pduTuple.get(0)
-            int protocol = (int) pduTuple.get(1)
-            byte[] data = (byte[]) pduTuple.get(2)
-            if (ttl > 0) {
-                return encodePdu(data, ttl, protocol)
+        try {
+            byte[] pduBytes = new File(directory, messageID).text.getBytes()
+            if (pduBytes != null) {
+                Tuple pduTuple = decodePdu(pduBytes)
+                int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
+                int protocol = (int)pduTuple.get(1)
+                byte[] data = (byte[])pduTuple.get(2)
+                if (ttl > 0) {
+                    return encodePdu(data, ttl, protocol)
+                }
             }
+            return null
+        } catch(FileNotFoundException e) {
+            println "Message ID " + messageID + " not found"
+            return  null
         }
-        return null
     }
 
     void removeFailedEntry(String newMessageID) {

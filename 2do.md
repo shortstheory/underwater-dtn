@@ -1,4 +1,5 @@
 issues:
+* random NPEs/FNF
 2 recipients for node == much longer delivery times
 
 BasicChannelMode is better!

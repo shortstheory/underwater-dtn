@@ -9,4 +9,5 @@ class DtnPduMetadata {
     int nextHop
     int expiryTime
     int attempts
+    boolean delivered
 }

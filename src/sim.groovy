@@ -46,19 +46,16 @@ int nodeCount = 3
 
 def msgSize = 200
 def msgFreq = 100*1000
-def msgTtl = 10000
-def dist = 200.m
+def dist = 1000.m
 
-for (def i = 0; i < 3; i++) {
+for (def i = 0; i < 10; i++) {
     // add housekeeping here
-
-
+    def msgTtl = 600
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     FileUtils.deleteDirectory(new File("1"))
     FileUtils.deleteDirectory(new File("2"))
     FileUtils.deleteDirectory(new File("3"))
-    println '''
-    Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tRsnt\tBeac\tColl\tBadF\tF%  \tTx%\t\tMean\tSD'''
+    println '''Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tRsnt\tExpr\tBeac\tColl\tBadF\tF%  \tTx%\t\tMean\tSD'''
 
     simulate T, {
         node '1', address: 1, location: [0, 0, 0], shell: 5000, stack: { container ->

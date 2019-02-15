@@ -18,6 +18,7 @@ class DtnStats {
     public int datagrams_failed = 0
     public int datagrams_success = 0
     public int datagrams_resent = 0
+    public int datagrams_expired = 0
     public int frame_collisions = 0
     public int bad_frames = 0
 
@@ -62,7 +63,7 @@ class DtnStats {
     }
 
     void printValues() {
-        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
+        println sprintf('%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%3d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
                 [address,
                 datagrams_sent,
                 datagrams_received,
@@ -71,6 +72,7 @@ class DtnStats {
                 datagrams_requested,
                 datagrams_buffer,
                 datagrams_resent,
+                datagrams_expired,
                 beacons_snooped,
                 frame_collisions,
                 bad_frames,
