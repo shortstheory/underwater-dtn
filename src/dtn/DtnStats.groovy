@@ -82,4 +82,15 @@ class DtnStats {
                 getStandardDeviation(delivery_times)
                 ])
     }
+
+    static public void printAllStats(int nodes) {
+        println '''Node\tTx  \tRx  \tFail\tSuc \tReq \tStor\tRsnt\tExpr\tBeac\tColl\tBadF\tF%  \tTx%\t\tMean\tSD'''
+        println("")
+        for (int stat = 1; stat <= nodes; stat++) {
+            Gson gson = new Gson()
+            String json = new File(Integer.toString(stat)+".json").text
+            DtnStats dtnStats = gson.fromJson(json, DtnStats.class)
+            dtnStats.printValues()
+        }
+    }
 }

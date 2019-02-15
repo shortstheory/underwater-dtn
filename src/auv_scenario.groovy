@@ -25,7 +25,7 @@ channel.model = BasicAcousticChannel
 //channel.pDetection = 1                  // pd
 //channel.pDecoding = 1                   // pc
 
-println "Starting simulation!"
+println "Starting AUV simulation!"
 
 def T = 1.hour
 
