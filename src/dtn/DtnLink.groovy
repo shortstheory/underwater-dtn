@@ -54,6 +54,8 @@ class DtnLink extends UnetAgent {
 
     private DtnLinkInfo utility
 
+    public DatagramPriority priority
+
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
@@ -84,7 +86,7 @@ class DtnLink extends UnetAgent {
         register(Services.DATAGRAM)
         // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
-
+        priority = DatagramPriority.EXPIRY
         linkState = LinkState.READY
     }
 
@@ -124,6 +126,7 @@ class DtnLink extends UnetAgent {
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
                     notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
                                                        to: (int)expiredDatagram.getSecond()))
+                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
                     stats.datagrams_expired++
                 }
             }
@@ -137,7 +140,7 @@ class DtnLink extends UnetAgent {
                         int node = entry.getKey()
                         AgentID nodeLink = entry.getValue()
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                        String messageID = selectNextDatagram(datagrams, DatagramPriority.RANDOM)
+                        String messageID = selectNextDatagram(datagrams)
                         // this logic blocks the queue if we get a errant DG! Not good!
                         if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
                             sendDatagram(messageID, node, nodeLink)
@@ -161,7 +164,7 @@ class DtnLink extends UnetAgent {
 
     }
 
-    String selectNextDatagram(ArrayList<String> datagrams, DatagramPriority priority) {
+    String selectNextDatagram(ArrayList<String> datagrams) {
         switch (priority) {
         case DatagramPriority.ARRIVAL:
             return (datagrams.size()) ? datagrams.get(0) : null
@@ -214,6 +217,7 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
+             println("Detected node")
              stats.beacons_snooped++
              utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {

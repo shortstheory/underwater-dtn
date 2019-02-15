@@ -1,5 +1,6 @@
 issues:
 * random NPEs/FNF
+* some datagrams in AUV scenario are not getting transferred in their window of opportunity
 2 recipients for node == much longer delivery times
 
 BasicChannelMode is better!
