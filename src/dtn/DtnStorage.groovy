@@ -151,6 +151,7 @@ class DtnStorage {
     }
 
     byte[] getPDU(String messageID, boolean adjustTtl) {
+        // This throws NPEs. Who knows why?
         try {
             byte[] pduBytes = new File(directory, messageID).text.getBytes()
             if (pduBytes != null) {
@@ -163,7 +164,7 @@ class DtnStorage {
                 }
             }
             return null
-        } catch(FileNotFoundException e) {
+        } catch(Exception e) {
             println "Message ID " + messageID + " not found"
             return  null
         }
