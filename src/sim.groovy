@@ -44,10 +44,11 @@ int nodeCount = 3
 def msgSize = 200
 def msgFreq = 100*1000
 def dist = 1000.m
+def msgTtl = 1000
 
 for (def i = 0; i < 10; i++) {
     // add housekeeping here
-    def msgTtl = 600
+    msgSize = (i+1)*100
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
 
     for (int f = 0; f < nodeCount; f++) {

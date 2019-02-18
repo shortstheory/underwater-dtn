@@ -219,7 +219,9 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
-             println("Detected node" + storage.db.size())
+             if (nodeAddress == 1) {
+                 println("Detected node" + msg.getFrom())
+             }
              stats.beacons_snooped++
              utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
@@ -245,15 +247,18 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-            int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
-            if (deliveryTime >= 0) {
-                stats.delivery_times.add(deliveryTime)
+             // it can happen that the DDN comes just after a TTL
+            if (originalMessageID != null) {
+                int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
+                if (deliveryTime >= 0) {
+                    stats.delivery_times.add(deliveryTime)
+                }
+                storage.setDelivered(originalMessageID)
+                DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+                notify.send(deliveryNtf)
+                stats.datagrams_success++
             }
-            storage.setDelivered(originalMessageID)
-            DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
-            notify.send(deliveryNtf)
             linkState = LinkState.READY
-            stats.datagrams_success++
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
             stats.datagrams_failed++
@@ -298,9 +303,9 @@ class DtnLink extends UnetAgent {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
                 for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
                     int lastTransmission = utility.getLastTransmission(linkID)
-                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
+//                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
-                    }
+//                    }
                 }
             }
         }

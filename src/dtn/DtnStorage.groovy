@@ -69,7 +69,11 @@ class DtnStorage {
         byte[] pduBytes = encodePdu(data, ttl, protocol)
 
         try {
-            File file = new File(directory, messageID)
+            File dir = new File(directory)
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            File file = new File(dir, messageID)
             Files.write(file.toPath(), pduBytes)
             db.put(messageID, new DtnPduMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
