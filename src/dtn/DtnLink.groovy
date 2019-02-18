@@ -28,6 +28,8 @@ import org.arl.unet.phy.RxFrameNtf
 import org.omg.CORBA.INTERNAL
 import sun.awt.image.ImageWatched
 
+import java.lang.reflect.Method
+
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
@@ -279,7 +281,8 @@ class DtnLink extends UnetAgent {
                 add(new WakerBehavior(Math.round(Math.random() * RANDOM_DELAY)) {
                     @Override
                     void onWake() {
-                        if (storage.db.get(messageID).attempts > 0) {
+                        DtnPduMetadata metadata = storage.db.get(messageID)
+                        if (metadata.attempts > 0) {
                             stats.datagrams_resent++
                             println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
                         }
