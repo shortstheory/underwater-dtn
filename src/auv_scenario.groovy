@@ -21,13 +21,13 @@ def T = 5200.second
 int nodeCount = 3
 
 def msgSize = 100
-def msgFreq = 10*1000
+def msgFreq = 100*1000
 def dist = 1000.m
 def msgTtl = 600
 
 int[] dest1 = [2,3]
-int[] dest2 = [3]
-int[] dest3 = [2]
+int[] dest2 = [3,1]
+int[] dest3 = [2,1]
 
 
 for (int f = 0; f < nodeCount; f++) {
@@ -46,6 +46,7 @@ for (int i = 1; i < 10; i++) {
         def auvR = node '2', address: 2, mobility: true, location: [1000.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
+            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl)
         }
         auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
@@ -55,6 +56,7 @@ for (int i = 1; i < 10; i++) {
         def auvL = node '3', address: 3, mobility: true, location: [-1000.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink()
+            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl)
         }
         auvL.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
