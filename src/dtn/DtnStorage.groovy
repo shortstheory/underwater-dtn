@@ -126,6 +126,7 @@ class DtnStorage {
 
     void setDelivered(String messageID) {
 //        if (db.get())
+//        println messageID + " delivered!"
         db.get(messageID).delivered = true
     }
 

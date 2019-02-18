@@ -32,7 +32,7 @@ for (int f = 0; f < nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
-for (int i = 1; i < 10; i++) {
+for (int i = 1; i < 2; i++) {
     msgTtl = 300
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     simulate T, {

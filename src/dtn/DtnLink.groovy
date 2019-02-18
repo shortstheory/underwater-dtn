@@ -126,7 +126,7 @@ class DtnLink extends UnetAgent {
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
                     notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
                                                        to: (int)expiredDatagram.getSecond()))
-//                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
+                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
                     stats.datagrams_expired++
                 }
             }
@@ -155,7 +155,7 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new TickerBehavior(DATAGRAM_PERIOD) {
+        add(new PoissonBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
                 utility.deleteExpiredLinks()
@@ -268,26 +268,26 @@ class DtnLink extends UnetAgent {
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
-//            add(new WakerBehavior(Math.round(Math.random()*RANDOM_DELAY)) {
-//                @Override
-//                void onWake() {
-                    byte[] pdu = storage.getPDU(messageID, true)
-                    if (pdu != null) {
+            byte[] pdu = storage.getPDU(messageID, true)
+            if (pdu != null) {
+                linkState = LinkState.WAITING
+                add(new WakerBehavior(Math.round(Math.random() * RANDOM_DELAY)) {
+                    @Override
+                    void onWake() {
                         if (storage.db.get(messageID).attempts > 0) {
                             stats.datagrams_resent++
                             println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
                         }
                         DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                                                    data: pdu,
-                                                                    to: node,
-                                                                    reliability: true)
+                                data: pdu,
+                                to: node,
+                                reliability: true)
                         storage.trackDatagram(datagramReq.getMessageID(), messageID)
                         nodeLink.send(datagramReq)
-                        linkState = LinkState.WAITING
                         stats.datagrams_sent++
                     }
-//                }
-//            })
+                })
+            }
         }
     }
 
