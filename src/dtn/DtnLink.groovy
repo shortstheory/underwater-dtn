@@ -28,6 +28,7 @@ import org.arl.unet.phy.RxFrameNtf
 import org.omg.CORBA.INTERNAL
 import sun.awt.image.ImageWatched
 
+import javax.xml.crypto.Data
 import java.lang.reflect.Method
 
 //@TypeChecked
@@ -38,17 +39,17 @@ class DtnLink extends UnetAgent {
 
     int MTU
 
-    DtnStats stats
+    public DtnStats stats
 
     private DtnStorage storage
     private int nodeAddress
+    private String directory
 
     // and we are using only 1 link
     private AgentID link
     private AgentID notify
     private AgentID nodeInfo
     private AgentID phy
-    private AgentID mac
     private AgentID[] links
 
     private CyclicBehavior datagramCycle
@@ -82,27 +83,35 @@ class DtnLink extends UnetAgent {
 
     LinkState linkState
 
+    DtnLink(String dir, DatagramPriority datagramPriority) {
+        directory = dir
+        priority = datagramPriority
+    }
+
+    DtnLink(String dir) {
+        directory = dir
+        priority = DatagramPriority.EXPIRY
+    }
+
     @Override
     protected void setup() {
         register(Services.LINK)
         register(Services.DATAGRAM)
         // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
-        priority = DatagramPriority.EXPIRY
         linkState = LinkState.READY
     }
 
     @Override
     protected void startup() {
         nodeInfo = agentForService(Services.NODE_INFO)
-        mac = agentForService(Services.MAC)
         links = agentsForService(Services.LINK)
 
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
 
         stats = new DtnStats(nodeAddress)
-        storage = new DtnStorage(this, Integer.toString(nodeAddress))
+        storage = new DtnStorage(this, directory)
         utility = new DtnLinkInfo(this)
 
         link = getLinkWithReliability()
@@ -143,14 +152,9 @@ class DtnLink extends UnetAgent {
                         AgentID nodeLink = entry.getValue()
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = selectNextDatagram(datagrams)
-                        // this logic blocks the queue if we get a errant DG! Not good!
-                        if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
-                            int nodeTime = currentTimeSeconds()
+                        if (messageID != null) {
                             sendDatagram(messageID, node, nodeLink)
                         }
-//                        else if (messageID != null && storage.db.get(messageID).attempts != 0) {
-//                            println nodeAddress + "DatagramClogged!!" + messageID
-//                        }
                     }
                 }
                 block()
@@ -221,9 +225,6 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
-             if (nodeAddress == 1) {
-                 println("Detected node" + msg.getFrom())
-             }
              stats.beacons_snooped++
              utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
@@ -282,17 +283,21 @@ class DtnLink extends UnetAgent {
                     @Override
                     void onWake() {
                         DtnPduMetadata metadata = storage.db.get(messageID)
-                        if (metadata.attempts > 0) {
-                            stats.datagrams_resent++
-                            println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
+                        if (metadata != null && !metadata.delivered) {
+                            if (metadata.attempts > 0) {
+                                stats.datagrams_resent++
+                                println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
+                            }
+                            DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                    data: pdu,
+                                    to: node,
+                                    reliability: true)
+                            storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                            nodeLink.send(datagramReq)
+                            stats.datagrams_sent++
+                        } else {
+                            linkState = LinkState.READY
                         }
-                        DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                data: pdu,
-                                to: node,
-                                reliability: true)
-                        storage.trackDatagram(datagramReq.getMessageID(), messageID)
-                        nodeLink.send(datagramReq)
-                        stats.datagrams_sent++
                     }
                 })
             }

@@ -34,18 +34,18 @@ for (int f = 0; f < nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
-for (int i = 1; i < 10; i++) {
-    msgTtl = i*100
+for (int i = 1; i < 3; i++) {
+//    msgTtl = i*100
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(1))
             container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl)
         }
         def auvR = node '2', address: 2, mobility: true, location: [1000.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(2))
             container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl)
         }
         auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
@@ -55,7 +55,7 @@ for (int i = 1; i < 10; i++) {
                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
         def auvL = node '3', address: 3, mobility: true, location: [-1000.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(3))
             container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl)
         }
         auvL.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],

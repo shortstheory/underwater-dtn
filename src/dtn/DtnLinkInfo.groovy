@@ -15,7 +15,6 @@ class DtnLinkInfo {
     private HashMap<AgentID, Integer> linkLastTransmission
     private HashMap<AgentID, AgentID> linkPhyMap
 
-
     DtnLinkInfo(DtnLink dtnLink) {
         this.dtnLink = dtnLink
         nodeLiveLinks = new HashMap<>()

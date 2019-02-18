@@ -1,7 +1,4 @@
 issues:
-* random NPEs/FNF
-* some datagrams in AUV scenario are not getting transferred in their window of opportunity
-2 recipients for node == much longer delivery times
 
 BasicChannelMode is better!
 
@@ -14,19 +11,12 @@ You can do it.remove! But not directly from the Map!!
 '%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
 
 pending:
-* next DG selecting logic
-* change to poissonbehavior for beacon
 * have max retry before FAIL
 * simulations
 
-* should I send a DFN if I don't have a route to node?
-* note about fxns in CyclicBehavior
 * multiple links per node
 * multiple links for Cyclic
 * multihop router tests
-* code to run on sim start and sim end!!
-* sorting of messages
-* have a trigger for the calling the sweep behavior?
 * configurable containers
 * make MTU readonly
 * short circuit
@@ -35,6 +25,16 @@ later:
 * I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
 
 done:
+* next DG selecting logic
+* change to poissonbehavior for beacon
+* should I send a DFN if I don't have a route to node?
+* note about fxns in CyclicBehavior
+* code to run on sim start and sim end!!
+* sorting of messages
+* have a trigger for the calling the sweep behavior?
+* some datagrams in AUV scenario are not getting transferred in their window of opportunity
+2 recipients for node == much longer delivery times
+* random NPEs/FNF
 * waiting for a DFN blocks the rest of the queue
 * NPE occasionally in getLinkWithReliability // might be fixed with 1sec timeout
 * some unet3 telnet commands do not work
