@@ -126,7 +126,7 @@ class DtnLink extends UnetAgent {
                 for (Tuple2 expiredDatagram : expiredDatagrams) {
                     notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
                                                        to: (int)expiredDatagram.getSecond()))
-                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
+//                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
                     stats.datagrams_expired++
                 }
             }
@@ -143,6 +143,7 @@ class DtnLink extends UnetAgent {
                         String messageID = selectNextDatagram(datagrams)
                         // this logic blocks the queue if we get a errant DG! Not good!
                         if (messageID != null) {//&& storage.db.get(messageID).attempts == 0) {
+                            int nodeTime = currentTimeSeconds()
                             sendDatagram(messageID, node, nodeLink)
                         }
 //                        else if (messageID != null && storage.db.get(messageID).attempts != 0) {
@@ -154,7 +155,7 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new PoissonBehavior(DATAGRAM_PERIOD) {
+        add(new TickerBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
                 utility.deleteExpiredLinks()
@@ -208,6 +209,7 @@ class DtnLink extends UnetAgent {
                 return new Message(msg, Performative.REFUSE)
             } else {
                 stats.datagrams_requested++
+//                println "New DGram added"
                 return new Message(msg, Performative.AGREE)
             }
         }
@@ -217,7 +219,7 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
-             println("Detected node")
+             println("Detected node" + storage.db.size())
              stats.beacons_snooped++
              utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
@@ -251,8 +253,8 @@ class DtnLink extends UnetAgent {
             DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
             notify.send(deliveryNtf)
             linkState = LinkState.READY
-            datagramCycle.restart()
             stats.datagrams_success++
+            datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
             stats.datagrams_failed++
             storage.removeFailedEntry(msg.getInReplyTo())
@@ -266,10 +268,9 @@ class DtnLink extends UnetAgent {
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
-            linkState = LinkState.WAITING
-            add(new WakerBehavior(Math.round(Math.random()*RANDOM_DELAY)) {
-                @Override
-                void onWake() {
+//            add(new WakerBehavior(Math.round(Math.random()*RANDOM_DELAY)) {
+//                @Override
+//                void onWake() {
                     byte[] pdu = storage.getPDU(messageID, true)
                     if (pdu != null) {
                         if (storage.db.get(messageID).attempts > 0) {
@@ -282,10 +283,11 @@ class DtnLink extends UnetAgent {
                                                                     reliability: true)
                         storage.trackDatagram(datagramReq.getMessageID(), messageID)
                         nodeLink.send(datagramReq)
+                        linkState = LinkState.WAITING
                         stats.datagrams_sent++
                     }
-                }
-            })
+//                }
+//            })
         }
     }
 
