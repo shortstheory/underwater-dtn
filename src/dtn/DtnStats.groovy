@@ -31,6 +31,7 @@ class DtnStats {
     void writeToFile() {
         String serialized = new Gson().toJson(this)
         File file = new File(Integer.toString(address)+".json")
+        println "File path " + file.toPath()
         Files.write(file.toPath(), serialized.getBytes())
     }
 

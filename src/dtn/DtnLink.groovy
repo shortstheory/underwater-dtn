@@ -82,9 +82,6 @@ class DtnLink extends UnetAgent {
         priority = DatagramPriority.EXPIRY
 
         random = new Random()
-        stats = new DtnStats(nodeAddress)
-        storage = new DtnStorage(this, directory)
-        utility = new DtnLinkInfo(this)
         linkState = LinkState.READY
     }
 
@@ -107,6 +104,10 @@ class DtnLink extends UnetAgent {
 
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
+
+        stats = new DtnStats(nodeAddress)
+        storage = new DtnStorage(this, directory)
+        utility = new DtnLinkInfo(this)
 
         link = getLinkWithReliability()
         utility.addLink(link)

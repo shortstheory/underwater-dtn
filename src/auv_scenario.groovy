@@ -30,7 +30,7 @@ int[] dest2 = [1]
 int[] dest3 = [1]
 
 
-for (int f = 0; f < nodeCount; f++) {
+for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
