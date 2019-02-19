@@ -60,7 +60,7 @@ class DtnLink extends UnetAgent {
     private DatagramPriority priority
     private Random random
 
-    int BEACON_PERIOD = 1*1000
+    int BEACON_PERIOD = 10*1000
     int SWEEP_PERIOD = 10*1000
     int DATAGRAM_PERIOD = 1*1000
     int RANDOM_DELAY = 5000

@@ -23,9 +23,6 @@ platform = DiscreteEventSimulator
 
 channel.model = ProtocolChannelModel
 channel.soundSpeed = 1500.mps
-channel.communicationRange = 2.km
-channel.interferenceRange = 2.km
-channel.detectionRange = 2.km
 
 println "Starting Simple AUV simulation!"
 
@@ -34,7 +31,7 @@ int nodeCount = 2
 
 def msgSize = 100
 def msgFreq = 10*1000
-def dist = 1000.m
+def dist = 5000.m
 def msgTtl = 5200
 
 int[] dest1 = [2]
@@ -45,8 +42,12 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
-for (int i = 1; i <= 10; i++) {
+for (int i = 1; i <= 1; i++) {
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
+    channel.communicationRange = dist
+    channel.interferenceRange =  dist
+    channel.detectionRange =     dist
+
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
