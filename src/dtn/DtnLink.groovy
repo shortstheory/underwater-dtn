@@ -305,7 +305,7 @@ class DtnLink extends UnetAgent {
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
                 for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
-                    int lastTransmission = utility.getLastTransmission(linkID)
+//                    int lastTransmission = utility.getLastTransmission(linkID)
 //                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
 //                    }

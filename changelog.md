@@ -1,6 +1,6 @@
 Week 8:
 * running simulations and collecting stats
-* adding 
+* added random generation of Datagrams
 
 Week 7:
 * made the beacon behavior execute regardless

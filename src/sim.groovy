@@ -41,14 +41,13 @@ int[] dest3 = [1]
 
 int nodeCount = 3
 
-def msgSize = 200
+def msgSize = 400
 def msgFreq = 100*1000
 def dist = 1000.m
 def msgTtl = 1000
 
 for (def i = 0; i < 10; i++) {
     // add housekeeping here
-    msgSize = (i+1)*100
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
 
     for (int f = 0; f < nodeCount; f++) {
@@ -60,17 +59,17 @@ for (def i = 0; i < 10; i++) {
         node 'a', address: 1, location: [0, 0, 0], shell: 5000, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, true)
         }
         node 'b', address: 2, location: [dist, 0, 0], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, true)
         }
         node 'c', address: 3, location: [0, dist, 0], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, true)
         }
     }
     DtnStats.printAllStats(nodeCount)

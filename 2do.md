@@ -1,14 +1,6 @@
 issues:
 
-BasicChannelMode is better!
-
-router << new DatagramReq(to: 3, data: [1,2,3])
-link << new DatagramReq(to: 2, data: [1,2,3])
-link << new DatagramReq(to: 2, data: [1,2,3])
-
-You can do it.remove! But not directly from the Map!!
-
-'%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
+TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
 
 pending:
 * have max retry before FAIL
@@ -96,3 +88,14 @@ link << new org.arl.unet.DatagramReq(to: 1, data: [1,2,3], protocol: 50, reliabi
 
 
 link << new org.arl.unet.DatagramReq(to: 2, data: [1,2,3], reliability: true)
+
+router << new DatagramReq(to: 3, data: [1,2,3])
+link << new DatagramReq(to: 2, data: [1,2,3])
+link << new DatagramReq(to: 2, data: [1,2,3])
+BasicChannelMode is better!
+
+
+You can do it.remove! But not directly from the Map!!
+
+'%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
+
