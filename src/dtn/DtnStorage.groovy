@@ -10,12 +10,10 @@ import java.nio.file.Files;
 @CompileStatic
 class DtnStorage {
     private final String directory
-    HashMap<String, DtnPduMetadata> db
-
+    private DtnLink dtnLink
+    private HashMap<String, DtnPduMetadata> db
     // New DatagramReqID - Old DatagramReqID
     private HashMap<String, String> datagramMap
-
-    DtnLink dtnLink
 
     DtnStorage(DtnLink link, String dir) {
         directory = dir
@@ -31,7 +29,7 @@ class DtnStorage {
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
-        db.get(oldMessageID).attempts++
+        getMetadata(oldMessageID).attempts++
         datagramMap.put(newMessageID, oldMessageID)
     }
 
@@ -92,7 +90,7 @@ class DtnStorage {
             File file = new File(directory, messageID)
 
             file.delete()
-            nextHop = db.get(messageID).nextHop
+            nextHop = getMetadata(messageID).nextHop
             String key
             for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
                 if (entry.getValue() == messageID) {
@@ -129,15 +127,15 @@ class DtnStorage {
     }
 
     void setDelivered(String messageID) {
-//        if (db.get())
-//        println messageID + " delivered!"
-        db.get(messageID).delivered = true
+        if (getMetadata(messageID) != null) {
+            getMetadata(messageID).delivered = true
+        }
     }
 
-    byte[] encodePdu(byte[] data, int Ttl, int protocol) {
+    byte[] encodePdu(byte[] data, int ttl, int protocol) {
         // ttl + protocol = 8 bytes?
         OutputPDU pdu = new OutputPDU(data.length + 8)
-        pdu.write32(Ttl)
+        pdu.write32(ttl)
         pdu.write32(protocol)
         pdu.write(data)
         return pdu.toByteArray()
@@ -151,18 +149,18 @@ class DtnStorage {
 
         int ttl = pdu.read32()
         int protocol = pdu.read32()
+        // the data follows the 8 byte header
         byte[] data = Arrays.copyOfRange(pduBytes, 8, pduBytes.length)
-
         return new Tuple(ttl, protocol, data)
     }
 
     byte[] getPDU(String messageID, boolean adjustTtl) {
-        // This throws NPEs. Who knows why?
+        // This occasionally throws NPEs. Who knows why?
         try {
             byte[] pduBytes = new File(directory, messageID).text.getBytes()
             if (pduBytes != null) {
                 Tuple pduTuple = decodePdu(pduBytes)
-                int ttl = (adjustTtl) ? db.get(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
+                int ttl = (adjustTtl) ? getMetadata(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
                 int protocol = (int)pduTuple.get(1)
                 byte[] data = (byte[])pduTuple.get(2)
                 if (ttl > 0) {
@@ -176,6 +174,10 @@ class DtnStorage {
         }
     }
 
+    DtnPduMetadata getMetadata(String messageID) {
+        return db.get(messageID)
+    }
+
     void removeFailedEntry(String newMessageID) {
         datagramMap.remove(newMessageID)
     }
@@ -185,7 +187,7 @@ class DtnStorage {
         if (pdu != null) {
             Tuple pduInfo = decodePdu(pdu)
             int ttl = (int)pduInfo.get(0)
-            int expiryTime = db.get(messageID).expiryTime
+            int expiryTime = getMetadata(messageID).expiryTime
             return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
         }
         return -1 // this happens when we deleted the PDU before the DDN reached us!

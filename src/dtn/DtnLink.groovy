@@ -64,11 +64,6 @@ class DtnLink extends UnetAgent {
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5000
 
-
-    int currentTimeSeconds() {
-        return (currentTimeMillis()/1000).intValue()
-    }
-
     List<Parameter> getParameterList() {
         allOf(DtnLinkParameters)
     }
@@ -91,6 +86,10 @@ class DtnLink extends UnetAgent {
     DtnLink(String dir) {
         directory = dir
         priority = DatagramPriority.EXPIRY
+    }
+
+    int currentTimeSeconds() {
+        return (currentTimeMillis()/1000).intValue()
     }
 
     @Override
@@ -226,7 +225,7 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
              stats.beacons_snooped++
-             utility.updateLinkMaps(msg.getFrom(), msg.getRecipient())
+             utility.updateLiveLinks(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
@@ -282,11 +281,11 @@ class DtnLink extends UnetAgent {
                 add(new WakerBehavior(Math.round(Math.random() * RANDOM_DELAY)) {
                     @Override
                     void onWake() {
-                        DtnPduMetadata metadata = storage.db.get(messageID)
+                        DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             if (metadata.attempts > 0) {
                                 stats.datagrams_resent++
-                                println("Resending datagram: " + messageID + " attempt " + storage.db.get(messageID).attempts)
+                                println("Resending datagram: " + messageID + " attempt " + storage.getMetadata(messageID).attempts)
                             }
                             DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                     data: pdu,

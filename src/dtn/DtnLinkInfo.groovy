@@ -42,7 +42,7 @@ class DtnLinkInfo {
         }
     }
 
-    void updateLinkMaps(Integer node, AgentID phy_topic) {
+    void updateLiveLinks(Integer node, AgentID phy_topic) {
         AgentID phy = phy_topic.getOwner().getAgentID()
         for (Map.Entry<AgentID, AgentID> entry : linkPhyMap.entrySet()) {
             AgentID linkID = entry.getKey()

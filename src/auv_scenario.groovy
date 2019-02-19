@@ -34,8 +34,8 @@ for (int f = 0; f < nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
-for (int i = 1; i < 3; i++) {
-//    msgTtl = i*100
+for (int i = 1; i < 2; i++) {
+    msgSize = i*100
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
