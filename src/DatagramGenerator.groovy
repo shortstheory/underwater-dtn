@@ -1,6 +1,7 @@
 import dtn.DtnLink
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
+import org.arl.fjage.PoissonBehavior
 import org.arl.fjage.TickerBehavior
 import org.arl.unet.DatagramReq
 import org.arl.unet.UnetAgent
@@ -15,14 +16,17 @@ class DatagramGenerator extends UnetAgent{
 
     int msgSize
     int msgTtl
+    boolean randomGeneration
+    Random random = new Random()
 
-    DatagramGenerator(int[] destNodes, int period, int size, int ttl) {
+    DatagramGenerator(int[] destNodes, int period, int size, int ttl, boolean rnd) {
         this.destNodes = destNodes
         messagePeriod = period
 
         msgSize = size
         messagePeriod = period
         msgTtl = ttl
+        randomGeneration = rnd
     }
 
     private static String createDataSize(int msgSize) {
@@ -38,14 +42,31 @@ class DatagramGenerator extends UnetAgent{
     protected void startup() {
         dtnLink = agent("dtnlink")
         link = agent("link")
-        String data = createDataSize(msgSize)
-        byte[] bytes = data.getBytes()
-        add(new TickerBehavior(messagePeriod, {
-            for (int destNode : destNodes) {
-//                println "Messages Sent to " + destNode + ": " + ++msgsent
-//                link.send(new DatagramReq(data: bytes, to: destNode, ttl: 10000, protocol: DtnLink.DTN_PROTOCOL))
-                dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: DtnLink.DTN_PROTOCOL))
-            }
-        }))
+
+
+        if (randomGeneration) {
+            add(new PoissonBehavior(messagePeriod) {
+                @Override
+                void onTick() {
+                    for (int destNode : destNodes) {
+                        String data = createDataSize(random.nextInt(msgSize))
+                        int ttl = 200 + random.nextInt(msgTtl)
+                        byte[] bytes = data.getBytes()
+                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: DtnLink.DTN_PROTOCOL))
+                    }
+                }
+            })
+        } else {
+            String data = createDataSize(msgSize)
+            byte[] bytes = data.getBytes()
+            add(new TickerBehavior(messagePeriod) {
+                @Override
+                void onTick() {
+                    for (int destNode : destNodes) {
+                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: DtnLink.DTN_PROTOCOL))
+                    }
+                }
+            })
+        }
     }
 }

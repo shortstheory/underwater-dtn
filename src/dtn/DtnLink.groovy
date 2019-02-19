@@ -56,8 +56,9 @@ class DtnLink extends UnetAgent {
     private PoissonBehavior beaconBehavior
 
     private DtnLinkInfo utility
-
-    public DatagramPriority priority
+    private LinkState linkState
+    private DatagramPriority priority
+    private Random random
 
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
@@ -76,16 +77,15 @@ class DtnLink extends UnetAgent {
         READY, WAITING
     }
 
-    LinkState linkState
-
-    DtnLink(String dir, DatagramPriority datagramPriority) {
-        directory = dir
-        priority = datagramPriority
-    }
-
     DtnLink(String dir) {
         directory = dir
         priority = DatagramPriority.EXPIRY
+
+        random = new Random()
+        stats = new DtnStats(nodeAddress)
+        storage = new DtnStorage(this, directory)
+        utility = new DtnLinkInfo(this)
+        linkState = LinkState.READY
     }
 
     int currentTimeSeconds() {
@@ -98,7 +98,6 @@ class DtnLink extends UnetAgent {
         register(Services.DATAGRAM)
         // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
-        linkState = LinkState.READY
     }
 
     @Override
@@ -108,10 +107,6 @@ class DtnLink extends UnetAgent {
 
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
-
-        stats = new DtnStats(nodeAddress)
-        storage = new DtnStorage(this, directory)
-        utility = new DtnLinkInfo(this)
 
         link = getLinkWithReliability()
         utility.addLink(link)
@@ -186,7 +181,7 @@ class DtnLink extends UnetAgent {
             }
             return messageID
         case DatagramPriority.RANDOM:
-            return (datagrams.size()) ? datagrams.get(new Random().nextInt(datagrams.size())) : null
+            return (datagrams.size()) ? datagrams.get(random.nextInt(datagrams.size())) : null
         }
     }
 
@@ -278,7 +273,7 @@ class DtnLink extends UnetAgent {
             byte[] pdu = storage.getPDU(messageID, true)
             if (pdu != null) {
                 linkState = LinkState.WAITING
-                add(new WakerBehavior(Math.round(Math.random() * RANDOM_DELAY)) {
+                add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
                     @Override
                     void onWake() {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)

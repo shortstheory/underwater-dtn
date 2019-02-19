@@ -20,7 +20,7 @@ println "Starting AUV simulation!"
 def T = 5200.second
 int nodeCount = 3
 
-def msgSize = 100
+def msgSize = 600
 def msgFreq = 100*1000
 def dist = 1000.m
 def msgTtl = 600
@@ -35,18 +35,17 @@ for (int f = 0; f < nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 for (int i = 1; i <= 10; i++) {
-    msgSize = i*100
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, true)
         }
         def auvR = node '2', address: 2, mobility: true, location: [2400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, true)
         }
         auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
@@ -56,7 +55,7 @@ for (int i = 1; i <= 10; i++) {
         def auvL = node '3', address: 3, mobility: true, location: [-2400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl)
+            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, true)
         }
         auvL.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
