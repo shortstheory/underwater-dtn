@@ -26,12 +26,12 @@ channel.soundSpeed = 1500.mps
 
 println "Starting Simple AUV simulation!"
 
-def T = 5200.second
+def T = 10400.second
 int nodeCount = 2
 
 def msgSize = 100
 def msgFreq = 10*1000
-def dist = 5000.m
+def dist = 2500.m
 def msgTtl = 5200
 
 int[] dest1 = [2]
@@ -42,8 +42,10 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
+
 for (int i = 1; i <= 1; i++) {
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
+
     channel.communicationRange = dist
     channel.interferenceRange =  dist
     channel.detectionRange =     dist
@@ -54,16 +56,17 @@ for (int i = 1; i <= 1; i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
             container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, false)
         }
-        def auvR = node '2', address: 2, mobility: true, location: [3400.m, 0, -50.m], shell: 5001, stack: { container ->
+        def auvR = node '2', address: 2, mobility: true, location: [4400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-//            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, true)
         }
-        auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+        def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                             [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
                             [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
                             [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
+                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
+        auvR.motionModel = trajectory
+        auvR.motionModel += trajectory
     }
     DtnStats.printAllStats(nodeCount)
 }

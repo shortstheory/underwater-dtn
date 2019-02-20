@@ -62,6 +62,7 @@ class DtnLinkInfo {
             int node = entry.getKey()
             AgentID id = entry.getValue()
             if (dtnLink.currentTimeSeconds() > linkLastTransmission.get(id) + LINK_EXPIRY_TIME) {
+                println "removed " + entry.getValue().toString() + " at " + dtnLink.currentTimeSeconds()
                 it.remove()
             }
         }
