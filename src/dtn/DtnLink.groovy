@@ -65,7 +65,7 @@ class DtnLink extends UnetAgent {
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
-    int RANDOM_DELAY = 5000
+    int RANDOM_DELAY = 5*1000
 
     List<Parameter> getParameterList() {
         allOf(DtnLinkParameters)
@@ -325,10 +325,10 @@ class DtnLink extends UnetAgent {
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
                 for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
-//                    int lastTransmission = utility.getLastTransmission(linkID)
-//                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
+                    int lastTransmission = utility.getLastTransmission(linkID)
+                    if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
-//                    }
+                    }
                 }
             }
         }

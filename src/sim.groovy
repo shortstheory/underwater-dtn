@@ -27,9 +27,8 @@ channel.interferenceRange = 5000.m      // Ri
 channel.pDetection = 1                  // pd
 channel.pDecoding = 1                   // pc
 
-//modem = [model: org.arl.unet.sim.HalfDuplexModem]
 modem.dataRate = [80*1000.bps, 240*1000.bps]
-modem.frameLength = [16.bytes, 6400.bytes]
+modem.frameLength = [1500.bytes, 1500.bytes]
 modem.powerLevel = [0.dB, -10.dB]
 
 println "Starting simulation!"

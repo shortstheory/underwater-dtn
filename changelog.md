@@ -1,6 +1,8 @@
 Week 8:
 * running simulations and collecting stats
 * added random generation of Datagrams
+* added new sims
+* added short-circuit
 
 Week 7:
 * made the beacon behavior execute regardless

@@ -8,6 +8,7 @@ import org.arl.unet.link.*
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
+import org.arl.unet.sim.channels.ProtocolChannelModel
 
 import java.nio.file.Files
 
@@ -15,54 +16,47 @@ platform = DiscreteEventSimulator
 
 channel.model = BasicAcousticChannel
 
-println "Starting AUV simulation!"
+println "Starting Swan simulation!"
 
-def T = 5200.second
-int nodeCount = 3
+def T = 600.second
+int nodeCount = 2
 
 def msgSize = 600
-def msgFreq = 100*1000
+def msgFreq = 5*1000
 def dist = 1000.m
-def msgTtl = 600
+def msgTtl = 3600
 
-int[] dest1 = [2,3]
+int[] dest1 = [2]
 int[] dest2 = [1]
-int[] dest3 = [1]
 
+channel.model = ProtocolChannelModel
+
+channel.soundSpeed = 300*1000*1000.mps           // c
+channel.communicationRange = 5000.m     // Rc
+channel.detectionRange = 5000.m         // Rd
+channel.interferenceRange = 5000.m      // Ri
+channel.pDetection = 0.8                  // pd
+//channel.pDecoding = 0.9                // pc
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
+
 for (int i = 1; i <= 10; i++) {
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     simulate T, {
-        def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
+        def baseStation = node '1', address: 1, location: [dist, 0, 0.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, true)
         }
-        def auvR = node '2', address: 2, mobility: true, location: [2400.m, 0, -50.m], shell: 5001, stack: { container ->
+        def swan = node '2', address: 2, location: [0.m, 0.m, 0.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, true)
-        }
-        auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
-                            [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
-                            [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
-                            [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
-        def auvL = node '3', address: 3, mobility: true, location: [-2400.m, 0, -50.m], shell: 5001, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, true)
-        }
-        auvL.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
-                            [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                            [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
-                            [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
-                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
+            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, 600, msgTtl, false)
+            container.add 'testagent2', new DatagramGenerator(dest2, msgFreq, 100, msgTtl, false)
 
+        }
     }
     DtnStats.printAllStats(nodeCount)
 }
