@@ -241,6 +241,8 @@ class DtnLink extends UnetAgent {
                     notify.send(ntf)
                     stats.datagrams_received++
                 }
+            } else if (msg.getProtocol() == 22) {
+                stats.datagrams_received++
             }
         // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
@@ -277,18 +279,34 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
                 @Override
                 void onWake() {
-                    byte[] pdu = storage.getPDU(messageID, true)
-                    if (pdu != null) {
+                    byte[] pduBytes = storage.getPDU(messageID, true)
+                    if (pduBytes != null) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             if (metadata.attempts > 0) {
                                 stats.datagrams_resent++
                                 println("Resending datagram: " + messageID + " attempt " + storage.getMetadata(messageID).attempts)
                             }
-                            DatagramReq datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                    data: pdu,
-                                    to: node,
-                                    reliability: true)
+                            // check for protocol number here?
+                            // we are decoding the PDU twice, not good!
+                            Tuple parsedPdu = storage.decodePdu(pduBytes)
+                            int pduProtocol = (int)parsedPdu.get(1)
+                            byte[] pduData = (byte[])parsedPdu.get(2)
+
+                            DatagramReq datagramReq
+
+                            // this is for short-circuiting PDUs
+                            if (pduProtocol == Protocol.ROUTING) {
+                                datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                                                data: pduBytes,
+                                                                to: node,
+                                                                reliability: true)
+                            } else {
+                                datagramReq = new DatagramReq(protocol: pduProtocol,
+                                                                data: pduData,
+                                                                to: node,
+                                                                reliability: true)
+                            }
                             storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             nodeLink.send(datagramReq)
                             stats.datagrams_sent++

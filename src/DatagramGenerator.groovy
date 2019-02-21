@@ -63,7 +63,7 @@ class DatagramGenerator extends UnetAgent{
                 @Override
                 void onTick() {
                     for (int destNode : destNodes) {
-                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: DtnLink.DTN_PROTOCOL))
+                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: 22))
                     }
                 }
             })
