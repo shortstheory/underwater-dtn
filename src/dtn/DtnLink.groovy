@@ -17,9 +17,11 @@ import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramParam
 import org.arl.unet.DatagramReq
 import org.arl.unet.Parameter
+import org.arl.unet.Protocol
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 import org.arl.unet.link.ReliableLinkParam
+import org.arl.unet.net.Router
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
@@ -223,7 +225,7 @@ class DtnLink extends UnetAgent {
              stats.beacons_snooped++
              utility.updateLiveLinks(msg.getFrom(), msg.getRecipient())
          } else if (msg instanceof DatagramNtf) {
-            if (msg.getProtocol() == DTN_PROTOCOL) {
+             if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
@@ -271,12 +273,12 @@ class DtnLink extends UnetAgent {
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
-            byte[] pdu = storage.getPDU(messageID, true)
-            if (pdu != null) {
-                linkState = LinkState.WAITING
-                add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
-                    @Override
-                    void onWake() {
+            linkState = LinkState.WAITING
+            add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
+                @Override
+                void onWake() {
+                    byte[] pdu = storage.getPDU(messageID, true)
+                    if (pdu != null) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             if (metadata.attempts > 0) {
@@ -290,12 +292,12 @@ class DtnLink extends UnetAgent {
                             storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             nodeLink.send(datagramReq)
                             stats.datagrams_sent++
-                        } else {
-                            linkState = LinkState.READY
                         }
+                    } else {
+                        linkState = LinkState.READY
                     }
-                })
-            }
+                }
+            })
         }
     }
 

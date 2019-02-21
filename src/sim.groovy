@@ -20,7 +20,7 @@ platform = DiscreteEventSimulator
 //channel.model = BasicAcousticChannel
 channel.model = ProtocolChannelModel
 
-channel.soundSpeed = 300*1000.mps           // c
+channel.soundSpeed = 300*1000*1000.mps           // c
 channel.communicationRange = 5000.m     // Rc
 channel.detectionRange = 5000.m         // Rd
 channel.interferenceRange = 5000.m      // Ri
@@ -29,7 +29,7 @@ channel.pDecoding = 1                   // pc
 
 //modem = [model: org.arl.unet.sim.HalfDuplexModem]
 modem.dataRate = [80*1000.bps, 240*1000.bps]
-modem.frameLength = [16.bytes, 64.bytes]
+modem.frameLength = [16.bytes, 6400.bytes]
 modem.powerLevel = [0.dB, -10.dB]
 
 println "Starting simulation!"
