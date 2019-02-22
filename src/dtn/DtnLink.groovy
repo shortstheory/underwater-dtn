@@ -82,9 +82,8 @@ class DtnLink extends UnetAgent {
 
     DtnLink(String dir) {
         directory = dir
-        priority = DatagramPriority.EXPIRY
-
         random = new Random()
+        priority = DatagramPriority.EXPIRY
         linkState = LinkState.READY
     }
 
@@ -127,19 +126,6 @@ class DtnLink extends UnetAgent {
         }
 
         beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
-        add(new TickerBehavior(SWEEP_PERIOD) {
-            @Override
-            void onTick() {
-                ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
-                // now send DFNs for all of these
-                for (Tuple2 expiredDatagram : expiredDatagrams) {
-                    notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
-                                                       to: (int)expiredDatagram.getSecond()))
-                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
-                    stats.datagrams_expired++
-                }
-            }
-        })
 
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
@@ -159,6 +145,20 @@ class DtnLink extends UnetAgent {
             }
         })
 
+        add(new TickerBehavior(SWEEP_PERIOD) {
+            @Override
+            void onTick() {
+                ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
+                // now send DFNs for all of these
+                for (Tuple2 expiredDatagram : expiredDatagrams) {
+                    notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
+                            to: (int)expiredDatagram.getSecond()))
+                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
+                    stats.datagrams_expired++
+                }
+            }
+        })
+
         add(new PoissonBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
@@ -166,7 +166,6 @@ class DtnLink extends UnetAgent {
                 datagramCycle.restart()
             }
         })
-
     }
 
     String selectNextDatagram(ArrayList<String> datagrams) {
@@ -192,7 +191,7 @@ class DtnLink extends UnetAgent {
     AgentID getLinkWithReliability() {
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
-            Message rsp = request(req, 1000)
+            Message rsp = request(req, 2000)
             if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
                 link.getName() != getName()) { // we don't want to use the DtnLink!
@@ -242,6 +241,7 @@ class DtnLink extends UnetAgent {
                     notify.send(ntf)
                     stats.datagrams_received++
                 }
+                 // FIXME: 22 is just for testing
             } else if (msg.getProtocol() == 22) {
                 stats.datagrams_received++
             }
