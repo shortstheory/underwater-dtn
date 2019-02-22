@@ -208,7 +208,7 @@ class DtnLink extends UnetAgent {
         if (msg instanceof DatagramReq) {
             // FIXME: check for buffer space too, probably in saveDatagram!
             if (msg.getTtl() == Float.NaN || !storage.saveDatagram(msg)) {
-                println("No Datagram!")
+                println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
                 stats.datagrams_requested++
