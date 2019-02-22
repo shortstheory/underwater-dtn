@@ -5,18 +5,17 @@ TTL/size in random simulations is the largest size of the TTL/size that can be s
 pending:
 * have max retry before FAIL
 * simulations
-
 * multiple links per node
 * multiple links for Cyclic
 * multihop router tests
 * configurable containers
-* make MTU readonly
-* short circuit
 
 later:
-* I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
 
 done:
+* short circuit
+* I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
+* make MTU readonly
 * next DG selecting logic
 * change to poissonbehavior for beacon
 * should I send a DFN if I don't have a route to node?

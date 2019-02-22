@@ -36,6 +36,9 @@ channel.communicationRange = 5000.m     // Rc
 channel.detectionRange = 5000.m         // Rd
 channel.interferenceRange = 5000.m      // Ri
 channel.pDetection = 0.8                  // pd
+modem.dataRate = [80*1000.bps, 240*1000.bps]
+modem.frameLength = [1500.bytes, 1500.bytes]
+modem.powerLevel = [0.dB, -10.dB]
 //channel.pDecoding = 0.9                // pc
 
 for (int f = 1; f <= nodeCount; f++) {

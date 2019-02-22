@@ -30,7 +30,7 @@ def T = 10400.second
 int nodeCount = 2
 
 def msgSize = 100
-def msgFreq = 10*1000
+def msgFreq = 100*1000
 def dist = 2500.m
 def msgTtl = 5200
 
