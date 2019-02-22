@@ -5,10 +5,14 @@ import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
 import dtn.*
 import org.arl.unet.link.*
+import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
+import org.arl.unet.shell.*
+
+new RouteDiscoveryNtf()
 
 import java.nio.file.Files
 
@@ -18,7 +22,7 @@ channel.model = BasicAcousticChannel
 
 int nodeCount = 3
 
-println "Starting AUV simulation!"
+println "Starting Routing simulation!"
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
@@ -29,13 +33,14 @@ simulate {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
+        container.shell.addInitrc "fshrc.groovy"
     }
     node '2', address: 2, location: [200.m, 0, -50.m], shell: 5001, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
         container.add 'router', new Router()
     }
-    node '3', address: 3, location: [-2400.m, 0, -50.m], shell: 5002, stack: { container ->
+    node '3', address: 3, location: [400.m, 0, -50.m], shell: 5002, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
         container.add 'router', new Router()

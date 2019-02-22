@@ -1,6 +1,8 @@
 issues:
 
 TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
+router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
+router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 
 pending:
 * have max retry before FAIL
