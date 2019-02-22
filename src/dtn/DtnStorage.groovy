@@ -46,9 +46,14 @@ class DtnStorage {
         for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
-            if (dtnLink.currentTimeSeconds() > metadata.expiryTime || metadata.delivered) {
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime
+                || metadata.attempts >= dtnLink.MAX_RETRIES
+                || metadata.delivered) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next DtnLink sweep
+
+                // one hack for cleaning MAX_RETRIES being exceeded.
+                metadata.expiryTime = 0
                 continue
             }
             if (metadata.nextHop == nextHop) {

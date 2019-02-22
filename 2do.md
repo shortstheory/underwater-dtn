@@ -5,7 +5,9 @@ router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlin
 router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 
 pending:
-* have max retry before FAIL
+!!* clean code?
+!!* study some 3B1B
+
 * simulations
 * multiple links per node
 * multiple links for Cyclic
@@ -15,6 +17,8 @@ pending:
 later:
 
 done:
+!!* read SAUVC rules
+!!* have max retry before FAIL
 * short circuit
 * I cannot change the defaultLink property of Router. I get the message: "org.arl.unet.UnetException: Parameter defaultLink could not be set [empty response]" when I try to change 
 * make MTU readonly
