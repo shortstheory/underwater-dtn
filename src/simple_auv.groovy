@@ -31,7 +31,8 @@ int nodeCount = 2
 
 def msgSize = 100
 def msgFreq = 100*1000
-def msgTtl = 5200
+def dist = 2500.m
+def msgTtl = 10400
 
 int[] dest1 = [2]
 int[] dest2 = [1]
@@ -43,11 +44,11 @@ for (int f = 1; f <= nodeCount; f++) {
 }
 
 for (int i = 1; i <= 1; i++) {
-    println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " TTL - " + msgTtl)
+    println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
 
-    channel.communicationRange = dist
-    channel.interferenceRange =  dist
-    channel.detectionRange =     dist
+//    channel.communicationRange = dist
+//    channel.interferenceRange =  dist
+//    channel.detectionRange =     dist
 
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
