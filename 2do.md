@@ -1,22 +1,27 @@
 issues:
 
 TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
+
 router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
 router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
+link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 
 pending:
 !!* clean code?
 !!* study some 3B1B
+* start midsem report
+* do docu
+* ask how to write tests
 
-* simulations
-* multiple links per node
-* multiple links for Cyclic
 * multihop router tests
 * configurable containers
 
 later:
 
 done:
+* simulations
+* multiple links per node
+* multiple links for Cyclic
 !!* read SAUVC rules
 !!* have max retry before FAIL
 * short circuit
@@ -104,3 +109,20 @@ You can do it.remove! But not directly from the Map!!
 
 '%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%4d\t\t%5.3f\t%5.3f\t%5.2f\t%5.2f',
 
+UdpLink bug:
+
+Exception in thread "link [monitor]" org.arl.fjage.FjageError: request() should only be called from agent thread 44, but called from 47
+	at org.arl.fjage.Agent.request(Agent.java:528)
+	at org.arl.unet.NodeAddressCache.update(NodeAddressCache.java:79)
+	at org.arl.unet.NodeAddressCache.getAddress(NodeAddressCache.java:42)
+	at org.arl.unet.link.UdpLink.receiveDatagram(UdpLink.java:353)
+	at org.arl.unet.link.UdpLink.access$700(UdpLink.java:17)
+	at org.arl.unet.link.UdpLink$RxMonitor.run(UdpLink.java:449)
+Exception in thread "link [monitor]" org.arl.fjage.FjageError: request() should only be called from agent thread 35, but called from 38
+	at org.arl.fjage.Agent.request(Agent.java:528)
+	at org.arl.unet.NodeAddressCache.update(NodeAddressCache.java:79)
+	at org.arl.unet.NodeAddressCache.getAddress(NodeAddressCache.java:42)
+	at org.arl.unet.link.UdpLink.receiveDatagram(UdpLink.java:353)
+	at org.arl.unet.link.UdpLink.access$700(UdpLink.java:17)
+	at org.arl.unet.link.UdpLink$RxMonitor.run(UdpLink.java:449)
+AGREE
