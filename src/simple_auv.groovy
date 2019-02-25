@@ -21,8 +21,8 @@ platform = DiscreteEventSimulator
 //modem.clockOffset = 0.s
 //modem.headerLength = 0.s
 
-channel.model = ProtocolChannelModel
-channel.soundSpeed = 1500.mps
+//channel.model = ProtocolChannelModel
+//channel.soundSpeed = 1500.mps
 
 println "Starting Simple AUV simulation!"
 
@@ -31,7 +31,6 @@ int nodeCount = 2
 
 def msgSize = 100
 def msgFreq = 100*1000
-def dist = 2500.m
 def msgTtl = 5200
 
 int[] dest1 = [2]
@@ -44,7 +43,7 @@ for (int f = 1; f <= nodeCount; f++) {
 }
 
 for (int i = 1; i <= 1; i++) {
-    println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
+    println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " TTL - " + msgTtl)
 
     channel.communicationRange = dist
     channel.interferenceRange =  dist

@@ -230,7 +230,7 @@ class DtnLink extends UnetAgent {
              }
          } else if (msg instanceof DatagramNtf) {
              // we will do this for every message? Can't hurt much
-             utility.addLinkForNode(msg.getFrom(), msg.getRecipient())
+//             utility.addLinkForNode(msg.getFrom(), msg.getRecipient())
              if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
