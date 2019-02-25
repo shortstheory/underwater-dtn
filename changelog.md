@@ -1,3 +1,6 @@
+Week 9:
+* added multi-link support
+
 Week 8:
 * running simulations and collecting stats
 * added random generation of Datagrams

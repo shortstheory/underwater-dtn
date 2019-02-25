@@ -7,6 +7,7 @@ router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 
 pending:
+* need to see how UdpLink is handled by multilink - we won't receive RxFrameNtfs so think of another way
 !!* clean code?
 !!* study some 3B1B
 * start midsem report
