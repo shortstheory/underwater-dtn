@@ -130,10 +130,10 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                for (Map.Entry<Integer, AgentID> entry : utility.getNodeLiveLinks().entrySet()) {
-                    if (entry != null) {
-                        int node = entry.getKey()
-                        AgentID nodeLink = entry.getValue()
+                for (Integer node : utility.getNodes()) {
+                    Set<AgentID> nodeLinks = utility.getLinksForNode(node)
+                    if (!nodeLinks.isEmpty()) {
+                        AgentID nodeLink = nodeLinks.getAt(0)
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = selectNextDatagram(datagrams)
                         if (messageID != null) {
@@ -162,7 +162,6 @@ class DtnLink extends UnetAgent {
         add(new PoissonBehavior(DATAGRAM_PERIOD) {
             @Override
             void onTick() {
-                utility.deleteExpiredLinks()
                 datagramCycle.restart()
             }
         })
@@ -223,8 +222,15 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
              stats.beacons_snooped++
-             utility.updateLiveLinks(msg.getFrom(), msg.getRecipient())
+             utility.updateLastTransmission(msg.getRecipient())
+             AgentID phy = msg.getRecipient().getOwner().getAgentID()
+             AgentID link = utility.getLink(phy)
+             if (link != null) {
+                 utility.addLinkForNode(msg.getFrom(), link)
+             }
          } else if (msg instanceof DatagramNtf) {
+             // we will do this for every message? Can't hurt much
+             utility.addLinkForNode(msg.getFrom(), msg.getRecipient())
              if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
@@ -325,8 +331,10 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
-                for (AgentID linkID : utility.getLinkPhyMap().keySet()) {
-                    int lastTransmission = utility.getLastTransmission(linkID)
+                for (Map.Entry entry : utility.linkInfo) {
+                    AgentID linkID = entry.getKey()
+                    DtnLinkInfo.LinkMetadata metadata = entry.getValue()
+                    int lastTransmission = metadata.lastTransmission
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
                     }

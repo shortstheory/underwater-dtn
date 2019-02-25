@@ -10,20 +10,12 @@ class DtnLinkInfo {
     private int LINK_EXPIRY_TIME = 10*60 // 10 mins before we remove a link's "ALIVE" status
     private DtnLink dtnLink
 
-    // node - link pair; right now we only use one link per node
-
-    enum LinkType {
-        RELIABLE_LINK,
-        UDP_LINK
-    }
-
     class LinkMetadata {
         AgentID phyID
         int lastTransmission
-        LinkType type
     }
 
-    private HashMap<AgentID, LinkMetadata> linkInfo
+    HashMap<AgentID, LinkMetadata> linkInfo
     private HashMap<Integer, HashSet<AgentID>> nodeLinks
 
     DtnLinkInfo(DtnLink dtnLink) {
@@ -32,16 +24,8 @@ class DtnLinkInfo {
         nodeLinks = new HashMap<>()
     }
 
-    HashMap<AgentID, AgentID> getLinkPhyMap() {
-        HashMap<AgentID, AgentID> linkPhyMap = new HashMap<>()
-        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo.entrySet()) {
-            linkPhyMap.put(entry.getKey(), entry.getValue().phyID)
-        }
-        return linkPhyMap
-    }
-
-    int getLastTransmission(AgentID link) {
-        return linkInfo.get(link).lastTransmission
+    LinkMetadata getLinkMetadata(AgentID link) {
+        return linkInfo.get(link)
     }
 
     void addLink(AgentID link) {
@@ -74,11 +58,20 @@ class DtnLinkInfo {
         nodeLinks.get(node).add(link)
     }
 
-    void updateLastTransmission(AgentID phy_topic) {
-        AgentID phy = phy_topic.getOwner().getAgentID()
-        for (Map.Entry<AgentID, AgentID> entry : linkPhyMap.entrySet()) {
+    AgentID getLink(AgentID phy) {
+        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
+            if (entry.getValue().phyID == phy) {
+                return entry.getKey()
+            }
+        }
+        return null
+    }
+
+    void updateLastTransmission(AgentID topic) {
+        AgentID phy = topic.getOwner().getAgentID()
+        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo.entrySet()) {
             AgentID linkID = entry.getKey()
-            AgentID phyID = entry.getValue()
+            AgentID phyID = entry.getValue().phyID
             if (phyID == phy) {
                 linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
             }
