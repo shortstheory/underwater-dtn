@@ -11,59 +11,76 @@ class DtnLinkInfo {
     private DtnLink dtnLink
 
     // node - link pair; right now we only use one link per node
-    private HashMap<Integer, AgentID> nodeLiveLinks
-    private HashMap<AgentID, Integer> linkLastTransmission
-    private HashMap<AgentID, AgentID> linkPhyMap
+
+    enum LinkType {
+        RELIABLE_LINK,
+        UDP_LINK
+    }
+
+    class LinkMetadata {
+        AgentID phyID
+        int lastTransmission
+        LinkType type
+    }
+
+    private HashMap<AgentID, LinkMetadata> linkInfo
+    private HashMap<Integer, HashSet<AgentID>> nodeLinks
 
     DtnLinkInfo(DtnLink dtnLink) {
         this.dtnLink = dtnLink
-        nodeLiveLinks = new HashMap<>()
-        linkLastTransmission = new HashMap<>()
-        linkPhyMap = new HashMap<>()
+        linkInfo = new HashMap<>()
+        nodeLinks = new HashMap<>()
     }
 
-
     HashMap<AgentID, AgentID> getLinkPhyMap() {
+        HashMap<AgentID, AgentID> linkPhyMap = new HashMap<>()
+        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo.entrySet()) {
+            linkPhyMap.put(entry.getKey(), entry.getValue().phyID)
+        }
         return linkPhyMap
     }
 
-    HashMap<Integer, AgentID> getNodeLiveLinks() {
-        return nodeLiveLinks
-    }
-
     int getLastTransmission(AgentID link) {
-        return linkLastTransmission.getOrDefault(link, 0)
+        return linkInfo.get(link).lastTransmission
     }
 
     void addLink(AgentID link) {
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
-        if (phy != null) {
-            linkPhyMap.put(link, phy)
-        }
+        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0))
     }
 
-    void updateLiveLinks(Integer node, AgentID phy_topic) {
+    Set<Integer> getNodes() {
+        return nodeLinks.keySet()
+    }
+
+    Set<AgentID> getLinksForNode(int node) {
+        Set<AgentID> liveLinks = new HashSet<>()
+        Set<AgentID> links = nodeLinks.get(node)
+        if (links != null) {
+            for (AgentID link : links) {
+                LinkMetadata metadata = linkInfo.get(link)
+                if (metadata.lastTransmission + LINK_EXPIRY_TIME < dtnLink.currentTimeSeconds()) {
+                    liveLinks.add(link)
+                }
+            }
+        }
+        return liveLinks
+    }
+
+    void addLinkForNode(int node, AgentID link) {
+        if (nodeLinks.get(node) == null) {
+            nodeLinks.put(node, new HashSet<AgentID>())
+        }
+        nodeLinks.get(node).add(link)
+    }
+
+    void updateLastTransmission(AgentID phy_topic) {
         AgentID phy = phy_topic.getOwner().getAgentID()
         for (Map.Entry<AgentID, AgentID> entry : linkPhyMap.entrySet()) {
             AgentID linkID = entry.getKey()
             AgentID phyID = entry.getValue()
             if (phyID == phy) {
-                nodeLiveLinks.put(node, linkID)
-                linkLastTransmission.put(linkID, dtnLink.currentTimeSeconds())
-            }
-        }
-
-    }
-
-    void deleteExpiredLinks() {
-        Iterator it = nodeLiveLinks.entrySet().iterator()
-        while (it.hasNext()) {
-            Map.Entry entry = (Map.Entry)it.next()
-            int node = entry.getKey()
-            AgentID id = entry.getValue()
-            if (dtnLink.currentTimeSeconds() > linkLastTransmission.get(id) + LINK_EXPIRY_TIME) {
-                println "removed " + entry.getValue().toString() + " at " + dtnLink.currentTimeSeconds()
-                it.remove()
+                linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
             }
         }
     }
