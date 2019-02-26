@@ -1,7 +1,15 @@
 issues:
 * what MTU to use?
+* using debugger in router causes different outputs in the processRequest function of DtnLink
 * udplink crash
 * rxframentf & dntf problems
+
+addroute 2,1,dtnlink
+addroute 3,2,dtnlink
+
+dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5, data: {0,1,2,3,4,5,6,7,8,9})
+
+do two modems in same container cause problems?
 UdpLink ignores distance!
 TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
 
@@ -11,7 +19,6 @@ link << new org.arl.urnet.DatagramReq(to: 3, reliability: true)
 link << new org.arl.unet.DatagramReq(to: 0)
 
 pending:
-* need to see how UdpLink is handled by multilink - we won't receive RxFrameNtfs so think of another way
 !!* clean code?
 !!* study some 3B1B
 * start midsem report
@@ -24,6 +31,7 @@ pending:
 later:
 
 done:
+* need to see how UdpLink is handled by multilink - we won't receive RxFrameNtfs so think of another way
 * simulations
 * multiple links per node
 * multiple links for Cyclic

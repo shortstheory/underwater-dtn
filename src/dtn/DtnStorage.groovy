@@ -66,7 +66,7 @@ class DtnStorage {
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
-        int ttl = Math.round(req.getTtl())
+        int ttl = (req.getTtl().isNaN()) ? 2000 : Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         byte[] pduBytes = encodePdu(data, ttl, protocol)
@@ -139,7 +139,8 @@ class DtnStorage {
 
     byte[] encodePdu(byte[] data, int ttl, int protocol) {
         // ttl + protocol = 8 bytes?
-        OutputPDU pdu = new OutputPDU(data.length + 8)
+        int dataLength = (data == null) ? 0 : data.length
+        OutputPDU pdu = new OutputPDU(dataLength + 8)
         pdu.write32(ttl)
         pdu.write32(protocol)
         pdu.write(data)

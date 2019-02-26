@@ -60,7 +60,7 @@ class DtnLink extends UnetAgent {
     private DatagramPriority priority
     private Random random
 
-    int BEACON_PERIOD = 100*1000
+    int BEACON_PERIOD = 10*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
@@ -195,7 +195,7 @@ class DtnLink extends UnetAgent {
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
             // FIXME: check for buffer space too, probably in saveDatagram!
-            if (msg.getTtl() == Float.NaN || !storage.saveDatagram(msg)) {
+            if (!storage.saveDatagram(msg)) {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {

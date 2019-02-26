@@ -52,7 +52,7 @@ class DatagramGenerator extends UnetAgent{
                         String data = createDataSize(random.nextInt(msgSize))
                         int ttl = 200 + random.nextInt(msgTtl)
                         byte[] bytes = data.getBytes()
-                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: DtnLink.DTN_PROTOCOL))
+                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: 22))
                     }
                 }
             })
@@ -63,6 +63,9 @@ class DatagramGenerator extends UnetAgent{
                 @Override
                 void onTick() {
                     for (int destNode : destNodes) {
+//                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 5000, protocol: 22))
+//                        dtnLink.send(new DatagramReq(to: destNode, ttl: 5000, protocol: 5))
+
                         dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: 22))
                     }
                 }
