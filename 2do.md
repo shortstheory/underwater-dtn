@@ -5,6 +5,7 @@ TTL/size in random simulations is the largest size of the TTL/size that can be s
 router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
 router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
+link << new org.arl.unet.DatagramReq(to: 0)
 
 pending:
 * need to see how UdpLink is handled by multilink - we won't receive RxFrameNtfs so think of another way

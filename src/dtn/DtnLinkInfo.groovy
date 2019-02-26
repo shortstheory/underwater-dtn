@@ -68,14 +68,7 @@ class DtnLinkInfo {
         return null
     }
 
-    void updateLastTransmission(AgentID topic) {
-        AgentID phy = topic.getOwner().getAgentID()
-        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo.entrySet()) {
-            AgentID linkID = entry.getKey()
-            AgentID phyID = entry.getValue().phyID
-            if (phyID == phy) {
-                linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
-            }
-        }
+    void updateLastTransmission(AgentID linkID) {
+        linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
     }
 }

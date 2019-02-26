@@ -222,7 +222,6 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
          if (msg instanceof RxFrameNtf) {
              stats.beacons_snooped++
-             utility.updateLastTransmission(msg.getRecipient())
              AgentID phy = msg.getRecipient().getOwner().getAgentID()
              AgentID link = utility.getLink(phy)
              if (link != null) {
@@ -230,7 +229,10 @@ class DtnLink extends UnetAgent {
              }
          } else if (msg instanceof DatagramNtf) {
              // we will do this for every message? Can't hurt much
-//             utility.addLinkForNode(msg.getFrom(), msg.getRecipient())
+             AgentID link = msg.getRecipient().getOwner().getAgentID()
+             utility.addLinkForNode(msg.getFrom(), link)
+             utility.updateLastTransmission(link)
+
              if (msg.getProtocol() == DTN_PROTOCOL) {
                 // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
