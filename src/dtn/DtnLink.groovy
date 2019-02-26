@@ -48,11 +48,9 @@ class DtnLink extends UnetAgent {
     private String directory
 
     // and we are using only 1 link
-    private AgentID link
+    private ArrayList<AgentID> linksWithReliability
     private AgentID notify
     private AgentID nodeInfo
-    private AgentID phy
-    private AgentID[] links
 
     private CyclicBehavior datagramCycle
     private PoissonBehavior beaconBehavior
@@ -102,7 +100,6 @@ class DtnLink extends UnetAgent {
     @Override
     protected void startup() {
         nodeInfo = agentForService(Services.NODE_INFO)
-        links = agentsForService(Services.LINK)
 
         nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
         notify = topic()
@@ -111,18 +108,9 @@ class DtnLink extends UnetAgent {
         storage = new DtnStorage(this, directory)
         utility = new DtnLinkInfo(this)
 
-        link = getLinkWithReliability()
-        utility.addLink(link)
-
-        if (link != null) {
-            subscribe(link)
-            phy = agent((String)get(link, ReliableLinkParam.phy))
-            if (phy != null) {
-                subscribe(phy)
-                subscribe(topic(phy, Physical.SNOOP))
-            } else {
-                println "PHY not provided for link"
-            }
+        linksWithReliability = getLinksWithReliability()
+        for (AgentID link : linksWithReliability) {
+            utility.addLink(link)
         }
 
         beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
@@ -187,7 +175,9 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    AgentID getLinkWithReliability() {
+    ArrayList<AgentID> getLinksWithReliability() {
+        AgentID[] links = agentsForService(Services.LINK)
+        ArrayList<AgentID> reliableLinks = new ArrayList<>()
         for (AgentID link : links) {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 2000)
@@ -195,11 +185,10 @@ class DtnLink extends UnetAgent {
                 (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
                 link.getName() != getName()) { // we don't want to use the DtnLink!
                 println("Candidate Link " + link.getName())
-                return link
+                reliableLinks.add(link)
             }
         }
-        println("No link with reliability found")
-        return null
+        return reliableLinks
     }
 
     @Override
@@ -234,7 +223,6 @@ class DtnLink extends UnetAgent {
              utility.updateLastTransmission(link)
 
              if (msg.getProtocol() == DTN_PROTOCOL) {
-                // FIXME: check for buffer space, or abstract it
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
                 if (pduTuple != null) {
@@ -249,8 +237,7 @@ class DtnLink extends UnetAgent {
                     notify.send(ntf)
                     stats.datagrams_received++
                 }
-                 // FIXME: 22 is just for testing
-            } else if (msg.getProtocol() == 22) {
+            } else {
                 stats.datagrams_received++
             }
         // once we have received a DDN/DFN, we can send another one
@@ -350,10 +337,11 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-        if (link != null) {
-            return (int)get(link, DatagramParam.MTU) - HEADER_SIZE
-        }
-        return 0
+        // FIXME: how to choose MTU?
+//        if (link != null) {
+//            return (int)get(link, DatagramParam.MTU) - HEADER_SIZE
+//        }
+        return 1400
     }
 
     void setBEACON_PERIOD(int period) {

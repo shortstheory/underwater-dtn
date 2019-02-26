@@ -59,6 +59,7 @@ for (int i = 1; i <= 1; i++) {
         }
         def auvR = node '2', address: 2, mobility: true, location: [2400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
+            container.add 'udp', new UdpLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
         }
         def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],

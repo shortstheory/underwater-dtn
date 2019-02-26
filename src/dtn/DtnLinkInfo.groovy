@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.fjage.Agent
 import org.arl.unet.link.ReliableLinkParam
+import org.arl.unet.phy.Physical
 
 @CompileStatic
 class DtnLinkInfo {
@@ -29,8 +30,15 @@ class DtnLinkInfo {
     }
 
     void addLink(AgentID link) {
+        dtnLink.subscribe(link)
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
         linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0))
+        if (phy != null) {
+            dtnLink.subscribe(phy)
+            dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))
+        } else {
+            println "PHY not provided for link"
+        }
     }
 
     Set<Integer> getNodes() {
