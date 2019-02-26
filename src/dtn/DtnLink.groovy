@@ -60,7 +60,7 @@ class DtnLink extends UnetAgent {
     private DatagramPriority priority
     private Random random
 
-    int BEACON_PERIOD = 10*1000
+    int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
@@ -238,6 +238,7 @@ class DtnLink extends UnetAgent {
                     stats.datagrams_received++
                 }
             } else {
+                println "Protocol number - " + msg.getProtocol()
                 stats.datagrams_received++
             }
         // once we have received a DDN/DFN, we can send another one
@@ -275,7 +276,7 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
                 @Override
                 void onWake() {
-                    byte[] pduBytes = storage.getPDU(messageID, true)
+                    byte[] pduBytes = storage.getPDU(messageID, true).toByteArray()
                     if (pduBytes != null) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {

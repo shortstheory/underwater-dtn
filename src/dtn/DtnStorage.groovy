@@ -1,11 +1,13 @@
 package dtn
 
 import groovy.transform.CompileStatic
+import org.apache.commons.io.IOUtils
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
+import java.nio.file.Files
 
-import java.nio.file.Files;
+import static java.nio.file.Files.*;
 
 @CompileStatic
 class DtnStorage {
@@ -69,7 +71,9 @@ class DtnStorage {
         int ttl = (req.getTtl().isNaN()) ? 2000 : Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
-        byte[] pduBytes = encodePdu(data, ttl, protocol)
+        OutputPDU outputPDU = encodePdu(data, ttl, protocol)
+
+        FileOutputStream fos
 
         try {
             File dir = new File(directory)
@@ -77,7 +81,8 @@ class DtnStorage {
                 dir.mkdirs()
             }
             File file = new File(dir, messageID)
-            Files.write(file.toPath(), pduBytes)
+            fos = new FileOutputStream(file)
+            outputPDU.writeTo(fos)
             db.put(messageID, new DtnPduMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
                                                  attempts: 0,
@@ -86,6 +91,8 @@ class DtnStorage {
         } catch (IOException e) {
             println "Could not save file for " + messageID
             return false
+        } finally {
+            fos.close()
         }
     }
 
@@ -137,14 +144,14 @@ class DtnStorage {
         }
     }
 
-    byte[] encodePdu(byte[] data, int ttl, int protocol) {
+    OutputPDU encodePdu(byte[] data, int ttl, int protocol) {
         // ttl + protocol = 8 bytes?
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + 8)
         pdu.write32(ttl)
         pdu.write32(protocol)
         pdu.write(data)
-        return pdu.toByteArray()
+        return pdu
     }
 
     Tuple decodePdu(byte[] pduBytes) {
@@ -153,17 +160,18 @@ class DtnStorage {
         }
         InputPDU pdu = new InputPDU(pduBytes)
 
-        int ttl = pdu.read32()
-        int protocol = pdu.read32()
+        int ttl = (int)pdu.read32()
+        int protocol = (int)pdu.read32()
         // the data follows the 8 byte header
         byte[] data = Arrays.copyOfRange(pduBytes, 8, pduBytes.length)
         return new Tuple(ttl, protocol, data)
     }
 
-    byte[] getPDU(String messageID, boolean adjustTtl) {
+    OutputPDU getPDU(String messageID, boolean adjustTtl) {
         // This occasionally throws NPEs. Who knows why?
         try {
-            byte[] pduBytes = new File(directory, messageID).text.getBytes()
+            byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
+//            byte[] pduBytes = new File(directory, messageID).text.getBytes()
             if (pduBytes != null) {
                 Tuple pduTuple = decodePdu(pduBytes)
                 int ttl = (adjustTtl) ? getMetadata(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
@@ -189,9 +197,9 @@ class DtnStorage {
     }
 
     int getTimeSinceArrival(String messageID) {
-        byte[] pdu = getPDU(messageID, false)
+        OutputPDU pdu = getPDU(messageID, false)
         if (pdu != null) {
-            Tuple pduInfo = decodePdu(pdu)
+            Tuple pduInfo = decodePdu(pdu.toByteArray())
             int ttl = (int)pduInfo.get(0)
             int expiryTime = getMetadata(messageID).expiryTime
             return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
