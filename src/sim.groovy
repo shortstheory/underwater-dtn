@@ -17,21 +17,21 @@ import java.nio.file.Files
 //platform = RealTimePlatform
 platform = DiscreteEventSimulator
 
-//channel.model = BasicAcousticChannel
-channel.model = ProtocolChannelModel
+channel.model = BasicAcousticChannel
+//channel.model = ProtocolChannelModel
+//
+//channel.soundSpeed = 300*1000*1000.mps           // c
+//channel.communicationRange = 5000.m     // Rc
+//channel.detectionRange = 5000.m         // Rd
+//channel.interferenceRange = 5000.m      // Ri
+//channel.pDetection = 1                  // pd
+//channel.pDecoding = 1                   // pc
+//
+//modem.dataRate = [80*1000.bps, 240*1000.bps]
+//modem.frameLength = [1500.bytes, 1500.bytes]
+//modem.powerLevel = [0.dB, -10.dB]
 
-channel.soundSpeed = 300*1000*1000.mps           // c
-channel.communicationRange = 5000.m     // Rc
-channel.detectionRange = 5000.m         // Rd
-channel.interferenceRange = 5000.m      // Ri
-channel.pDetection = 1                  // pd
-channel.pDecoding = 1                   // pc
-
-modem.dataRate = [80*1000.bps, 240*1000.bps]
-modem.frameLength = [1500.bytes, 1500.bytes]
-modem.powerLevel = [0.dB, -10.dB]
-
-println "Starting simulation!"
+println "Starting 3-simulation!"
 
 def T = 1.hour
 
@@ -39,16 +39,16 @@ def T = 1.hour
 //int[] dest2 = [3,1]
 //int[] dest3 = [1,2]
 
-int[] dest1 = []
-int[] dest2 = [1]
+int[] dest1 = [2]
+int[] dest2 = [3]
 int[] dest3 = [1]
 
 int nodeCount = 3
 
-def msgSize = 400
+def msgSize = 100
 def msgFreq = 100*1000
-def dist = 1000.m
-def msgTtl = 1000
+def dist = 200.m
+def msgTtl = 100000
 
 for (def i = 0; i < 10; i++) {
     // add housekeeping here
