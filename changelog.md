@@ -1,5 +1,6 @@
 Week 9:
 * added multi-link support
+* fixed broken pdu logic with output/inputstreams
 
 Week 8:
 * running simulations and collecting stats

@@ -3,19 +3,22 @@ issues:
 * using debugger in router causes different outputs in the processRequest function of DtnLink
 * udplink crash
 * rxframentf & dntf problems
+* addroute 2,1,dtnlink - > this makes the regenerated DatagramReq go to node 1 when I do router << new DatagramReq(to: 2) ???
 
-addroute 2,1,dtnlink
 addroute 3,2,dtnlink
 
 dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5, data: {0,1,2,3,4,5,6,7,8,9})
+dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
 
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
 do two modems in same container cause problems?
 UdpLink ignores distance!
 TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
 
 router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
 router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
-link << new org.arl.urnet.DatagramReq(to: 3, reliability: true)
+link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 link << new org.arl.unet.DatagramReq(to: 0)
 
 pending:
