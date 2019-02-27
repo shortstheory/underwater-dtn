@@ -8,7 +8,6 @@ import org.arl.unet.phy.Physical
 
 @CompileStatic
 class DtnLinkInfo {
-    private int LINK_EXPIRY_TIME = 10*60 // 10 mins before we remove a link's "ALIVE" status
     private DtnLink dtnLink
 
     class LinkMetadata {
@@ -58,7 +57,7 @@ class DtnLinkInfo {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
                 int currentTime = dtnLink.currentTimeSeconds()
-                if (metadata.lastTransmission + LINK_EXPIRY_TIME < currentTime) {
+                if (metadata.lastTransmission + dtnLink.LINK_EXPIRY_TIME < currentTime) {
                     liveLinks.add(link)
                 }
             }

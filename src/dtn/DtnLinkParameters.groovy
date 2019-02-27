@@ -11,5 +11,6 @@ enum DtnLinkParameters implements Parameter {
     SWEEP_PERIOD,
     DATAGRAM_PERIOD,
     MTU,
-    MAX_RETRIES
+    MAX_RETRIES,
+    LINK_EXPIRY_TIME
 }

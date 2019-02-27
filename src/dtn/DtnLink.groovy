@@ -67,6 +67,7 @@ class DtnLink extends UnetAgent {
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
     int MAX_RETRIES = 1
+    int LINK_EXPIRY_TIME = 10*60
 
     List<Parameter> getParameterList() {
         allOf(DtnLinkParameters)

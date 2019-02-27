@@ -1,20 +1,20 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import org.apache.commons.io.IOUtils
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
 import java.nio.file.Files
 
-import static java.nio.file.Files.*;
-
 @CompileStatic
 class DtnStorage {
     private final String directory
     private DtnLink dtnLink
-    private HashMap<String, DtnPduMetadata> db
-    // New DatagramReqID - Old DatagramReqID
+    private HashMap<String, DtnPduMetadata> metadataMap
+
+    /**
+     * Pair of the new MessageID and old MessageID
+     */
     private HashMap<String, String> datagramMap
 
     DtnStorage(DtnLink link, String dir) {
@@ -26,7 +26,7 @@ class DtnStorage {
             file.mkdir()
         }
 
-        db = new HashMap<>()
+        metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
     }
 
@@ -36,7 +36,7 @@ class DtnStorage {
     }
 
     DtnPduMetadata getDatagramMetadata(String messageID) {
-        return db.get(messageID)
+        return metadataMap.get(messageID)
     }
 
     String getOriginalMessageID(String newMessageID) {
@@ -45,7 +45,7 @@ class DtnStorage {
 
     ArrayList<String> getNextHopDatagrams(int nextHop) {
         ArrayList<String> data = new ArrayList<>()
-        for (Map.Entry<String, DtnPduMetadata> entry : db.entrySet()) {
+        for (Map.Entry<String, DtnPduMetadata> entry : metadataMap.entrySet()) {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime
@@ -55,6 +55,8 @@ class DtnStorage {
                 // instead, it will be deleted by the next DtnLink sweep
 
                 // one hack for cleaning MAX_RETRIES being exceeded.
+                // this won't cause a DFN because it will be caught in the
+                // check for message delivery
                 metadata.expiryTime = 0
                 continue
             }
@@ -68,6 +70,7 @@ class DtnStorage {
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
+        // FIXME: only for testing with Router
         int ttl = (req.getTtl().isNaN()) ? 2000 : Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
@@ -83,7 +86,7 @@ class DtnStorage {
             File file = new File(dir, messageID)
             fos = new FileOutputStream(file)
             outputPDU.writeTo(fos)
-            db.put(messageID, new DtnPduMetadata(nextHop: nextHop,
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
                                                  expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
                                                  attempts: 0,
                                                  delivered: false))
@@ -103,6 +106,8 @@ class DtnStorage {
             file.delete()
             nextHop = getMetadata(messageID).nextHop
             String key
+
+            // Can be done in O(1) with bi-map? But not a big deal
             for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
                 if (entry.getValue() == messageID) {
                     key = entry.getKey()
@@ -111,7 +116,7 @@ class DtnStorage {
             }
             datagramMap.remove(key)
         } catch (Exception e) {
-            println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + db.size()
+            println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + metadataMap.size()
         }
         return new Tuple2(messageID, nextHop)
     }
@@ -119,7 +124,7 @@ class DtnStorage {
     ArrayList<Tuple2> deleteExpiredDatagrams() {
         ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
 
-        Iterator it = db.entrySet().iterator()
+        Iterator it = metadataMap.entrySet().iterator()
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry)it.next()
             String messageID = entry.getKey()
@@ -164,10 +169,8 @@ class DtnStorage {
     }
 
     OutputPDU getPDU(String messageID, boolean adjustTtl) {
-        // This occasionally throws NPEs. Who knows why?
         try {
             byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
-//            byte[] pduBytes = new File(directory, messageID).text.getBytes()
             if (pduBytes != null) {
                 Tuple pduTuple = decodePdu(pduBytes)
                 int ttl = (adjustTtl) ? getMetadata(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
@@ -177,15 +180,15 @@ class DtnStorage {
                     return encodePdu(data, ttl, protocol)
                 }
             }
-            return null
         } catch(Exception e) {
             println "Message ID " + messageID + " not found"
-            return  null
+        } finally {
+            return null
         }
     }
 
     DtnPduMetadata getMetadata(String messageID) {
-        return db.get(messageID)
+        return metadataMap.get(messageID)
     }
 
     void removeFailedEntry(String newMessageID) {
