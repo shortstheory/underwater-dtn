@@ -14,9 +14,10 @@ class DtnLinkInfo {
     class LinkMetadata {
         AgentID phyID
         int lastTransmission
+        int priority
     }
 
-    HashMap<AgentID, LinkMetadata> linkInfo
+    private HashMap<AgentID, LinkMetadata> linkInfo
     private HashMap<Integer, HashSet<AgentID>> nodeLinks
 
     DtnLinkInfo(DtnLink dtnLink) {
@@ -29,9 +30,14 @@ class DtnLinkInfo {
         return linkInfo.get(link)
     }
 
+    HashMap<AgentID, LinkMetadata> getLinkInfo() {
+        return linkInfo
+    }
+
     void addLink(AgentID link) {
         dtnLink.subscribe(link)
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
+        // it's OK if phy is null, we just won't have SNOOP
         linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0))
         if (phy != null) {
             dtnLink.subscribe(phy)
@@ -41,7 +47,7 @@ class DtnLinkInfo {
         }
     }
 
-    Set<Integer> getNodes() {
+    Set<Integer> getDestinationNodes() {
         return nodeLinks.keySet()
     }
 
@@ -50,11 +56,11 @@ class DtnLinkInfo {
         Set<AgentID> links = nodeLinks.get(node)
         if (links != null) {
             for (AgentID link : links) {
-                LinkMetadata metadata = linkInfo.get(link)
-
-//                if (metadata.lastTransmission + LINK_EXPIRY_TIME > dtnLink.currentTimeSeconds()) {
+                LinkMetadata metadata = getLinkMetadata(link)
+                int currentTime = dtnLink.currentTimeSeconds()
+                if (metadata.lastTransmission + LINK_EXPIRY_TIME < currentTime) {
                     liveLinks.add(link)
-//                }
+                }
             }
         }
         return liveLinks

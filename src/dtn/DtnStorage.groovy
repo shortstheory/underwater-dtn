@@ -100,7 +100,6 @@ class DtnStorage {
         int nextHop
         try {
             File file = new File(directory, messageID)
-
             file.delete()
             nextHop = getMetadata(messageID).nextHop
             String key
@@ -111,11 +110,9 @@ class DtnStorage {
                 }
             }
             datagramMap.remove(key)
-//            db.remove(messageID) removing it this way will cause a CME!!, must remove through it
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + db.size()
         }
-        // first & second
         return new Tuple2(messageID, nextHop)
     }
 
@@ -145,7 +142,6 @@ class DtnStorage {
     }
 
     OutputPDU encodePdu(byte[] data, int ttl, int protocol) {
-        // ttl + protocol = 8 bytes?
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + 8)
         pdu.write32(ttl)

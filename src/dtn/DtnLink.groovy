@@ -20,34 +20,36 @@ import org.arl.unet.Parameter
 import org.arl.unet.Protocol
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
-import org.arl.unet.link.ReliableLinkParam
-import org.arl.unet.net.Router
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
-import org.arl.unet.phy.Physical
 import org.arl.unet.phy.RxFrameNtf
-import org.omg.CORBA.INTERNAL
-import sun.awt.image.ImageWatched
-
-import javax.xml.crypto.Data
-import java.lang.reflect.Method
 
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
+    /////////////////////// Constants
+
+    /**
+     * DtnLink header comprises of the message TTL and protocol number
+     */
     public static final int HEADER_SIZE = 8
     public static final int DTN_PROTOCOL = 50
 
     int MTU
 
+    /**
+     * Collects statistics for the simulation
+     */
     public DtnStats stats
 
+    /**
+     * Manages the storage of pending datagrams
+     */
     private DtnStorage storage
     private int nodeAddress
     private String directory
 
-    // and we are using only 1 link
     private ArrayList<AgentID> linksWithReliability
     private AgentID notify
     private AgentID nodeInfo
@@ -93,7 +95,6 @@ class DtnLink extends UnetAgent {
     protected void setup() {
         register(Services.LINK)
         register(Services.DATAGRAM)
-        // FIXME: do we really support reliability
         addCapability(DatagramCapability.RELIABILITY)
     }
 
@@ -118,9 +119,10 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                for (Integer node : utility.getNodes()) {
+                for (Integer node : utility.getDestinationNodes()) {
                     Set<AgentID> nodeLinks = utility.getLinksForNode(node)
                     if (!nodeLinks.isEmpty()) {
+                        // FIXME: later choose links based on bitrate
                         AgentID nodeLink = nodeLinks.getAt(0)
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = selectNextDatagram(datagrams)
@@ -321,7 +323,7 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
-                for (Map.Entry entry : utility.linkInfo) {
+                for (Map.Entry entry : utility.getLinkInfo()) {
                     AgentID linkID = entry.getKey()
                     DtnLinkInfo.LinkMetadata metadata = entry.getValue()
                     int lastTransmission = metadata.lastTransmission
