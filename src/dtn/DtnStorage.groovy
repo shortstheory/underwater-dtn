@@ -180,9 +180,9 @@ class DtnStorage {
                     return encodePdu(data, ttl, protocol)
                 }
             }
+            return null
         } catch(Exception e) {
             println "Message ID " + messageID + " not found"
-        } finally {
             return null
         }
     }
