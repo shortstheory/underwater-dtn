@@ -148,9 +148,9 @@ class DtnStorage {
 
     OutputPDU encodePdu(byte[] data, int ttl, int protocol) {
         int dataLength = (data == null) ? 0 : data.length
-        OutputPDU pdu = new OutputPDU(dataLength + 8)
+        OutputPDU pdu = new OutputPDU(dataLength + dtnLink.HEADER_SIZE)
         pdu.write32(ttl)
-        pdu.write32(protocol)
+        pdu.write8(protocol)
         pdu.write(data)
         return pdu
     }
@@ -162,9 +162,9 @@ class DtnStorage {
         InputPDU pdu = new InputPDU(pduBytes)
 
         int ttl = (int)pdu.read32()
-        int protocol = (int)pdu.read32()
+        int protocol = (int)pdu.read8()
         // the data follows the 8 byte header
-        byte[] data = Arrays.copyOfRange(pduBytes, 8, pduBytes.length)
+        byte[] data = Arrays.copyOfRange(pduBytes, dtnLink.HEADER_SIZE, pduBytes.length)
         return new Tuple(ttl, protocol, data)
     }
 

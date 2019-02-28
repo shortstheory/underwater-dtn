@@ -33,7 +33,7 @@ class DtnLink extends UnetAgent {
     /**
      * DtnLink header comprises of the message TTL and protocol number
      */
-    public static final int HEADER_SIZE = 8
+    public static final int HEADER_SIZE = 5
     public static final int DTN_PROTOCOL = 50
 
     int MTU
