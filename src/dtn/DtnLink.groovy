@@ -25,6 +25,8 @@ import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.RxFrameNtf
 
+import javax.xml.crypto.Data
+
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
@@ -85,6 +87,13 @@ class DtnLink extends UnetAgent {
         directory = dir
         random = new Random()
         priority = DatagramPriority.EXPIRY
+        linkState = LinkState.READY
+    }
+
+    DtnLink(String dir, DatagramPriority datagramPriority) {
+        directory = dir
+        random = new Random()
+        priority = datagramPriority
         linkState = LinkState.READY
     }
 
