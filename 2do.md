@@ -1,4 +1,6 @@
 issues:
+**create issue for the bitrate of the link**
+
 * what MTU to use?
 * using debugger in router causes different outputs in the processRequest function of DtnLink
 * udplink crash

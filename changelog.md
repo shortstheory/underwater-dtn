@@ -1,4 +1,5 @@
 Week 9:
+* saved 3 bytes in the PDU
 * added multi-link support
 * fixed broken pdu logic with output/inputstreams
 
