@@ -3,18 +3,19 @@ package test
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
+import test.DtnTest
 
 @CompileStatic
 class TestApp extends UnetAgent {
     AgentID dtnlink
 
-    enum Tests {
-        TRIVIAL_MESSAGE_TEST
-    }
+    String TRIVIAL_MESSAGE_ID = "testmessage"
 
-    Tests test
+    public boolean TRIVIAL_MESSAGE_TEST = false
 
-    TestApp(Tests t) {
+    DtnTest.Tests test
+
+    TestApp(DtnTest.Tests t) {
         test = t
     }
 
@@ -25,9 +26,8 @@ class TestApp extends UnetAgent {
         dtnlink = agent("dtnlink")
         subscribe(topic(dtnlink))
 
-        if (test == Tests.TRIVIAL_MESSAGE_TEST) {
-            String id = "my_id"
-            DatagramReq req = new DatagramReq(to: 2, ttl: 200, msgID: id)
+        if (test == DtnTest.Tests.TRIVIAL_MESSAGE_TEST) {
+            DatagramReq req = new DatagramReq(to: 2, ttl: 200, msgID: TRIVIAL_MESSAGE_ID)
             sendDatagram(req)
         }
     }
@@ -41,8 +41,10 @@ class TestApp extends UnetAgent {
     }
 
     void processMessage(Message msg) {
-        if (msg) {
-
+        if (test == DtnTest.Tests.TRIVIAL_MESSAGE_TEST) {
+            if (msg.getPerformative() == Performative.AGREE) {
+                TRIVIAL_MESSAGE_TEST = true
+            }
         }
     }
 }

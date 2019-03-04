@@ -1,3 +1,5 @@
+package test
+
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.arl.unet.link.ReliableLink
@@ -16,6 +18,10 @@ class DtnTest {
     String path = "testNode"
     int DELAY_TIME = 3600*1000
 
+    public enum Tests {
+        TRIVIAL_MESSAGE_TEST
+    }
+
     @Before
     public void beforeTesting() {
         println("Cleaning Dirs")
@@ -27,15 +33,17 @@ class DtnTest {
     public void testTrivialMessage() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.TRIVIAL_MESSAGE_TEST)
+        TestLink link = new TestLink()
         c.add("dtnlink", new DtnLink(path))
-        c.add("testapp", new TestApp(TestApp.Tests.TRIVIAL_MESSAGE_TEST))
-        c.add("testlink", new TestLink())
-
+        c.add("testapp", app)
+        c.add("testlink", link)
         p.start()
         println("Running")
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
+        assert(app.TRIVIAL_MESSAGE_TEST == true)
     }
 
     @After
