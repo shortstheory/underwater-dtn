@@ -8,8 +8,6 @@ import org.arl.unet.*
 class TestApp extends UnetAgent {
     AgentID dtnlink
 
-    String TRIVIAL_MESSAGE_ID = "testmessage"
-
     public boolean TRIVIAL_MESSAGE_RESULT = false
     public boolean SUCCESSFUL_DELIVERY_RESULT = false
 
@@ -27,10 +25,18 @@ class TestApp extends UnetAgent {
         subscribe(topic(dtnlink))
         switch(test) {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
-                DatagramReq req = new DatagramReq(to: 2, ttl: 200, msgID: TRIVIAL_MESSAGE_ID)
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                                  ttl: DtnTest.MESSAGE_TTL,
+                                                  msgID: DtnTest.MESSAGE_ID,
+                                                  protocol: DtnTest.MESSAGE_PROTOCOL)
                 sendDatagram(req)
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                                  ttl: DtnTest.MESSAGE_TTL,
+                                                  msgID: DtnTest.MESSAGE_ID,
+                                                  protocol: DtnTest.MESSAGE_PROTOCOL)
+                sendDatagram(req)
                 break
         }
     }
@@ -51,6 +57,11 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
+                        SUCCESSFUL_DELIVERY_RESULT = true
+                    }
+                }
                 break
         }
     }

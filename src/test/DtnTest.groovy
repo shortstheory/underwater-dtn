@@ -2,6 +2,7 @@ package test
 
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.arl.unet.Protocol
 import org.junit.*
 import org.arl.fjage.*
 import dtn.*
@@ -17,6 +18,11 @@ class DtnTest {
         TRIVIAL_MESSAGE,
         SUCCESSFUL_DELIVERY
     }
+
+    public static final String MESSAGE_ID = "testmessage"
+    public static final int DEST_ADDRESS = 2
+    public static final int MESSAGE_TTL = 1000
+    public static final int MESSAGE_PROTOCOL = Protocol.USER
 
     @Before
     public void beforeTesting() {
@@ -56,7 +62,7 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.SUCCESSFUL_DELIVERY == true)
+        assert(app.SUCCESSFUL_DELIVERY_RESULT == true)
     }
 
     @After

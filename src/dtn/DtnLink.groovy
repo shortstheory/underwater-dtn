@@ -1,6 +1,6 @@
 package dtn
 
-import com.sun.java.util.jar.pack.Package
+
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
@@ -25,7 +25,6 @@ import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.RxFrameNtf
-import org.arl.unet.sim.HalfDuplexModem
 
 //@TypeChecked
 @CompileStatic
@@ -233,13 +232,13 @@ class DtnLink extends UnetAgent {
          if (msg instanceof RxFrameNtf) {
              stats.beacons_snooped++
              AgentID phy = msg.getRecipient().getOwner().getAgentID()
-             AgentID link = utility.getLink(phy)
+             AgentID link = utility.getLinkForPhy(phy)
              if (link != null) {
                  utility.addLinkForNode(msg.getFrom(), link)
              }
          } else if (msg instanceof DatagramNtf) {
              // we will do this for every message? Can't hurt much
-             AgentID link = msg.getRecipient().getOwner().getAgentID()
+             AgentID link = utility.getLinkForTopic(msg.getRecipient())
              utility.addLinkForNode(msg.getFrom(), link)
              utility.updateLastTransmission(link)
 
@@ -326,6 +325,7 @@ class DtnLink extends UnetAgent {
                                                                 reliability: true)
                             }
                             storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                            // FIXME: use send or request here?
                             nodeLink.send(datagramReq)
                             stats.datagrams_sent++
                         }
@@ -384,6 +384,6 @@ class DtnLink extends UnetAgent {
     @Override
     void stop() {
         super.stop()
-//        stats.writeToFile()
+        stats.writeToFile()
     }
 }

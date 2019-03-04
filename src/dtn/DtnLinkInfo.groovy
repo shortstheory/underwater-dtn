@@ -77,9 +77,19 @@ class DtnLinkInfo {
         nodeLinks.get(node).add(link)
     }
 
-    AgentID getLink(AgentID phy) {
+    AgentID getLinkForPhy(AgentID phy) {
         for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
             if (entry.getValue().phyID == phy) {
+                return entry.getKey()
+            }
+        }
+        return null
+    }
+
+    AgentID getLinkForTopic(AgentID topic) {
+        AgentID link = topic.getOwner().getAgentID()
+        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
+            if (entry.getKey().getName() == link.getName()) {
                 return entry.getKey()
             }
         }
