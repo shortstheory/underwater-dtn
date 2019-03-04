@@ -3,7 +3,6 @@ package test
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
-import test.DtnTest
 
 @CompileStatic
 class TestApp extends UnetAgent {
@@ -11,7 +10,8 @@ class TestApp extends UnetAgent {
 
     String TRIVIAL_MESSAGE_ID = "testmessage"
 
-    public boolean TRIVIAL_MESSAGE_TEST = false
+    public boolean TRIVIAL_MESSAGE_RESULT = false
+    public boolean SUCCESSFUL_DELIVERY_RESULT = false
 
     DtnTest.Tests test
 
@@ -25,10 +25,13 @@ class TestApp extends UnetAgent {
     void startup() {
         dtnlink = agent("dtnlink")
         subscribe(topic(dtnlink))
-
-        if (test == DtnTest.Tests.TRIVIAL_MESSAGE_TEST) {
-            DatagramReq req = new DatagramReq(to: 2, ttl: 200, msgID: TRIVIAL_MESSAGE_ID)
-            sendDatagram(req)
+        switch(test) {
+            case DtnTest.Tests.TRIVIAL_MESSAGE:
+                DatagramReq req = new DatagramReq(to: 2, ttl: 200, msgID: TRIVIAL_MESSAGE_ID)
+                sendDatagram(req)
+                break
+            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
+                break
         }
     }
 
@@ -41,10 +44,14 @@ class TestApp extends UnetAgent {
     }
 
     void processMessage(Message msg) {
-        if (test == DtnTest.Tests.TRIVIAL_MESSAGE_TEST) {
-            if (msg.getPerformative() == Performative.AGREE) {
-                TRIVIAL_MESSAGE_TEST = true
-            }
+        switch(test) {
+            case DtnTest.Tests.TRIVIAL_MESSAGE:
+                if (msg.getPerformative() == Performative.AGREE) {
+                    TRIVIAL_MESSAGE_RESULT = true
+                }
+                break
+            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
+                break
         }
     }
 }

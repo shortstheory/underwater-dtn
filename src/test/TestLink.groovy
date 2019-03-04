@@ -23,8 +23,12 @@ class TestLink extends UnetAgent {
     }
 
     Message processRequest(Message msg) {
-        if (msg instanceof DatagramReq) {
-            return new Message(msg, Performative.AGREE)
+        switch (test) {
+        case DtnTest.Tests.TRIVIAL_MESSAGE:
+            if (msg instanceof DatagramReq) {
+                return new Message(msg, Performative.AGREE)
+            }
+            break
         }
         return null
     }
