@@ -44,13 +44,16 @@ class TestLink extends UnetAgent {
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
                 if (msg instanceof DatagramReq) {
-                    println("GotDR4test")
-                    if (msg.getMessageID() == DtnTest.MESSAGE_ID) {
-                        add(new WakerBehavior(100 * 1000) {
+//                    println("GotDR4test")
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        println "AddingWB"
+                        String messageID = msg.getMessageID()
+                        add(new WakerBehavior(10*1000) {
                             @Override
                             void onWake() {
+                                println("Sending DDN")
                                 dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
-                                        inReplyTo: DtnTest.MESSAGE_ID))
+                                                                     inReplyTo: messageID))
                             }
                         })
                     }
