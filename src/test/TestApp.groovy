@@ -10,6 +10,7 @@ class TestApp extends UnetAgent {
 
     public boolean TRIVIAL_MESSAGE_RESULT = false
     public boolean SUCCESSFUL_DELIVERY_RESULT = false
+    public boolean ROUTER_MESSAGE_RESULT = false
 
     DtnTest.Tests test
 
@@ -35,7 +36,16 @@ class TestApp extends UnetAgent {
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
                                                   ttl: DtnTest.MESSAGE_TTL,
                                                   msgID: DtnTest.MESSAGE_ID,
-                                                  protocol: DtnTest.MESSAGE_PROTOCOL)
+                                                  protocol: DtnTest.MESSAGE_PROTOCOL,
+                                                  data: DtnTest.MESSAGE_DATA.getBytes())
+                sendDatagram(req)
+                break
+            case DtnTest.Tests.ROUTER_MESSAGE:
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                                    ttl: DtnTest.MESSAGE_TTL,
+                                                    msgID: DtnTest.MESSAGE_ID,
+                                                    protocol: Protocol.ROUTING,
+                                                    data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
         }
@@ -60,6 +70,13 @@ class TestApp extends UnetAgent {
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
                         SUCCESSFUL_DELIVERY_RESULT = true
+                    }
+                }
+                break
+            case DtnTest.Tests.ROUTER_MESSAGE:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
+                        ROUTER_MESSAGE_RESULT = true
                     }
                 }
                 break

@@ -16,10 +16,12 @@ class DtnTest {
 
     public enum Tests {
         TRIVIAL_MESSAGE,
-        SUCCESSFUL_DELIVERY
+        SUCCESSFUL_DELIVERY,
+        ROUTER_MESSAGE
     }
 
     public static final String MESSAGE_ID = "testmessage"
+    public static final String MESSAGE_DATA = "testdata"
     public static final int DEST_ADDRESS = 2
     public static final int MESSAGE_TTL = 1000
     public static final int MESSAGE_PROTOCOL = Protocol.USER
@@ -62,7 +64,26 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.SUCCESSFUL_DELIVERY_RESULT == true)
+        assert(app.SUCCESSFUL_DELIVERY_RESULT)
+        assert(link.SUCCESSFUL_DELIVERY_RESULT)
+    }
+
+    @Test
+    public void testRouterDelivery() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.ROUTER_MESSAGE)
+        TestLink link = new TestLink(DtnTest.Tests.ROUTER_MESSAGE)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME)
+        println("Done")
+        p.shutdown()
+        assert(app.ROUTER_MESSAGE_RESULT)
+        assert(link.ROUTER_MESSAGE_RESULT)
     }
 
     @After
