@@ -10,7 +10,7 @@ enum DtnLinkParameters implements Parameter {
     BEACON_PERIOD,
     SWEEP_PERIOD,
     DATAGRAM_PERIOD,
-    MTU,
+//    MTU,
     MAX_RETRIES,
     LINK_EXPIRY_TIME
 }

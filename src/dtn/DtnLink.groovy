@@ -1,5 +1,6 @@
 package dtn
 
+import com.sun.java.util.jar.pack.Package
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
@@ -71,7 +72,10 @@ class DtnLink extends UnetAgent {
     int LINK_EXPIRY_TIME = 10*60
 
     List<Parameter> getParameterList() {
-        allOf(DtnLinkParameters)
+        Class[] paramClasses = new Class[2]
+        paramClasses[0] = DtnLinkParameters.class
+        paramClasses[1] = DatagramParam.class
+        return allOf(paramClasses)
     }
 
     enum DatagramPriority {
@@ -111,7 +115,7 @@ class DtnLink extends UnetAgent {
     protected void startup() {
         nodeInfo = agentForService(Services.NODE_INFO)
 
-        nodeAddress = (int)get(nodeInfo, NodeInfoParam.address)
+        nodeAddress = (get(nodeInfo, NodeInfoParam.address) != null) ? (int)get(nodeInfo, NodeInfoParam.address) : 1
         notify = topic()
 
         stats = new DtnStats(nodeAddress)
@@ -119,6 +123,12 @@ class DtnLink extends UnetAgent {
         utility = new DtnLinkInfo(this)
 
         linksWithReliability = getLinksWithReliability()
+
+        if (!linksWithReliability.size()) {
+            println("No reliable links available")
+            return
+        }
+
         for (AgentID link : linksWithReliability) {
             utility.addLink(link)
         }
@@ -206,7 +216,7 @@ class DtnLink extends UnetAgent {
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
             // FIXME: check for buffer space too, probably in saveDatagram!
-            if (!storage.saveDatagram(msg)) {
+            if (!storage.saveDatagram(msg) || msg.getTtl().isNaN()) {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
@@ -374,6 +384,6 @@ class DtnLink extends UnetAgent {
     @Override
     void stop() {
         super.stop()
-        stats.writeToFile()
+//        stats.writeToFile()
     }
 }

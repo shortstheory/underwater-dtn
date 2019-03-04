@@ -1,6 +1,7 @@
 import dtn.DtnLink
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
+import org.arl.fjage.Message
 import org.arl.fjage.PoissonBehavior
 import org.arl.fjage.TickerBehavior
 import org.arl.unet.DatagramReq
@@ -42,6 +43,7 @@ class DatagramGenerator extends UnetAgent{
     protected void startup() {
         dtnLink = agent("dtnlink")
         link = agent("link")
+        subscribe(topic(dtnLink))
 
 
         if (randomGeneration) {
@@ -65,11 +67,17 @@ class DatagramGenerator extends UnetAgent{
                     for (int destNode : destNodes) {
 //                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: 5000, protocol: 22))
 //                        dtnLink.send(new DatagramReq(to: destNode, ttl: 5000, protocol: 5))
-
-                        dtnLink.send(new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: 22))
+                        DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: 22)
+                        dtnLink.send(req)
                     }
                 }
             })
+        }
+    }
+
+    @Override
+    protected void processMessage(Message msg) {
+        if (msg) {
         }
     }
 }
