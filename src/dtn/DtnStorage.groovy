@@ -155,6 +155,7 @@ class DtnStorage {
         return pdu
     }
 
+    // FIXME: make Public Static?
     Tuple decodePdu(byte[] pduBytes) {
         if (pduBytes.length < DtnLink.HEADER_SIZE) {
             return null

@@ -76,7 +76,10 @@ class TestLink extends UnetAgent {
                             }
                         })
                         Tuple pduInfo = decodePdu(msg.getData())
-                        if (pduInfo.get(1) == Protocol.ROUTING && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
+                        if ((int)pduInfo.get(0) > 0
+                            && (int)pduInfo.get(0) < DtnTest.MESSAGE_TTL
+                            && pduInfo.get(1) == Protocol.ROUTING
+                            && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
                             println(pduInfo.get(0))
                             ROUTER_MESSAGE_RESULT = true
                         }
@@ -86,13 +89,6 @@ class TestLink extends UnetAgent {
                 break
         }
         return null
-    }
-
-    void processMessage(Message msg) {
-//        switch(test) {
-//            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
-//                break
-//        }
     }
 
     int getMTU() {

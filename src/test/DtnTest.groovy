@@ -29,7 +29,6 @@ class DtnTest {
     @Before
     public void beforeTesting() {
         println("Cleaning Dirs")
-        FileUtils.deleteDirectory(new File(path))
         Files.deleteIfExists((new File(path)).toPath())
     }
 
