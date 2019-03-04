@@ -5,6 +5,7 @@ import org.arl.fjage.*
 import org.arl.fjage.Agent
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
+import org.arl.unet.*
 
 @CompileStatic
 class DtnLinkInfo {
@@ -13,6 +14,7 @@ class DtnLinkInfo {
     class LinkMetadata {
         AgentID phyID
         int lastTransmission
+        int linkMTU
         int priority
     }
 
@@ -34,12 +36,15 @@ class DtnLinkInfo {
     }
 
     void addLink(AgentID link) {
-        dtnLink.subscribe(link)
+        dtnLink.subscribe(dtnLink.topic(link))
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
         // it's OK if phy is null, we just won't have SNOOP
-        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0))
+
+
+        int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
+        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0, linkMTU: mtu))
         if (phy != null) {
-            dtnLink.subscribe(phy)
+            dtnLink.subscribe(dtnLink.topic(phy))
             dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))
         } else {
             println "PHY not provided for link"

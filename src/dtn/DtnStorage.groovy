@@ -49,11 +49,11 @@ class DtnStorage {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime
-                || metadata.attempts >= dtnLink.MAX_RETRIES
                 || metadata.delivered) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next DtnLink sweep
-
+                continue
+            } else if (metadata.attempts > dtnLink.MAX_RETRIES) {
                 // one hack for cleaning MAX_RETRIES being exceeded.
                 // this won't cause a DFN because it will be caught in the
                 // check for message delivery
@@ -201,7 +201,8 @@ class DtnStorage {
             Tuple pduInfo = decodePdu(pdu.toByteArray())
             int ttl = (int)pduInfo.get(0)
             int expiryTime = getMetadata(messageID).expiryTime
-            return dtnLink.currentTimeSeconds() - (expiryTime - ttl)
+            int T = dtnLink.currentTimeSeconds()
+            return T - (expiryTime - ttl)
         }
         return -1 // this happens when we deleted the PDU before the DDN reached us!
     }

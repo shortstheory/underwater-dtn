@@ -31,6 +31,7 @@ for (int f = 1; f <= nodeCount; f++) {
 simulate {
     node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
+        container.add 'linkX', new UdpLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"

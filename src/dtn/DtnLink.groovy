@@ -24,8 +24,7 @@ import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.RxFrameNtf
-
-import javax.xml.crypto.Data
+import org.arl.unet.sim.HalfDuplexModem
 
 //@TypeChecked
 @CompileStatic
@@ -250,7 +249,6 @@ class DtnLink extends UnetAgent {
                     stats.datagrams_received++
                 }
             } else {
-                println "Protocol number - " + msg.getProtocol()
                 stats.datagrams_received++
             }
         // once we have received a DDN/DFN, we can send another one
@@ -262,6 +260,7 @@ class DtnLink extends UnetAgent {
             if (originalMessageID != null) {
                 int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
                 if (deliveryTime >= 0) {
+                    println "Delivery time for " + originalMessageID + " is " + deliveryTime
                     stats.delivery_times.add(deliveryTime)
                 }
                 storage.setDelivered(originalMessageID)
@@ -350,11 +349,11 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-        // FIXME: how to choose MTU?
-//        if (link != null) {
-//            return (int)get(link, DatagramParam.MTU) - HEADER_SIZE
-//        }
-        return 1400
+        int minMTU = Integer.MAX_VALUE
+        for (DtnLinkInfo.LinkMetadata metadata : utility.getLinkInfo().values()) {
+            minMTU = Math.min(metadata.linkMTU, minMTU)
+        }
+        return minMTU - HEADER_SIZE
     }
 
     void setBEACON_PERIOD(int period) {

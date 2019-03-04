@@ -1,4 +1,6 @@
 Week 9:
+* thinking about tests
+* writing TS
 * saved 3 bytes in the PDU
 * added multi-link support
 * fixed broken pdu logic with output/inputstreams
