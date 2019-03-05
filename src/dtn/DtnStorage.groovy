@@ -196,15 +196,19 @@ class DtnStorage {
         datagramMap.remove(newMessageID)
     }
 
-    int getTimeSinceArrival(String messageID) {
+    int getArrivalTime(String messageID) {
         OutputPDU pdu = getPDU(messageID, false)
         if (pdu != null) {
             Tuple pduInfo = decodePdu(pdu.toByteArray())
             int ttl = (int)pduInfo.get(0)
             int expiryTime = getMetadata(messageID).expiryTime
-            int T = dtnLink.currentTimeSeconds()
-            return T - (expiryTime - ttl)
+            return expiryTime - ttl
         }
-        return -1 // this happens when we deleted the PDU before the DDN reached us!
+        return -1
+    }
+
+    int getTimeSinceArrival(String messageID) {
+        int arrivalTime
+        return ((arrivalTime = getArrivalTime(messageID)) > 0) ? dtnLink.currentTimeSeconds() - arrivalTime : -1
     }
 }

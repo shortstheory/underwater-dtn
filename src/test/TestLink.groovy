@@ -12,8 +12,10 @@ class TestLink extends UnetAgent {
     public boolean SUCCESSFUL_DELIVERY_RESULT = false
     public boolean ROUTER_MESSAGE_RESULT = false
     public boolean MAX_RETRY_RESULT = false
+    public boolean ARRIVAL_PRIORITY_RESULT = false // set to false if OoO
 
-    int DATAGRAM_ATTEMPTS
+    int DATAGRAM_ATTEMPTS = 0
+    int ARRIVAL_NEXT_DATAGRAM = 0
 
     AgentID dtnlink
 
@@ -37,11 +39,14 @@ class TestLink extends UnetAgent {
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
             case DtnTest.Tests.ROUTER_MESSAGE:
             case DtnTest.Tests.MAX_RETRIES:
+            case DtnTest.Tests.ARRIVAL_PRIORITY:
                 // first we send a (fake) beacon message to the node
-                DATAGRAM_ATTEMPTS = 0
-                ParameterReq req = new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, DtnTest.DTN_MAX_RETRIES)
-                ParameterRsp rsp = (ParameterRsp)dtnlink.request(req, 1000)
-                dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
+                add(new WakerBehavior(300*1000) {
+                    @Override
+                    void onWake() {
+                        dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
+                    }
+                })
                 break
         }
     }
@@ -122,6 +127,28 @@ class TestLink extends UnetAgent {
                         }
                     }
                     return new Message(msg, Performative.AGREE)
+                }
+                break
+            case DtnTest.Tests.ARRIVAL_PRIORITY:
+                if (msg instanceof DatagramReq) {
+                    // FIXME: add the DATA FIELD TO BE THE ORDER OF DGRAM
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        String messageID = msg.getMessageID()
+                        int msgCount = (int)msg.getData()[0]
+                        if (msgCount == ARRIVAL_NEXT_DATAGRAM) {
+                            ARRIVAL_NEXT_DATAGRAM++ // if a datagram is OoO it will never pass
+                        }
+                        if (ARRIVAL_NEXT_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                            ARRIVAL_PRIORITY_RESULT = true
+                        }
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: messageID))
+                            }
+                        })
+                    }
                 }
                 break
         }

@@ -20,7 +20,8 @@ class DtnTest {
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
-        LINK_TIMEOUT // i.e., is our link still active? - add link, delay 
+        LINK_TIMEOUT, // i.e., is our link still active? - add link, delay
+        STRESS
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -28,6 +29,7 @@ class DtnTest {
     public static final int DEST_ADDRESS = 2
     public static final int MESSAGE_TTL = 1000
     public static final int MESSAGE_PROTOCOL = Protocol.USER
+    public static final int PRIORITY_MESSAGES = 100
 
     public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 10*100
@@ -108,6 +110,24 @@ class DtnTest {
         p.shutdown()
         assert(app.MAX_RETRY_RESULT)
         assert(link.MAX_RETRY_RESULT)
+    }
+
+    @Test
+    public void testArrivalPriority() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.ARRIVAL_PRIORITY)
+        TestLink link = new TestLink(DtnTest.Tests.ARRIVAL_PRIORITY)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+        assert(app.ARRIVAL_PRIORITY_RESULT)
+        assert(link.ARRIVAL_PRIORITY_RESULT)
     }
 
     @After

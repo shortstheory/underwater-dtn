@@ -60,7 +60,6 @@ class DtnLink extends UnetAgent {
 
     private DtnLinkInfo utility
     private LinkState linkState
-    private DatagramPriority priority
     private Random random
 
     int BEACON_PERIOD = 100*1000
@@ -69,6 +68,8 @@ class DtnLink extends UnetAgent {
     int RANDOM_DELAY = 5*1000
     int MAX_RETRIES = 1
     int LINK_EXPIRY_TIME = 10*60
+    DatagramPriority DATAGRAM_PRIORITY
+
 
     List<Parameter> getParameterList() {
         Class[] paramClasses = new Class[2]
@@ -88,14 +89,14 @@ class DtnLink extends UnetAgent {
     DtnLink(String dir) {
         directory = dir
         random = new Random()
-        priority = DatagramPriority.EXPIRY
+        DATAGRAM_PRIORITY = DatagramPriority.EXPIRY
         linkState = LinkState.READY
     }
 
     DtnLink(String dir, DatagramPriority datagramPriority) {
         directory = dir
         random = new Random()
-        priority = datagramPriority
+        DATAGRAM_PRIORITY = datagramPriority
         linkState = LinkState.READY
     }
 
@@ -176,15 +177,25 @@ class DtnLink extends UnetAgent {
     }
 
     String selectNextDatagram(ArrayList<String> datagrams) {
-        switch (priority) {
+        switch (DATAGRAM_PRIORITY) {
         case DatagramPriority.ARRIVAL:
-            return (datagrams.size()) ? datagrams.get(0) : null
+            int minArrivalTime = Integer.MAX_VALUE
+            String messageID
+            // FIXME: why calling gAT twice?
+            for (String id : datagrams) {
+                int arrivalTime = storage.getArrivalTime(id)
+                if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
+                    messageID = id
+                    minArrivalTime = storage.getArrivalTime(id)
+                }
+            }
+            return messageID
         case DatagramPriority.EXPIRY:
             int minExpiryTime = Integer.MAX_VALUE
             String messageID
             for (String id : datagrams) {
                 DtnPduMetadata metadata = storage.getDatagramMetadata(id)
-                if (metadata != null & metadata.expiryTime < minExpiryTime) {
+                if (metadata != null && metadata.expiryTime < minExpiryTime) {
                     messageID = id
                     minExpiryTime = metadata.expiryTime
                 }
@@ -192,6 +203,9 @@ class DtnLink extends UnetAgent {
             return messageID
         case DatagramPriority.RANDOM:
             return (datagrams.size()) ? datagrams.get(random.nextInt(datagrams.size())) : null
+        default:
+            println("This should never happen!")
+            return null
         }
     }
 
