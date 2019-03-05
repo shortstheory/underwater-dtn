@@ -1,6 +1,7 @@
 package test
 
 import groovy.transform.CompileStatic
+import net.fec.openrq.util.rq.Rand
 import org.arl.fjage.*
 import org.arl.unet.*
 
@@ -15,11 +16,13 @@ class TestApp extends UnetAgent {
     public boolean ARRIVAL_PRIORITY_RESULT = false
 
     int ARRIVAL_NEXT_DATAGRAM = 0
+    Random random
 
     DtnTest.Tests test
 
     TestApp(DtnTest.Tests t) {
         test = t
+        random = new Random()
     }
 
     void setup() {
@@ -67,12 +70,11 @@ class TestApp extends UnetAgent {
                 ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
                                                                     dtn.DtnLink.DatagramPriority.ARRIVAL)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
-
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
                     byte[] b = new byte[1]
                     b[0] = (byte)i
                     DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                            ttl: DtnTest.MESSAGE_TTL + i*100, // 1000, 1100, 1200, and so on
+                            ttl: DtnTest.MESSAGE_TTL + random.nextInt(1000), // so EXPIRY would fail
                             msgID: Integer.toString(i),
                             protocol: DtnTest.MESSAGE_PROTOCOL,
                             data: b)

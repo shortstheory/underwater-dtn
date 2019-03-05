@@ -27,7 +27,7 @@ class DtnTest {
     public static final String MESSAGE_ID = "testmessage"
     public static final String MESSAGE_DATA = "testdata"
     public static final int DEST_ADDRESS = 2
-    public static final int MESSAGE_TTL = 1000
+    public static final int MESSAGE_TTL = 3600
     public static final int MESSAGE_PROTOCOL = Protocol.USER
     public static final int PRIORITY_MESSAGES = 100
 
