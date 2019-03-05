@@ -282,7 +282,6 @@ class DtnLink extends UnetAgent {
             if (originalMessageID != null) {
                 int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
                 if (deliveryTime >= 0) {
-                    println "Delivery time for " + originalMessageID + " is " + deliveryTime
                     stats.delivery_times.add(deliveryTime)
                 }
                 storage.setDelivered(originalMessageID)

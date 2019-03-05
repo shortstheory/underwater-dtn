@@ -131,7 +131,6 @@ class TestLink extends UnetAgent {
                 break
             case DtnTest.Tests.ARRIVAL_PRIORITY:
                 if (msg instanceof DatagramReq) {
-                    // FIXME: add the DATA FIELD TO BE THE ORDER OF DGRAM
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         String messageID = msg.getMessageID()
                         int msgCount = (int)msg.getData()[0]
