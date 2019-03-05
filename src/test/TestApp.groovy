@@ -1,7 +1,6 @@
 package test
 
 import groovy.transform.CompileStatic
-import net.fec.openrq.util.rq.Rand
 import org.arl.fjage.*
 import org.arl.unet.*
 
@@ -14,8 +13,10 @@ class TestApp extends UnetAgent {
     public boolean ROUTER_MESSAGE_RESULT = false
     public boolean MAX_RETRY_RESULT = false
     public boolean ARRIVAL_PRIORITY_RESULT = false
+    public boolean EXPIRY_PRIORITY_RESULT = false
 
-    int ARRIVAL_NEXT_DATAGRAM = 0
+    int NEXT_EXPECTED_DATAGRAM = 0
+
     Random random
 
     DtnTest.Tests test
@@ -86,6 +87,26 @@ class TestApp extends UnetAgent {
                     })
                 }
                 break
+            case DtnTest.Tests.EXPIRY_PRIORITY:
+                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                                                                    dtn.DtnLink.DatagramPriority.EXPIRY)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+                for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
+                    byte[] b = new byte[1]
+                    b[0] = (byte)(DtnTest.PRIORITY_MESSAGES - 1 - i)
+                    DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                            ttl: DtnTest.MESSAGE_TTL - i*20,
+                            msgID: Integer.toString(DtnTest.PRIORITY_MESSAGES - 1 - i),
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: b)
+                    add(new WakerBehavior(i*1000) {
+                        @Override
+                        void onWake() {
+                            sendDatagram(req)
+                        }
+                    })
+                }
+                break
         }
     }
 
@@ -128,11 +149,22 @@ class TestApp extends UnetAgent {
             case DtnTest.Tests.ARRIVAL_PRIORITY:
                 if (msg instanceof DatagramDeliveryNtf) {
                     int msgCount = Integer.valueOf(msg.getInReplyTo())
-                    if (msgCount == ARRIVAL_NEXT_DATAGRAM) {
-                        ARRIVAL_NEXT_DATAGRAM++ // if a datagram is OoO it will never pass
+                    if (msgCount == NEXT_EXPECTED_DATAGRAM) {
+                        NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                     }
-                    if (ARRIVAL_NEXT_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
                         ARRIVAL_PRIORITY_RESULT = true
+                    }
+                }
+                break
+            case DtnTest.Tests.EXPIRY_PRIORITY:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    int msgCount = Integer.valueOf(msg.getInReplyTo())
+                    if (msgCount == NEXT_EXPECTED_DATAGRAM) {
+                        NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
+                    }
+                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                        EXPIRY_PRIORITY_RESULT = true
                     }
                 }
                 break
