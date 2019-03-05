@@ -7,8 +7,6 @@ import org.junit.*
 import org.arl.fjage.*
 import dtn.*
 
-import java.nio.file.Files
-
 @CompileStatic
 class DtnTest {
     String path = "testNode"
@@ -17,7 +15,12 @@ class DtnTest {
     public enum Tests {
         TRIVIAL_MESSAGE,
         SUCCESSFUL_DELIVERY,
-        ROUTER_MESSAGE
+        ROUTER_MESSAGE,
+        MAX_RETRIES,
+        EXPIRY_PRIORITY, // just check order @DtnLink
+        ARRIVAL_PRIORITY,
+        RANDOM_PRIORITY, // count if all messages have been sent
+        LINK_TIMEOUT // i.e., is our link still active? - add link, delay 
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -26,10 +29,14 @@ class DtnTest {
     public static final int MESSAGE_TTL = 1000
     public static final int MESSAGE_PROTOCOL = Protocol.USER
 
+    public static final int DTN_MAX_RETRIES = 5
+    public static final int DTN_LINK_EXPIRY = 10*100
+
     @Before
     public void beforeTesting() {
         println("Cleaning Dirs")
-        Files.deleteIfExists((new File(path)).toPath())
+        FileUtils.deleteDirectory(new File(path))
+//        Files.deleteIfExists((new File(path)).toPath())
     }
 
     @Test
@@ -83,6 +90,24 @@ class DtnTest {
         p.shutdown()
         assert(app.ROUTER_MESSAGE_RESULT)
         assert(link.ROUTER_MESSAGE_RESULT)
+    }
+
+    @Test
+    public void testMaxRetries() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.MAX_RETRIES)
+        TestLink link = new TestLink(DtnTest.Tests.MAX_RETRIES)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME)
+        println("Done")
+        p.shutdown()
+        assert(app.MAX_RETRY_RESULT)
+        assert(link.MAX_RETRY_RESULT)
     }
 
     @After

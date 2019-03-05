@@ -220,7 +220,6 @@ class DtnLink extends UnetAgent {
                 return new Message(msg, Performative.REFUSE)
             } else {
                 stats.datagrams_requested++
-//                println "New DGram added"
                 return new Message(msg, Performative.AGREE)
             }
         }

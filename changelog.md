@@ -1,3 +1,7 @@
+Week 10:
+* added tests
+* fixed owner bug for Link
+
 Week 9:
 * thinking about tests
 * writing TS

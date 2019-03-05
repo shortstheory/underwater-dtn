@@ -9,6 +9,8 @@ issues:
 
 addroute 3,2,dtnlink
 
+dtnlink.send(new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, 5))
+
 dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5, data: {0,1,2,3,4,5,6,7,8,9})
 dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
 

@@ -11,6 +11,7 @@ class TestApp extends UnetAgent {
     public boolean TRIVIAL_MESSAGE_RESULT = false
     public boolean SUCCESSFUL_DELIVERY_RESULT = false
     public boolean ROUTER_MESSAGE_RESULT = false
+    public boolean MAX_RETRY_RESULT = false
 
     DtnTest.Tests test
 
@@ -48,6 +49,14 @@ class TestApp extends UnetAgent {
                                                     data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
+            case DtnTest.Tests.MAX_RETRIES:
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                                    ttl: DtnTest.MESSAGE_TTL*DtnTest.DTN_MAX_RETRIES, // we are going to refuse the message 5 times
+                                                    msgID: DtnTest.MESSAGE_ID,
+                                                    protocol: DtnTest.MESSAGE_PROTOCOL,
+                                                    data: DtnTest.MESSAGE_DATA.getBytes())
+                sendDatagram(req)
+                break
         }
     }
 
@@ -80,6 +89,12 @@ class TestApp extends UnetAgent {
                     }
                 }
                 break
+            case DtnTest.Tests.MAX_RETRIES:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
+                        MAX_RETRY_RESULT = true
+                    }
+                }
         }
     }
 }

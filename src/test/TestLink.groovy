@@ -11,6 +11,9 @@ class TestLink extends UnetAgent {
 
     public boolean SUCCESSFUL_DELIVERY_RESULT = false
     public boolean ROUTER_MESSAGE_RESULT = false
+    public boolean MAX_RETRY_RESULT = false
+
+    int DATAGRAM_ATTEMPTS
 
     AgentID dtnlink
 
@@ -33,8 +36,12 @@ class TestLink extends UnetAgent {
         switch(test) {
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
             case DtnTest.Tests.ROUTER_MESSAGE:
+            case DtnTest.Tests.MAX_RETRIES:
                 // first we send a (fake) beacon message to the node
-                dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS, msgID: "mymsg"))
+                DATAGRAM_ATTEMPTS = 0
+                ParameterReq req = new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, DtnTest.DTN_MAX_RETRIES)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(req, 1000)
+                dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
                 break
         }
     }
@@ -82,6 +89,36 @@ class TestLink extends UnetAgent {
                             && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
                             println(pduInfo.get(0))
                             ROUTER_MESSAGE_RESULT = true
+                        }
+                    }
+                    return new Message(msg, Performative.AGREE)
+                }
+                break
+            case DtnTest.Tests.MAX_RETRIES:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        DATAGRAM_ATTEMPTS++
+                        String messageID = msg.getMessageID()
+
+                        if (DATAGRAM_ATTEMPTS < DtnTest.DTN_MAX_RETRIES) {
+                            add(new WakerBehavior(10 * 1000) {
+                                @Override
+                                void onWake() {
+                                    dtnlink.send(new DatagramFailureNtf(to: DtnTest.DEST_ADDRESS,
+                                                                        inReplyTo: messageID))
+                                }
+                            })
+                        } else if (DATAGRAM_ATTEMPTS == DtnTest.DTN_MAX_RETRIES) {
+                            MAX_RETRY_RESULT = true
+                            add(new WakerBehavior(10 * 1000) {
+                                @Override
+                                void onWake() {
+                                    dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                                                        inReplyTo: messageID))
+                                }
+                            })
+                        } else {
+                            MAX_RETRY_RESULT = false
                         }
                     }
                     return new Message(msg, Performative.AGREE)
