@@ -14,9 +14,11 @@ class TestLink extends UnetAgent {
     public boolean MAX_RETRY_RESULT = false
     public boolean ARRIVAL_PRIORITY_RESULT = false // set to false if OoO
     public boolean EXPIRY_PRIORITY_RESULT = false
+    public boolean RANDOM_PRIORITY_RESULT = false
 
     int DATAGRAM_ATTEMPTS = 0
     int NEXT_EXPECTED_DATAGRAM = 0
+    int DATAGRAMS_RECEIVED = 0
 
     AgentID dtnlink
 
@@ -36,12 +38,13 @@ class TestLink extends UnetAgent {
 
     void startup() {
         dtnlink = agent("dtnlink")
-        switch(test) {
-            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
-            case DtnTest.Tests.ROUTER_MESSAGE:
-            case DtnTest.Tests.MAX_RETRIES:
-            case DtnTest.Tests.ARRIVAL_PRIORITY:
-            case DtnTest.Tests.EXPIRY_PRIORITY:
+//        switch(test) {
+//            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
+//            case DtnTest.Tests.ROUTER_MESSAGE:
+//            case DtnTest.Tests.MAX_RETRIES:
+//            case DtnTest.Tests.ARRIVAL_PRIORITY:
+//            case DtnTest.Tests.EXPIRY_PRIORITY:
+//            case DtnTest.Tests.RANDOM_PRIORITY:
                 // first we send a (fake) beacon message to the node
                 add(new WakerBehavior(300*1000) {
                     @Override
@@ -49,8 +52,8 @@ class TestLink extends UnetAgent {
                         dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
                     }
                 })
-                break
-        }
+//                break
+//        }
     }
 
     Message processRequest(Message msg) {
@@ -139,8 +142,10 @@ class TestLink extends UnetAgent {
                         if (msgCount == NEXT_EXPECTED_DATAGRAM) {
                             NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                         }
-                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
                             ARRIVAL_PRIORITY_RESULT = true
+                        } else {
+                            ARRIVAL_PRIORITY_RESULT = false
                         }
                         add(new WakerBehavior(10 * 1000) {
                             @Override
@@ -160,8 +165,33 @@ class TestLink extends UnetAgent {
                         if (msgCount == NEXT_EXPECTED_DATAGRAM) {
                             NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                         }
-                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
                             EXPIRY_PRIORITY_RESULT = true
+                        } else {
+                            EXPIRY_PRIORITY_RESULT = false
+                        }
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: messageID))
+                            }
+                        })
+                    }
+                }
+                break
+            case DtnTest.Tests.RANDOM_PRIORITY:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        String messageID = msg.getMessageID()
+                        int msgCount = (int)msg.getData()[0]
+                        if (msgCount >= 0 && msgCount < DtnTest.PRIORITY_MESSAGES) {
+                            DATAGRAMS_RECEIVED++
+                        }
+                        if (DATAGRAMS_RECEIVED == DtnTest.PRIORITY_MESSAGES) {
+                            RANDOM_PRIORITY_RESULT = true
+                        } else {
+                            RANDOM_PRIORITY_RESULT = false
                         }
                         add(new WakerBehavior(10 * 1000) {
                             @Override

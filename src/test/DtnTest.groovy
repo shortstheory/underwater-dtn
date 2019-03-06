@@ -148,6 +148,26 @@ class DtnTest {
         assert(link.EXPIRY_PRIORITY_RESULT)
     }
 
+    @Test
+    public void testRandomPriority() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.RANDOM_PRIORITY)
+        TestLink link = new TestLink(DtnTest.Tests.RANDOM_PRIORITY)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+//        println("APP VALUE - " + app.DATAGRAMS_RECEIVED)
+//        println("LINK VALUE - " + link.DATAGRAMS_RECEIVED)
+        assert(app.RANDOM_PRIORITY_RESULT)
+        assert(link.RANDOM_PRIORITY_RESULT)
+    }
+
     @After
     public void afterTesting() {
         println "After test"

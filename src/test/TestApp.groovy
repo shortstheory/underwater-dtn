@@ -14,8 +14,10 @@ class TestApp extends UnetAgent {
     public boolean MAX_RETRY_RESULT = false
     public boolean ARRIVAL_PRIORITY_RESULT = false
     public boolean EXPIRY_PRIORITY_RESULT = false
+    public boolean RANDOM_PRIORITY_RESULT = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
+    int DATAGRAMS_RECEIVED = 0
 
     Random random
 
@@ -107,6 +109,26 @@ class TestApp extends UnetAgent {
                     })
                 }
                 break
+            case DtnTest.Tests.RANDOM_PRIORITY:
+                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                                                                    dtn.DtnLink.DatagramPriority.RANDOM)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+                for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
+                    byte[] b = new byte[1]
+                    b[0] = (byte)i
+                    DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                            ttl: DtnTest.MESSAGE_TTL, // so EXPIRY would fail
+                            msgID: Integer.toString(i),
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: b)
+                    add(new WakerBehavior(i*1000) {
+                        @Override
+                        void onWake() {
+                            sendDatagram(req)
+                        }
+                    })
+                }
+                break
         }
     }
 
@@ -152,8 +174,10 @@ class TestApp extends UnetAgent {
                     if (msgCount == NEXT_EXPECTED_DATAGRAM) {
                         NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                     }
-                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
                         ARRIVAL_PRIORITY_RESULT = true
+                    } else {
+                        ARRIVAL_PRIORITY_RESULT = false
                     }
                 }
                 break
@@ -163,8 +187,23 @@ class TestApp extends UnetAgent {
                     if (msgCount == NEXT_EXPECTED_DATAGRAM) {
                         NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                     }
-                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES - 1) {
+                    if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
                         EXPIRY_PRIORITY_RESULT = true
+                    } else {
+                        EXPIRY_PRIORITY_RESULT = false
+                    }
+                }
+                break
+            case DtnTest.Tests.RANDOM_PRIORITY:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    int msgCount = Integer.valueOf(msg.getInReplyTo())
+                    if (msgCount >= 0 && msgCount < DtnTest.PRIORITY_MESSAGES) {
+                        DATAGRAMS_RECEIVED++
+                    }
+                    if (DATAGRAMS_RECEIVED == DtnTest.PRIORITY_MESSAGES) {
+                        RANDOM_PRIORITY_RESULT = true
+                    } else {
+                        RANDOM_PRIORITY_RESULT = false
                     }
                 }
                 break
