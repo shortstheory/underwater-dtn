@@ -15,6 +15,8 @@ class TestLink extends UnetAgent {
     public boolean ARRIVAL_PRIORITY_RESULT = false // set to false if OoO
     public boolean EXPIRY_PRIORITY_RESULT = false
     public boolean RANDOM_PRIORITY_RESULT = false
+    public boolean TIMEOUT_D1_SUCCESS = false
+    public boolean TIMEOUT_D2_FAILED = true // we're never supposed to get D2
 
     int DATAGRAM_ATTEMPTS = 0
     int NEXT_EXPECTED_DATAGRAM = 0
@@ -203,6 +205,24 @@ class TestLink extends UnetAgent {
                     }
                 }
                 break
+            case DtnTest.Tests.TIMEOUT:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        if (msg.getData()[0] == 1) {
+                            TIMEOUT_D1_SUCCESS = true
+                            add(new WakerBehavior(10 * 1000) {
+                                @Override
+                                void onWake() {
+                                    dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                            inReplyTo: msg.getMessageID()))
+                                }
+                            })
+                        }
+                        if (msg.getData()[0] == 2) {
+                            TIMEOUT_D2_FAILED = false
+                        }
+                    }
+                }
         }
         return null
     }

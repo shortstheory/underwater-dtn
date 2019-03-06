@@ -20,7 +20,7 @@ class DtnTest {
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
-        LINK_TIMEOUT, // i.e., is our link still active? - add link, delay
+        TIMEOUT, // i.e., is our link still active? - add link, delay
         STRESS
     }
 
@@ -32,7 +32,7 @@ class DtnTest {
     public static final int PRIORITY_MESSAGES = 100
 
     public static final int DTN_MAX_RETRIES = 5
-    public static final int DTN_LINK_EXPIRY = 10*100
+    public static final int DTN_LINK_EXPIRY = 600
 
     @Before
     public void beforeTesting() {
@@ -162,10 +162,28 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-//        println("APP VALUE - " + app.DATAGRAMS_RECEIVED)
-//        println("LINK VALUE - " + link.DATAGRAMS_RECEIVED)
         assert(app.RANDOM_PRIORITY_RESULT)
         assert(link.RANDOM_PRIORITY_RESULT)
+    }
+
+    @Test
+    public void testTimeout() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.TIMEOUT)
+        TestLink link = new TestLink(DtnTest.Tests.TIMEOUT)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+        assert(app.TIMEOUT_D1_SUCCESS)
+        assert(app.TIMEOUT_D2_FAILED)
+        assert(link.TIMEOUT_D1_SUCCESS)
+        assert(link.TIMEOUT_D2_FAILED)
     }
 
     @After

@@ -15,6 +15,8 @@ class TestApp extends UnetAgent {
     public boolean ARRIVAL_PRIORITY_RESULT = false
     public boolean EXPIRY_PRIORITY_RESULT = false
     public boolean RANDOM_PRIORITY_RESULT = false
+    public boolean TIMEOUT_D1_SUCCESS = false
+    public boolean TIMEOUT_D2_FAILED = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -129,6 +131,34 @@ class TestApp extends UnetAgent {
                     })
                 }
                 break
+            case DtnTest.Tests.TIMEOUT:
+                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME,
+                                                                    600)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+
+                byte[] d1_data = new byte[1]
+                d1_data[0] = (byte)1
+
+                byte[] d2_data = new byte[1]
+                d2_data[0] = (byte)2
+
+                DatagramReq d1 = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                        ttl: DtnTest.MESSAGE_TTL,
+                        msgID: "1",
+                        protocol: DtnTest.MESSAGE_PROTOCOL,
+                        data: d1_data)
+                DatagramReq d2 = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                        ttl: DtnTest.MESSAGE_TTL,
+                        msgID: "2",
+                        protocol: DtnTest.MESSAGE_PROTOCOL,
+                        data: d2_data)
+                sendDatagram(d1)
+                add(new WakerBehavior(1000*1000) {
+                    @Override
+                    void onWake() {
+                        sendDatagram(d2)
+                    }
+                })
         }
     }
 
@@ -204,6 +234,22 @@ class TestApp extends UnetAgent {
                         RANDOM_PRIORITY_RESULT = true
                     } else {
                         RANDOM_PRIORITY_RESULT = false
+                    }
+                }
+                break
+            case DtnTest.Tests.TIMEOUT:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    if (msg.getInReplyTo() == "1") {
+                        TIMEOUT_D1_SUCCESS = true
+                    } else {
+                        TIMEOUT_D1_SUCCESS = false
+                    }
+                }
+                if (msg instanceof DatagramFailureNtf) {
+                    if (msg.getInReplyTo() == "2") {
+                        TIMEOUT_D2_FAILED = true
+                    } else {
+                        TIMEOUT_D2_FAILED = false
                     }
                 }
                 break
