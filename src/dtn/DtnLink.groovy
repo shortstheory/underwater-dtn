@@ -62,12 +62,14 @@ class DtnLink extends UnetAgent {
     private LinkState linkState
     private Random random
 
+    // all units are in milliseconds below
     int BEACON_PERIOD = 100*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
     int MAX_RETRIES = 1
-    int LINK_EXPIRY_TIME = 60*60
+    // uses seconds
+    int LINK_EXPIRY_TIME = 10*60
     DatagramPriority DATAGRAM_PRIORITY
 
 
@@ -234,7 +236,6 @@ class DtnLink extends UnetAgent {
                 return new Message(msg, Performative.REFUSE)
             } else {
                 int x = currentTimeSeconds()
-                println(x)
                 stats.datagrams_requested++
                 return new Message(msg, Performative.AGREE)
             }

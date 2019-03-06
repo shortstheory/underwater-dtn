@@ -39,25 +39,25 @@ class TestApp extends UnetAgent {
         switch(test) {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                                                  ttl: DtnTest.MESSAGE_TTL,
-                                                  msgID: DtnTest.MESSAGE_ID,
-                                                  protocol: DtnTest.MESSAGE_PROTOCOL)
+                            ttl: DtnTest.MESSAGE_TTL,
+                            msgID: DtnTest.MESSAGE_ID,
+                            protocol: DtnTest.MESSAGE_PROTOCOL)
                 sendDatagram(req)
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                                                  ttl: DtnTest.MESSAGE_TTL,
-                                                  msgID: DtnTest.MESSAGE_ID,
-                                                  protocol: DtnTest.MESSAGE_PROTOCOL,
-                                                  data: DtnTest.MESSAGE_DATA.getBytes())
-                sendDatagram(req)
+                            ttl: DtnTest.MESSAGE_TTL,
+                            msgID: DtnTest.MESSAGE_ID,
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: DtnTest.MESSAGE_DATA.getBytes())
+            sendDatagram(req)
                 break
             case DtnTest.Tests.ROUTER_MESSAGE:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                                                    ttl: DtnTest.MESSAGE_TTL,
-                                                    msgID: DtnTest.MESSAGE_ID,
-                                                    protocol: Protocol.ROUTING,
-                                                    data: DtnTest.MESSAGE_DATA.getBytes())
+                            ttl: DtnTest.MESSAGE_TTL,
+                            msgID: DtnTest.MESSAGE_ID,
+                            protocol: Protocol.ROUTING,
+                            data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
             case DtnTest.Tests.MAX_RETRIES:
@@ -65,16 +65,19 @@ class TestApp extends UnetAgent {
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
 
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                                                    ttl: DtnTest.MESSAGE_TTL*DtnTest.DTN_MAX_RETRIES, // we are going to refuse the message 5 times
-                                                    msgID: DtnTest.MESSAGE_ID,
-                                                    protocol: DtnTest.MESSAGE_PROTOCOL,
-                                                    data: DtnTest.MESSAGE_DATA.getBytes())
+                            ttl: DtnTest.MESSAGE_TTL*DtnTest.DTN_MAX_RETRIES, // we are going to refuse the message 5 times
+                            msgID: DtnTest.MESSAGE_ID,
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
             case DtnTest.Tests.ARRIVAL_PRIORITY:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
-                                                                    dtn.DtnLink.DatagramPriority.ARRIVAL)
-                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                        dtn.DtnLink.DatagramPriority.ARRIVAL)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                rsp = (ParameterRsp)dtnlink.request(p, 1000)
+
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
                     byte[] b = new byte[1]
                     b[0] = (byte)i
@@ -92,9 +95,12 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.EXPIRY_PRIORITY:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
-                                                                    dtn.DtnLink.DatagramPriority.EXPIRY)
-                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                        dtn.DtnLink.DatagramPriority.EXPIRY)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                rsp = (ParameterRsp)dtnlink.request(p, 1000)
+
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
                     byte[] b = new byte[1]
                     b[0] = (byte)(DtnTest.PRIORITY_MESSAGES - 1 - i)
@@ -112,9 +118,12 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.RANDOM_PRIORITY:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
-                                                                    dtn.DtnLink.DatagramPriority.RANDOM)
-                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                        dtn.DtnLink.DatagramPriority.RANDOM)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                rsp = (ParameterRsp)dtnlink.request(p, 1000)
+
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
                     byte[] b = new byte[1]
                     b[0] = (byte)i
@@ -132,8 +141,7 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.TIMEOUT:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME,
-                                                                    600)
+                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, 10*60)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
 
                 byte[] d1_data = new byte[1]

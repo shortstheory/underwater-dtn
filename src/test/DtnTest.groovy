@@ -10,7 +10,6 @@ import dtn.*
 @CompileStatic
 class DtnTest {
     String path = "testNode"
-    int DELAY_TIME = 3600*1000
 
     public enum Tests {
         TRIVIAL_MESSAGE,
@@ -30,6 +29,7 @@ class DtnTest {
     public static final int MESSAGE_TTL = 3600
     public static final int MESSAGE_PROTOCOL = Protocol.USER
     public static final int PRIORITY_MESSAGES = 100
+    public static final int DELAY_TIME = 3600*1000
 
     public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 600
@@ -38,7 +38,6 @@ class DtnTest {
     public void beforeTesting() {
         println("Cleaning Dirs")
         FileUtils.deleteDirectory(new File(path))
-//        Files.deleteIfExists((new File(path)).toPath())
     }
 
     @Test
@@ -188,6 +187,5 @@ class DtnTest {
 
     @After
     public void afterTesting() {
-        println "After test"
     }
 }

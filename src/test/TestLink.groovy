@@ -40,22 +40,12 @@ class TestLink extends UnetAgent {
 
     void startup() {
         dtnlink = agent("dtnlink")
-//        switch(test) {
-//            case DtnTest.Tests.SUCCESSFUL_DELIVERY:
-//            case DtnTest.Tests.ROUTER_MESSAGE:
-//            case DtnTest.Tests.MAX_RETRIES:
-//            case DtnTest.Tests.ARRIVAL_PRIORITY:
-//            case DtnTest.Tests.EXPIRY_PRIORITY:
-//            case DtnTest.Tests.RANDOM_PRIORITY:
-                // first we send a (fake) beacon message to the node
-                add(new WakerBehavior(300*1000) {
-                    @Override
-                    void onWake() {
-                        dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
-                    }
-                })
-//                break
-//        }
+        add(new WakerBehavior(300*1000) {
+            @Override
+            void onWake() {
+                dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
+            }
+        })
     }
 
     Message processRequest(Message msg) {
@@ -99,7 +89,6 @@ class TestLink extends UnetAgent {
                             && (int)pduInfo.get(0) < DtnTest.MESSAGE_TTL
                             && pduInfo.get(1) == Protocol.ROUTING
                             && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
-                            println(pduInfo.get(0))
                             ROUTER_MESSAGE_RESULT = true
                         }
                     }
