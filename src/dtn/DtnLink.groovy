@@ -67,7 +67,7 @@ class DtnLink extends UnetAgent {
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
     int MAX_RETRIES = 1
-    int LINK_EXPIRY_TIME = 10*60
+    int LINK_EXPIRY_TIME = 60*60
     DatagramPriority DATAGRAM_PRIORITY
 
 
@@ -233,6 +233,8 @@ class DtnLink extends UnetAgent {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
+                int x = currentTimeSeconds()
+                println(x)
                 stats.datagrams_requested++
                 return new Message(msg, Performative.AGREE)
             }

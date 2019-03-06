@@ -153,7 +153,7 @@ class TestApp extends UnetAgent {
                         protocol: DtnTest.MESSAGE_PROTOCOL,
                         data: d2_data)
                 sendDatagram(d1)
-                add(new WakerBehavior(1000*1000) {
+                add(new WakerBehavior(1000*1500) {
                     @Override
                     void onWake() {
                         sendDatagram(d2)
