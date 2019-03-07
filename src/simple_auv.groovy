@@ -13,23 +13,14 @@ import org.arl.unet.sim.channels.ProtocolChannelModel
 import java.nio.file.Files
 
 platform = DiscreteEventSimulator
-
-//modem.dataRate = [2400, 2400].bps
-//modem.frameLength = [4, 512].bytes
-//modem.preambleDuration = 0
-//modem.txDelay = 0
-//modem.clockOffset = 0.s
-//modem.headerLength = 0.s
-
-//channel.model = ProtocolChannelModel
-//channel.soundSpeed = 1500.mps
+channel.model = BasicAcousticChannel
 
 println "Starting Simple AUV simulation!"
 
 def T = 10400.second
 int nodeCount = 2
 
-def msgSize = 100
+def msgSize = 300
 def msgFreq = 100*1000
 def dist = 2500.m
 def msgTtl = 10400
@@ -46,10 +37,6 @@ for (int f = 1; f <= nodeCount; f++) {
 for (int i = 1; i <= 1; i++) {
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
 
-//    channel.communicationRange = dist
-//    channel.interferenceRange =  dist
-//    channel.detectionRange =     dist
-
     simulate T, {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
@@ -58,7 +45,7 @@ for (int i = 1; i <= 1; i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
             container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, false)
         }
-        def auvR = node '2', address: 2, mobility: true, location: [2400.m, 0, -50.m], shell: 5001, stack: { container ->
+        def auvR = node '2', address: 2, mobility: true, location: [dist.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
 //            container.add 'udp', new UdpLink()
 //            container.add 'link_r', new ReliableLink()

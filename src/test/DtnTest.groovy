@@ -9,6 +9,7 @@ import dtn.*
 
 @CompileStatic
 class DtnTest {
+    // FIXME: add multilink tests once the DataRate parameter is added
     String path = "testNode"
 
     public enum Tests {
