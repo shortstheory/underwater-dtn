@@ -2,5 +2,6 @@
 *.iml
 *.json
 .idea/
+testNode/
 out/
 logs/
