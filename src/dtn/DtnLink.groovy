@@ -2,6 +2,7 @@ package dtn
 
 
 import groovy.transform.CompileStatic
+import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
@@ -25,6 +26,7 @@ import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 import org.arl.unet.phy.RxFrameNtf
+import test.DtnTest
 
 //@TypeChecked
 @CompileStatic
@@ -71,7 +73,7 @@ class DtnLink extends UnetAgent {
     // uses seconds
     int LINK_EXPIRY_TIME = 10*6000
     DatagramPriority DATAGRAM_PRIORITY
-
+    ArrayList<AgentID> LINK_PRIORITY
 
     List<Parameter> getParameterList() {
         Class[] paramClasses = new Class[2]
@@ -88,18 +90,22 @@ class DtnLink extends UnetAgent {
         READY, WAITING
     }
 
-    DtnLink(String dir) {
-        directory = dir
+    private DtnLink() {
         random = new Random()
-        DATAGRAM_PRIORITY = DatagramPriority.EXPIRY
+        LINK_PRIORITY = new ArrayList<>()
         linkState = LinkState.READY
     }
 
-    DtnLink(String dir, DatagramPriority datagramPriority) {
+    DtnLink(String dir) {
+        this()
+        DATAGRAM_PRIORITY = DatagramPriority.EXPIRY
         directory = dir
-        random = new Random()
+    }
+
+    DtnLink(String dir, DatagramPriority datagramPriority) {
+        this()
         DATAGRAM_PRIORITY = datagramPriority
-        linkState = LinkState.READY
+        directory = dir
     }
 
     int currentTimeSeconds() {
@@ -132,6 +138,7 @@ class DtnLink extends UnetAgent {
         }
 
         for (AgentID link : linksWithReliability) {
+            LINK_PRIORITY.add(link)
             utility.addLink(link)
         }
 
@@ -141,10 +148,9 @@ class DtnLink extends UnetAgent {
             @Override
             void action() {
                 for (Integer node : utility.getDestinationNodes()) {
-                    Set<AgentID> nodeLinks = utility.getLinksForNode(node)
-                    if (!nodeLinks.isEmpty()) {
+                    AgentID nodeLink = utility.getBestLink(node)
+                    if (nodeLink != null) {
                         // FIXME: later choose links based on bitrate
-                        AgentID nodeLink = nodeLinks.getAt(0)
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = selectNextDatagram(datagrams)
                         if (messageID != null) {
@@ -188,7 +194,7 @@ class DtnLink extends UnetAgent {
                 int arrivalTime = storage.getArrivalTime(id)
                 if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
                     messageID = id
-                    minArrivalTime = storage.getArrivalTime(id)
+                    minArrivalTime = arrivalTime
                 }
             }
             return messageID
@@ -390,6 +396,14 @@ class DtnLink extends UnetAgent {
             println "Changed beacon interval"
             beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
         }
+    }
+
+    ArrayList<AgentID> getLINK_PRIORITY() {
+        return LINK_PRIORITY
+    }
+
+    void setLINK_PRIORITY(ArrayList<AgentID> links) {
+        LINK_PRIORITY = links
     }
 
     DtnStats getStats() {

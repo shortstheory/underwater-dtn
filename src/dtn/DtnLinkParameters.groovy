@@ -12,5 +12,6 @@ enum DtnLinkParameters implements Parameter {
     DATAGRAM_PERIOD,
     MAX_RETRIES,
     LINK_EXPIRY_TIME,
-    DATAGRAM_PRIORITY
+    DATAGRAM_PRIORITY,
+    LINK_PRIORITY
 }

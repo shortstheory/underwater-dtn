@@ -35,6 +35,21 @@ class DtnLinkInfo {
         return linkInfo
     }
 
+    AgentID getBestLink(int node) {
+        int bestLinkPriority = Integer.MAX_VALUE
+        AgentID bestLink = null
+        Set<AgentID> nodeLinks = getLinksForNode(node)
+        for (AgentID aid : nodeLinks) {
+            for (int i = 0; i < dtnLink.LINK_PRIORITY.size(); i++) {
+                if (aid == dtnLink.LINK_PRIORITY[i] && i < bestLinkPriority) {
+                    bestLinkPriority = i
+                    bestLink = aid
+                }
+            }
+        }
+        return bestLink
+    }
+
     void addLink(AgentID link) {
         dtnLink.subscribe(dtnLink.topic(link))
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))

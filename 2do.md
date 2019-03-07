@@ -1,10 +1,5 @@
 issues:
-**create issue for the bitrate of the link**
-
-* what MTU to use?
-* using debugger in router causes different outputs in the processRequest function of DtnLink
-* udplink crash
-* rxframentf & dntf problems
+new ArrayList<AgentID>(Arrays.asList(phy,linkX,link))
 * addroute 2,1,dtnlink - > this makes the regenerated DatagramReq go to node 1 when I do router << new DatagramReq(to: 2) ???
 
 addroute 3,2,dtnlink
@@ -28,16 +23,23 @@ link << new org.arl.unet.DatagramReq(to: 0)
 pending:
 !!* clean code?
 !!* study some 3B1B
-* start midsem report
 * do docu
-* ask how to write tests
 
 * multihop router tests
-* configurable containers
 
 later:
 
 done:
+**create issue for the bitrate of the link**
+* start midsem report
+* ask how to write tests
+* configurable containers
+
+* what MTU to use?
+* using debugger in router causes different outputs in the processRequest function of DtnLink
+* udplink crash
+* rxframentf & dntf problems
+
 * need to see how UdpLink is handled by multilink - we won't receive RxFrameNtfs so think of another way
 * simulations
 * multiple links per node
@@ -92,6 +94,15 @@ done:
 * fill in methods for Storage
 * telnet doesn't work for me
 * sending beacon at same causes X_X
+
+
+    ArrayList<AgentID> getLinks() {
+        ArrayList<AgentID> links = new ArrayList<>()
+        for (AgentID aid : linkInfo.keySet()) {
+            links.add(aid)
+        }
+        return links
+    }
 
 experimental:
         Container[] containers = platform.getContainers()

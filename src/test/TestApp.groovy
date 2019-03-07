@@ -17,6 +17,7 @@ class TestApp extends UnetAgent {
     public boolean randomPriorityResult = false
     public boolean timeoutD1Success = false
     public boolean timeoutD2Failed = false
+    public boolean multiLinkResult = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -50,7 +51,7 @@ class TestApp extends UnetAgent {
                             msgID: DtnTest.MESSAGE_ID,
                             protocol: DtnTest.MESSAGE_PROTOCOL,
                             data: DtnTest.MESSAGE_DATA.getBytes())
-            sendDatagram(req)
+                sendDatagram(req)
                 break
             case DtnTest.Tests.ROUTER_MESSAGE:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
@@ -167,6 +168,20 @@ class TestApp extends UnetAgent {
                         sendDatagram(d2)
                     }
                 })
+                break
+            case DtnTest.Tests.MULTI_LINK:
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_PRIORITY, DtnTest.LINK_ORDER)
+                rsp = (ParameterRsp)dtnlink.request(p, 1000)
+
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                        ttl: DtnTest.MESSAGE_TTL,
+                        msgID: DtnTest.MESSAGE_ID,
+                        protocol: DtnTest.MESSAGE_PROTOCOL,
+                        data: DtnTest.MESSAGE_DATA.getBytes())
+                sendDatagram(req)
+                break
         }
     }
 
@@ -259,6 +274,11 @@ class TestApp extends UnetAgent {
                     } else {
                         timeoutD2Failed = false
                     }
+                }
+                break
+            case DtnTest.Tests.MULTI_LINK:
+                if (msg instanceof  DatagramDeliveryNtf) {
+                    multiLinkResult = true
                 }
                 break
         }

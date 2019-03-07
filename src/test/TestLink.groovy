@@ -18,6 +18,10 @@ class TestLink extends UnetAgent {
     public boolean timeoutD1Success = false
     public boolean timeoutD2Failed = true // we're never supposed to get D2
 
+    public boolean linkPriorityExpectMessage
+    public boolean linkPriorityReceivedMessage = false
+    public boolean beaconReceived = false
+
     int DATAGRAM_ATTEMPTS = 0
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -212,6 +216,23 @@ class TestLink extends UnetAgent {
                         }
                     }
                 }
+                break
+            case DtnTest.Tests.MULTI_LINK:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        linkPriorityReceivedMessage = true
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: msg.getMessageID()))
+                            }
+                        })
+                    } else {
+                        beaconReceived = true
+                    }
+                }
+                break
         }
         return null
     }

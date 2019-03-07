@@ -6,6 +6,9 @@ import org.arl.unet.Protocol
 import org.junit.*
 import org.arl.fjage.*
 import dtn.*
+import java.util.ArrayList
+
+import java.lang.reflect.Array
 
 @CompileStatic
 class DtnTest {
@@ -20,7 +23,8 @@ class DtnTest {
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
-        TIMEOUT // i.e., is our link still active? - add link, delay
+        TIMEOUT, // i.e., is our link still active? - add link, delay
+        MULTI_LINK
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -33,6 +37,8 @@ class DtnTest {
 
     public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 600
+
+    public static ArrayList<AgentID> LINK_ORDER = new ArrayList<>()
 
     @Before
     public void beforeTesting() {
@@ -183,6 +189,40 @@ class DtnTest {
         assert(app.timeoutD2Failed)
         assert(link.timeoutD1Success)
         assert(link.timeoutD2Failed)
+    }
+
+    @Test
+    public void testMultilink() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.MULTI_LINK)
+        TestLink link1 = new TestLink(DtnTest.Tests.MULTI_LINK)
+        TestLink link2 = new TestLink(DtnTest.Tests.MULTI_LINK)
+        TestLink link3 = new TestLink(DtnTest.Tests.MULTI_LINK)
+        link1.linkPriorityExpectMessage = false
+        link2.linkPriorityExpectMessage = true
+        link3.linkPriorityExpectMessage = false
+
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("link1", link1)
+        c.add("link2", link2)
+        c.add("link3", link3)
+        LINK_ORDER.add(link2.getAgentID())
+        LINK_ORDER.add(link3.getAgentID())
+        LINK_ORDER.add(link1.getAgentID())
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+        assert(app.multiLinkResult)
+        assert(link1.beaconReceived)
+        assert(link2.beaconReceived)
+        assert(link3.beaconReceived)
+        assert(link1.linkPriorityExpectMessage == link1.linkPriorityReceivedMessage)
+        assert(link2.linkPriorityExpectMessage == link2.linkPriorityReceivedMessage)
+        assert(link3.linkPriorityExpectMessage == link3.linkPriorityReceivedMessage)
     }
 
     @After
