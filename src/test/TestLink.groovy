@@ -9,14 +9,14 @@ import org.arl.unet.*
 class TestLink extends UnetAgent {
     DtnTest.Tests test
 
-    public boolean SUCCESSFUL_DELIVERY_RESULT = false
-    public boolean ROUTER_MESSAGE_RESULT = false
-    public boolean MAX_RETRY_RESULT = false
-    public boolean ARRIVAL_PRIORITY_RESULT = false // set to false if OoO
-    public boolean EXPIRY_PRIORITY_RESULT = false
-    public boolean RANDOM_PRIORITY_RESULT = false
-    public boolean TIMEOUT_D1_SUCCESS = false
-    public boolean TIMEOUT_D2_FAILED = true // we're never supposed to get D2
+    public boolean successfulDeliveryResult = false
+    public boolean routerMessageResult = false
+    public boolean maxRetryResult = false
+    public boolean arrivalPriorityResult = false // set to false if OoO
+    public boolean expiryPriorityResult = false
+    public boolean randomPriorityResult = false
+    public boolean timeoutD1Success = false
+    public boolean timeoutD2Failed = true // we're never supposed to get D2
 
     int DATAGRAM_ATTEMPTS = 0
     int NEXT_EXPECTED_DATAGRAM = 0
@@ -67,7 +67,7 @@ class TestLink extends UnetAgent {
                             }
                         })
                         if (msg.getTo() == DtnTest.DEST_ADDRESS && msg.getData() == DtnTest.MESSAGE_DATA.getBytes()) {
-                            SUCCESSFUL_DELIVERY_RESULT = true
+                            successfulDeliveryResult = true
                         }
                     }
                     return new Message(msg, Performative.AGREE)
@@ -89,7 +89,7 @@ class TestLink extends UnetAgent {
                             && (int)pduInfo.get(0) < DtnTest.MESSAGE_TTL
                             && pduInfo.get(1) == Protocol.ROUTING
                             && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
-                            ROUTER_MESSAGE_RESULT = true
+                            routerMessageResult = true
                         }
                     }
                     return new Message(msg, Performative.AGREE)
@@ -110,7 +110,7 @@ class TestLink extends UnetAgent {
                                 }
                             })
                         } else if (DATAGRAM_ATTEMPTS == DtnTest.DTN_MAX_RETRIES) {
-                            MAX_RETRY_RESULT = true
+                            maxRetryResult = true
                             add(new WakerBehavior(10 * 1000) {
                                 @Override
                                 void onWake() {
@@ -119,7 +119,7 @@ class TestLink extends UnetAgent {
                                 }
                             })
                         } else {
-                            MAX_RETRY_RESULT = false
+                            maxRetryResult = false
                         }
                     }
                     return new Message(msg, Performative.AGREE)
@@ -134,9 +134,9 @@ class TestLink extends UnetAgent {
                             NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                         }
                         if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
-                            ARRIVAL_PRIORITY_RESULT = true
+                            arrivalPriorityResult = true
                         } else {
-                            ARRIVAL_PRIORITY_RESULT = false
+                            arrivalPriorityResult = false
                         }
                         add(new WakerBehavior(10 * 1000) {
                             @Override
@@ -157,9 +157,9 @@ class TestLink extends UnetAgent {
                             NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                         }
                         if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
-                            EXPIRY_PRIORITY_RESULT = true
+                            expiryPriorityResult = true
                         } else {
-                            EXPIRY_PRIORITY_RESULT = false
+                            expiryPriorityResult = false
                         }
                         add(new WakerBehavior(10 * 1000) {
                             @Override
@@ -180,9 +180,9 @@ class TestLink extends UnetAgent {
                             DATAGRAMS_RECEIVED++
                         }
                         if (DATAGRAMS_RECEIVED == DtnTest.PRIORITY_MESSAGES) {
-                            RANDOM_PRIORITY_RESULT = true
+                            randomPriorityResult = true
                         } else {
-                            RANDOM_PRIORITY_RESULT = false
+                            randomPriorityResult = false
                         }
                         add(new WakerBehavior(10 * 1000) {
                             @Override
@@ -198,7 +198,7 @@ class TestLink extends UnetAgent {
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         if (msg.getData()[0] == 1) {
-                            TIMEOUT_D1_SUCCESS = true
+                            timeoutD1Success = true
                             add(new WakerBehavior(10 * 1000) {
                                 @Override
                                 void onWake() {
@@ -208,7 +208,7 @@ class TestLink extends UnetAgent {
                             })
                         }
                         if (msg.getData()[0] == 2) {
-                            TIMEOUT_D2_FAILED = false
+                            timeoutD2Failed = false
                         }
                     }
                 }

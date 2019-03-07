@@ -8,15 +8,15 @@ import org.arl.unet.*
 class TestApp extends UnetAgent {
     AgentID dtnlink
 
-    public boolean TRIVIAL_MESSAGE_RESULT = false
-    public boolean SUCCESSFUL_DELIVERY_RESULT = false
-    public boolean ROUTER_MESSAGE_RESULT = false
-    public boolean MAX_RETRY_RESULT = false
-    public boolean ARRIVAL_PRIORITY_RESULT = false
-    public boolean EXPIRY_PRIORITY_RESULT = false
-    public boolean RANDOM_PRIORITY_RESULT = false
-    public boolean TIMEOUT_D1_SUCCESS = false
-    public boolean TIMEOUT_D2_FAILED = false
+    public boolean trivialMessageResult = false
+    public boolean successfulDeliveryResult = false
+    public boolean routerMessageResult = false
+    public boolean maxRetryResult = false
+    public boolean arrivalPriorityResult = false
+    public boolean expiryPriorityResult = false
+    public boolean randomPriorityResult = false
+    public boolean timeoutD1Success = false
+    public boolean timeoutD2Failed = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -182,27 +182,27 @@ class TestApp extends UnetAgent {
         switch(test) {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
                 if (msg.getPerformative() == Performative.AGREE) {
-                    TRIVIAL_MESSAGE_RESULT = true
+                    trivialMessageResult = true
                 }
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
-                        SUCCESSFUL_DELIVERY_RESULT = true
+                        successfulDeliveryResult = true
                     }
                 }
                 break
             case DtnTest.Tests.ROUTER_MESSAGE:
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
-                        ROUTER_MESSAGE_RESULT = true
+                        routerMessageResult = true
                     }
                 }
                 break
             case DtnTest.Tests.MAX_RETRIES:
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
-                        MAX_RETRY_RESULT = true
+                        maxRetryResult = true
                     }
                 }
                 break
@@ -213,9 +213,9 @@ class TestApp extends UnetAgent {
                         NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                     }
                     if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
-                        ARRIVAL_PRIORITY_RESULT = true
+                        arrivalPriorityResult = true
                     } else {
-                        ARRIVAL_PRIORITY_RESULT = false
+                        arrivalPriorityResult = false
                     }
                 }
                 break
@@ -226,9 +226,9 @@ class TestApp extends UnetAgent {
                         NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
                     }
                     if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
-                        EXPIRY_PRIORITY_RESULT = true
+                        expiryPriorityResult = true
                     } else {
-                        EXPIRY_PRIORITY_RESULT = false
+                        expiryPriorityResult = false
                     }
                 }
                 break
@@ -239,25 +239,25 @@ class TestApp extends UnetAgent {
                         DATAGRAMS_RECEIVED++
                     }
                     if (DATAGRAMS_RECEIVED == DtnTest.PRIORITY_MESSAGES) {
-                        RANDOM_PRIORITY_RESULT = true
+                        randomPriorityResult = true
                     } else {
-                        RANDOM_PRIORITY_RESULT = false
+                        randomPriorityResult = false
                     }
                 }
                 break
             case DtnTest.Tests.TIMEOUT:
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == "1") {
-                        TIMEOUT_D1_SUCCESS = true
+                        timeoutD1Success = true
                     } else {
-                        TIMEOUT_D1_SUCCESS = false
+                        timeoutD1Success = false
                     }
                 }
                 if (msg instanceof DatagramFailureNtf) {
                     if (msg.getInReplyTo() == "2") {
-                        TIMEOUT_D2_FAILED = true
+                        timeoutD2Failed = true
                     } else {
-                        TIMEOUT_D2_FAILED = false
+                        timeoutD2Failed = false
                     }
                 }
                 break

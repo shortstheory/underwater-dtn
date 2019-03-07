@@ -20,8 +20,7 @@ class DtnTest {
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
-        TIMEOUT, // i.e., is our link still active? - add link, delay
-        STRESS
+        TIMEOUT // i.e., is our link still active? - add link, delay
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -55,7 +54,7 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.TRIVIAL_MESSAGE_RESULT)
+        assert(app.trivialMessageResult)
     }
 
     @Test
@@ -72,8 +71,8 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.SUCCESSFUL_DELIVERY_RESULT)
-        assert(link.SUCCESSFUL_DELIVERY_RESULT)
+        assert(app.successfulDeliveryResult)
+        assert(link.successfulDeliveryResult)
     }
 
     @Test
@@ -90,8 +89,8 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.ROUTER_MESSAGE_RESULT)
-        assert(link.ROUTER_MESSAGE_RESULT)
+        assert(app.routerMessageResult)
+        assert(link.routerMessageResult)
     }
 
     @Test
@@ -108,8 +107,8 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-        assert(app.MAX_RETRY_RESULT)
-        assert(link.MAX_RETRY_RESULT)
+        assert(app.maxRetryResult)
+        assert(link.maxRetryResult)
     }
 
     @Test
@@ -126,8 +125,8 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-        assert(app.ARRIVAL_PRIORITY_RESULT)
-        assert(link.ARRIVAL_PRIORITY_RESULT)
+        assert(app.arrivalPriorityResult)
+        assert(link.arrivalPriorityResult)
     }
 
     @Test
@@ -144,8 +143,8 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-        assert(app.EXPIRY_PRIORITY_RESULT)
-        assert(link.EXPIRY_PRIORITY_RESULT)
+        assert(app.expiryPriorityResult)
+        assert(link.expiryPriorityResult)
     }
 
     @Test
@@ -162,8 +161,8 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-        assert(app.RANDOM_PRIORITY_RESULT)
-        assert(link.RANDOM_PRIORITY_RESULT)
+        assert(app.randomPriorityResult)
+        assert(link.randomPriorityResult)
     }
 
     @Test
@@ -180,10 +179,10 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-        assert(app.TIMEOUT_D1_SUCCESS)
-        assert(app.TIMEOUT_D2_FAILED)
-        assert(link.TIMEOUT_D1_SUCCESS)
-        assert(link.TIMEOUT_D2_FAILED)
+        assert(app.timeoutD1Success)
+        assert(app.timeoutD2Failed)
+        assert(link.timeoutD1Success)
+        assert(link.timeoutD2Failed)
     }
 
     @After
