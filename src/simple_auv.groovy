@@ -23,7 +23,7 @@ int nodeCount = 2
 def msgSize = 300
 def msgFreq = 100*1000
 def dist = 2500.m
-def msgTtl = 10400
+def msgTtl = 5200
 
 int[] dest1 = [2]
 int[] dest2 = [1]

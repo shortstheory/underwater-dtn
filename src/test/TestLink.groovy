@@ -220,7 +220,7 @@ class TestLink extends UnetAgent {
             case DtnTest.Tests.MULTI_LINK:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
-                        linkPriorityReceivedMessage = true
+                            linkPriorityReceivedMessage = true
                         add(new WakerBehavior(10 * 1000) {
                             @Override
                             void onWake() {

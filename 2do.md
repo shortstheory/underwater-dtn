@@ -157,3 +157,11 @@ Exception in thread "link [monitor]" org.arl.fjage.FjageError: request() should 
 	at org.arl.unet.link.UdpLink.access$700(UdpLink.java:17)
 	at org.arl.unet.link.UdpLink$RxMonitor.run(UdpLink.java:449)
 AGREE
+
+Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Expr	Beac	Coll	BadF	F%  	Tx%		Mean	SD
+
+1 & 165 & 0 & 73 & 91 & 103 & 0 &	 64 & 8 & 156 & 0 & 17  & 0.442 & 0.883 & 68.32 & 147.63
+2 & 0 & 91 & 0 & 0 & 0 & 0 & 0 & 0 & 391 & 0 & 600 & NaN & NaN & NaN & NaN
+2 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & N & N & N & N
+{c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c}
+

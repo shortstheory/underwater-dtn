@@ -7,6 +7,7 @@ import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
+import org.arl.unet.transport.SWTransport
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
