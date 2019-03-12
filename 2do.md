@@ -6,7 +6,7 @@ addroute 3,2,dtnlink
 
 dtnlink.send(new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, 5))
 
-dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5, data: {0,1,2,3,4,5,6,7,8,9})
+dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 5, data: [0,1,2,3,4,5,6,7,8,9])
 dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
 
 router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
@@ -17,6 +17,13 @@ TTL/size in random simulations is the largest size of the TTL/size that can be s
 
 router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
 router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
+
+addroute 3,2,dtnlink
+router << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+
+
+router << new DatagramReq(to: 3, ttl: 5000, protocol: 29, data: {0,1,2,3,4,5,6,7,8,9})
+
 link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 link << new org.arl.unet.DatagramReq(to: 0)
 
@@ -165,3 +172,20 @@ Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Expr	Beac	Coll	BadF	F%  	Tx%		Mean	SD
 2 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & N & N & N & N
 {c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c}
 
+    Node & Tx & Rx & Fail & Suc & Req & Stor & Rsnt & Expr & Beac & Coll & BadF & F% & Tx% & Mean & SD
+
+\begin{table}
+\caption{The effects of treatments X and Y on the four groups studied.}
+\label{tab:treatments}
+\centering
+\begin{tabular}{l l l}
+\toprule
+\tabhead{Groups} & \tabhead{Treatment X} & \tabhead{Treatment Y} \\
+\midrule
+1 & 0.2 & 0.8\\
+2 & 0.17 & 0.7\\
+3 & 0.24 & 0.75\\
+4 & 0.68 & 0.3\\
+\bottomrule\\
+\end{tabular}
+\end{table}

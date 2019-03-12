@@ -65,7 +65,7 @@ class DtnLink extends UnetAgent {
     private Random random
 
     // all units are in milliseconds below
-    int BEACON_PERIOD = 100*1000
+    int BEACON_PERIOD = 10*1000
     int SWEEP_PERIOD = 100*1000
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
@@ -237,7 +237,7 @@ class DtnLink extends UnetAgent {
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
             // FIXME: check for buffer space too, probably in saveDatagram!
-            if (!storage.saveDatagram(msg) || msg.getTtl().isNaN()) {
+            if (msg.getTtl().isNaN() || !storage.saveDatagram(msg)) {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
@@ -404,6 +404,10 @@ class DtnLink extends UnetAgent {
 
     void setLINK_PRIORITY(ArrayList<AgentID> links) {
         LINK_PRIORITY = links
+    }
+
+    Set<Integer> getDISCOVERED_NODES() {
+        return utility.getDestinationNodes()
     }
 
     DtnStats getStats() {
