@@ -57,7 +57,7 @@ class DtnLinkInfo {
 
 
         int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
-        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: 0, linkMTU: mtu))
+        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu))
         if (phy != null) {
             dtnLink.subscribe(dtnLink.topic(phy))
             dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))

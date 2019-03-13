@@ -20,6 +20,8 @@ router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
 
 addroute 3,2,dtnlink
 router << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
 
 
 router << new DatagramReq(to: 3, ttl: 5000, protocol: 29, data: {0,1,2,3,4,5,6,7,8,9})
