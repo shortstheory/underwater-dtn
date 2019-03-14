@@ -37,7 +37,7 @@ class DtnLink extends UnetAgent {
     /**
      * DtnLink header comprises of the message TTL and protocol number
      */
-    public static final int HEADER_SIZE = 9
+    public static final int HEADER_SIZE  = 10
     public static final int DTN_PROTOCOL = 50
 
     int MTU
@@ -318,8 +318,8 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
                 @Override
                 void onWake() {
-                    byte[] pduBytes = storage.getPDU(messageID, true).toByteArray()
-                    if (pduBytes != null) {
+                    HashMap<String, Integer> parsedPdu = storage.getParsedPDU(messageID)
+                    if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             if (metadata.attempts > 0) {
@@ -328,10 +328,15 @@ class DtnLink extends UnetAgent {
                             }
                             // check for protocol number here?
                             // we are decoding the PDU twice, not good!
-                            Tuple parsedPdu = storage.decodePdu(pduBytes)
-                            int pduProtocol = (int)parsedPdu.get(1)
-                            byte[] pduData = (byte[])parsedPdu.get(2)
-
+                            int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
+                            byte[] pduData = storage.getPDUData(messageID)
+                            byte[] pduBytes = storage.encodePdu(pduData,
+                                                                parsedPdu.get(DtnStorage.TTL_MAP),
+                                                                parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                                                parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
+                                                                parsedPdu.get(DtnStorage.SEGMENT_NUM_MAP),
+                                                                parsedPdu.get(DtnStorage.TOTAL_SEGMENTS_MAP))
+                                                                .toByteArray()
                             DatagramReq datagramReq
 
                             // this is for short-circuiting PDUs
