@@ -35,6 +35,7 @@ simulate {
 //        container.add 'linkX', new UdpLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
+        container.add 'swt', new SWTransport()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     node '2', address: 2, location: [200.m, 0, -50.m], shell: 5001, stack: { container ->

@@ -11,6 +11,13 @@ class DtnStorage {
     private final String directory
     private DtnLink dtnLink
     private HashMap<String, DtnPduMetadata> metadataMap
+    // PDU Structure
+    // |TTL (20) - PAYLOAD (12)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
+    // no payload ID for messages which fit in the MTU
+    private static final int TTL_BITMASK             = (int)0xFFFFF000
+    private static final int PAYLOAD_BITMASK         = (int)0x00000FFF
+    private static final int SEGMENT_NUM_BITMASK     = (int)0x0000FFFF
+    private static final int TOTAL_SEGMENT_BITMASK   = (int)0xFFFF0000
 
     /**
      * Pair of the new MessageID and old MessageID
@@ -71,7 +78,7 @@ class DtnStorage {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
         // FIXME: only for testing with Router
-        int ttl = (req.getTtl().isNaN()) ? 2000 : Math.round(req.getTtl())
+        int ttl = Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         OutputPDU outputPDU = encodePdu(data, ttl, protocol)
