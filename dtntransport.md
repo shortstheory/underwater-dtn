@@ -3,6 +3,7 @@
 * Main idea: use DtnLink as much as possible, make as few changes as possible
     * Consult ROUTING for the tables, let's not redo that work
     * But send the payload by DtnT
+    * support fragmentation,datagram,transport
 
 * multicopy routing looks wasteful, lots of msg duplication, stresses the MAC
     * choose LCP instead via DV?

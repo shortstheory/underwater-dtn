@@ -1,6 +1,5 @@
 package dtn
 
-
 import groovy.transform.CompileStatic
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
@@ -26,7 +25,6 @@ import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 
-SWTransport
 import org.arl.unet.phy.RxFrameNtf
 import org.arl.unet.transport.SWTransport
 import test.DtnTest
@@ -189,34 +187,34 @@ class DtnLink extends UnetAgent {
 
     String selectNextDatagram(ArrayList<String> datagrams) {
         switch (DATAGRAM_PRIORITY) {
-        case DatagramPriority.ARRIVAL:
-            int minArrivalTime = Integer.MAX_VALUE
-            String messageID
-            // FIXME: why calling gAT twice?
-            for (String id : datagrams) {
-                int arrivalTime = storage.getArrivalTime(id)
-                if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
-                    messageID = id
-                    minArrivalTime = arrivalTime
+            case DatagramPriority.ARRIVAL:
+                int minArrivalTime = Integer.MAX_VALUE
+                String messageID
+                // FIXME: why calling gAT twice?
+                for (String id : datagrams) {
+                    int arrivalTime = storage.getArrivalTime(id)
+                    if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
+                        messageID = id
+                        minArrivalTime = arrivalTime
+                    }
                 }
-            }
-            return messageID
-        case DatagramPriority.EXPIRY:
-            int minExpiryTime = Integer.MAX_VALUE
-            String messageID
-            for (String id : datagrams) {
-                DtnPduMetadata metadata = storage.getDatagramMetadata(id)
-                if (metadata != null && metadata.expiryTime < minExpiryTime) {
-                    messageID = id
-                    minExpiryTime = metadata.expiryTime
+                return messageID
+            case DatagramPriority.EXPIRY:
+                int minExpiryTime = Integer.MAX_VALUE
+                String messageID
+                for (String id : datagrams) {
+                    DtnPduMetadata metadata = storage.getDatagramMetadata(id)
+                    if (metadata != null && metadata.expiryTime < minExpiryTime) {
+                        messageID = id
+                        minExpiryTime = metadata.expiryTime
+                    }
                 }
-            }
-            return messageID
-        case DatagramPriority.RANDOM:
-            return (datagrams.size()) ? datagrams.get(random.nextInt(datagrams.size())) : null
-        default:
-            println("This should never happen!")
-            return null
+                return messageID
+            case DatagramPriority.RANDOM:
+                return (datagrams.size()) ? datagrams.get(random.nextInt(datagrams.size())) : null
+            default:
+                println("This should never happen!")
+                return null
         }
     }
 
@@ -227,8 +225,8 @@ class DtnLink extends UnetAgent {
             CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
             Message rsp = request(req, 2000)
             if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
-                (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
-                link.getName() != getName()) { // we don't want to use the DtnLink!
+                    (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
+                    link.getName() != getName()) { // we don't want to use the DtnLink!
                 println("Candidate Link " + link.getName())
                 reliableLinks.add(link)
             }
@@ -254,20 +252,20 @@ class DtnLink extends UnetAgent {
 
     @Override
     protected void processMessage(Message msg) {
-         if (msg instanceof RxFrameNtf) {
-             stats.beacons_snooped++
-             AgentID phy = msg.getRecipient().getOwner().getAgentID()
-             AgentID link = utility.getLinkForPhy(phy)
-             if (link != null) {
-                 utility.addLinkForNode(msg.getFrom(), link)
-             }
-         } else if (msg instanceof DatagramNtf) {
-             // we will do this for every message? Can't hurt much
-             AgentID link = utility.getLinkForTopic(msg.getRecipient())
-             utility.addLinkForNode(msg.getFrom(), link)
-             utility.updateLastTransmission(link)
+        if (msg instanceof RxFrameNtf) {
+            stats.beacons_snooped++
+            AgentID phy = msg.getRecipient().getOwner().getAgentID()
+            AgentID link = utility.getLinkForPhy(phy)
+            if (link != null) {
+                utility.addLinkForNode(msg.getFrom(), link)
+            }
+        } else if (msg instanceof DatagramNtf) {
+            // we will do this for every message? Can't hurt much
+            AgentID link = utility.getLinkForTopic(msg.getRecipient())
+            utility.addLinkForNode(msg.getFrom(), link)
+            utility.updateLastTransmission(link)
 
-             if (msg.getProtocol() == DTN_PROTOCOL) {
+            if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 Tuple pduTuple = storage.decodePdu(pduBytes)
                 if (pduTuple != null) {
@@ -285,12 +283,12 @@ class DtnLink extends UnetAgent {
             } else {
                 stats.datagrams_received++
             }
-        // once we have received a DDN/DFN, we can send another one
+            // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String messageID = msg.getInReplyTo()
             String originalMessageID = storage.getOriginalMessageID(messageID)
-             // it can happen that the DDN comes just after a TTL
+            // it can happen that the DDN comes just after a TTL
             if (originalMessageID != null) {
                 int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
                 if (deliveryTime >= 0) {
@@ -311,7 +309,7 @@ class DtnLink extends UnetAgent {
             stats.frame_collisions++
         } else if (msg instanceof BadFrameNtf) {
             stats.bad_frames++
-         }
+        }
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
@@ -339,14 +337,14 @@ class DtnLink extends UnetAgent {
                             // this is for short-circuiting PDUs
                             if (pduProtocol == Protocol.ROUTING) {
                                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                                                data: pduBytes,
-                                                                to: node,
-                                                                reliability: true)
+                                        data: pduBytes,
+                                        to: node,
+                                        reliability: true)
                             } else {
                                 datagramReq = new DatagramReq(protocol: pduProtocol,
-                                                                data: pduData,
-                                                                to: node,
-                                                                reliability: true)
+                                        data: pduData,
+                                        to: node,
+                                        reliability: true)
                             }
                             storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             // FIXME: use send or request here?
