@@ -170,17 +170,22 @@ class TestApp extends UnetAgent {
                 })
                 break
             case DtnTest.Tests.MULTI_LINK:
-                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
                 p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_PRIORITY, DtnTest.LINK_ORDER)
                 rsp = (ParameterRsp)dtnlink.request(p, 1000)
 
-                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                        ttl: DtnTest.MESSAGE_TTL,
-                        msgID: DtnTest.MESSAGE_ID,
-                        protocol: DtnTest.MESSAGE_PROTOCOL,
-                        data: DtnTest.MESSAGE_DATA.getBytes())
-                sendDatagram(req)
+                add(new WakerBehavior(2000*1000) {
+                    @Override
+                    void onWake() {
+                        DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                ttl: DtnTest.DELAY_TIME,
+                                msgID: DtnTest.MESSAGE_ID,
+                                protocol: DtnTest.MESSAGE_PROTOCOL,
+                                data: DtnTest.MESSAGE_DATA.getBytes())
+                        sendDatagram(req)
+                    }
+                })
                 break
         }
     }
