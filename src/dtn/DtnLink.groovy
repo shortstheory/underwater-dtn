@@ -37,7 +37,7 @@ class DtnLink extends UnetAgent {
     /**
      * DtnLink header comprises of the message TTL and protocol number
      */
-    public static final int HEADER_SIZE = 5
+    public static final int HEADER_SIZE = 9
     public static final int DTN_PROTOCOL = 50
 
     int MTU
@@ -63,7 +63,7 @@ class DtnLink extends UnetAgent {
 
     private DtnLinkInfo utility
     private LinkState linkState
-    private Random random
+    public Random random
 
     // all units are in milliseconds below
     int BEACON_PERIOD = 10*1000

@@ -14,10 +14,6 @@ class DtnStorage {
     // PDU Structure
     // |TTL (20) - PAYLOAD (12)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
-    private static final int TTL_BITMASK             = (int)0xFFFFF000
-    private static final int PAYLOAD_BITMASK         = (int)0x00000FFF
-    private static final int SEGMENT_NUM_BITMASK     = (int)0x0000FFFF
-    private static final int TOTAL_SEGMENT_BITMASK   = (int)0xFFFF0000
 
     /**
      * Pair of the new MessageID and old MessageID
@@ -81,28 +77,34 @@ class DtnStorage {
         int ttl = Math.round(req.getTtl())
         String messageID = req.getMessageID()
         byte[] data = req.getData()
-        OutputPDU outputPDU = encodePdu(data, ttl, protocol)
+        int minMTU = dtnLink.getMinMTU()
+        int segments = (int)Math.ceil((double)data.length/minMTU)
+        int payloadId = (segments == 1) ? dtnLink.random.nextInt() & PAYLOAD_ID_BITMASK : 0
+        for (int i = 0; i < segments; i++) {
+            byte[] segmentData = Arrays.copyOfRange(data, i*minMTU, (i+1)*minMTU)
+            OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadId, i+1, segments)
 
-        FileOutputStream fos
+            FileOutputStream fos
 
-        try {
-            File dir = new File(directory)
-            if (!dir.exists()) {
-                dir.mkdirs()
+            try {
+                File dir = new File(directory)
+                if (!dir.exists()) {
+                    dir.mkdirs()
+                }
+                File file = new File(dir, messageID)
+                fos = new FileOutputStream(file)
+                outputPDU.writeTo(fos)
+                metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
+                        expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
+                        attempts: 0,
+                        delivered: false))
+                return true
+            } catch (IOException e) {
+                println "Could not save file for " + messageID
+                return false
+            } finally {
+                fos.close()
             }
-            File file = new File(dir, messageID)
-            fos = new FileOutputStream(file)
-            outputPDU.writeTo(fos)
-            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
-                                                 expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                                                 attempts: 0,
-                                                 delivered: false))
-            return true
-        } catch (IOException e) {
-            println "Could not save file for " + messageID
-            return false
-        } finally {
-            fos.close()
         }
     }
 
@@ -153,7 +155,7 @@ class DtnStorage {
         }
     }
 
-    OutputPDU encodePdu(byte[] data, int ttl, int protocol) {
+    OutputPDU encodePdu(byte[] data, int ttl, int protocol, int payloadId, int segmentNumber, int totalSegments) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + dtnLink.HEADER_SIZE)
         pdu.write32(ttl)
