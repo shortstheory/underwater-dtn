@@ -1,9 +1,12 @@
 package test
 
 import dtn.DtnLink
+import dtn.DtnStorage
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
+
+import java.lang.reflect.Array
 
 @CompileStatic
 class TestLink extends UnetAgent {
@@ -88,11 +91,11 @@ class TestLink extends UnetAgent {
                                                                      inReplyTo: messageID))
                             }
                         })
-                        Tuple pduInfo = decodePdu(msg.getData())
-                        if ((int)pduInfo.get(0) > 0
-                            && (int)pduInfo.get(0) < DtnTest.MESSAGE_TTL
-                            && pduInfo.get(1) == Protocol.ROUTING
-                            && pduInfo.get(2) == DtnTest.MESSAGE_DATA.getBytes()) {
+                        HashMap<String, Integer> pduInfo = decodePdu(msg.getData())
+                        if (pduInfo.get(DtnStorage.TTL_MAP) > 0
+                            && pduInfo.get(DtnStorage.TTL_MAP) < DtnTest.MESSAGE_TTL
+                            && pduInfo.get(DtnStorage.PROTOCOL_MAP) == Protocol.ROUTING
+                            && Arrays.copyOfRange(msg.getData(), DtnLink.HEADER_SIZE, msg.getData().length) == DtnTest.MESSAGE_DATA.getBytes()) {
                             routerMessageResult = true
                         }
                     }
@@ -241,16 +244,17 @@ class TestLink extends UnetAgent {
         return 1600
     }
 
-    Tuple decodePdu(byte[] pduBytes) {
+    HashMap decodePdu(byte[] pduBytes) {
         if (pduBytes.length < DtnLink.HEADER_SIZE) {
             return null
         }
         InputPDU pdu = new InputPDU(pduBytes)
-
-        int ttl = (int)pdu.read32()
-        int protocol = (int)pdu.read8()
-        // the data follows the 8 byte header
-        byte[] data = Arrays.copyOfRange(pduBytes, DtnLink.HEADER_SIZE, pduBytes.length)
-        return new Tuple(ttl, protocol, data)
+        HashMap<String, Integer> map = new HashMap<>()
+        map.put(DtnStorage.TTL_MAP, (int)pdu.read24())
+        map.put(DtnStorage.PROTOCOL_MAP, (int)pdu.read8())
+        map.put(DtnStorage.PAYLOAD_ID_MAP, (int)pdu.read16())
+        map.put(DtnStorage.SEGMENT_NUM_MAP, (int)pdu.read16())
+        map.put(DtnStorage.TOTAL_SEGMENTS_MAP, (int)pdu.read16())
+        return map
     }
 }

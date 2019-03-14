@@ -94,13 +94,17 @@ class DtnStorage {
         int payloadId = (segments > 1) ? dtnLink.random.nextInt() & LOWER_16_BITMASK : 0
 
         if (segments > 0xFFFF) {
-//          too many segments lah!
+//          too many segments lah! can't send message!
             return false
         }
 
         for (int i = 0; i < segments; i++) {
-            byte[] segmentData
-            segmentData = (data == null) ? null : Arrays.copyOfRange(data, i*minMTU, (i+1)*minMTU)
+            byte[] segmentData = null
+            int startPtr = i*minMTU
+            if (data != null) {
+                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
+                segmentData = (data == null) ? null : Arrays.copyOfRange(data, startPtr, endPtr)
+            }
             OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadId, i+1, segments)
 
             FileOutputStream fos
