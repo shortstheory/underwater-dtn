@@ -177,7 +177,7 @@ class DtnStorage {
     OutputPDU encodePdu(byte[] data, int ttl, int protocol, int payloadId, int segmentNumber, int totalSegments) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + dtnLink.HEADER_SIZE)
-        pdu.write32(ttl)
+        pdu.write24(ttl)
         pdu.write8(protocol)
         pdu.write16(payloadId)
         pdu.write16(segmentNumber)
@@ -194,7 +194,7 @@ class DtnStorage {
         }
         InputPDU pdu = new InputPDU(pduBytes)
         HashMap<String, Integer> map = new HashMap<>()
-        map.put(TTL_MAP, (int)pdu.read32())
+        map.put(TTL_MAP, (int)pdu.read24())
         map.put(PROTOCOL_MAP, (int)pdu.read8())
         map.put(PAYLOAD_ID_MAP, (int)pdu.read16())
         map.put(SEGMENT_NUM_MAP, (int)pdu.read16())
