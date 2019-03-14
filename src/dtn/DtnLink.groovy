@@ -29,6 +29,8 @@ import org.arl.unet.phy.RxFrameNtf
 import org.arl.unet.transport.SWTransport
 import test.DtnTest
 
+import java.lang.reflect.Array
+
 //@TypeChecked
 @CompileStatic
 class DtnLink extends UnetAgent {
@@ -267,11 +269,11 @@ class DtnLink extends UnetAgent {
 
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
-                Tuple pduTuple = storage.decodePdu(pduBytes)
-                if (pduTuple != null) {
-                    int ttl = (int)pduTuple.get(0)
-                    int protocol = (int)pduTuple.get(1)
-                    byte[] data = (byte[])pduTuple.get(2)
+                HashMap<String, Integer> map = storage.decodePdu(pduBytes)
+                if (map != null) {
+                    int ttl = map.get(DtnStorage.TTL_MAP)
+                    int protocol = map.get(DtnStorage.PROTOCOL_MAP)
+                    byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
 
                     DatagramNtf ntf = new DatagramNtf()
                     ntf.setProtocol(protocol)
@@ -331,7 +333,7 @@ class DtnLink extends UnetAgent {
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                             byte[] pduData = storage.getPDUData(messageID)
                             byte[] pduBytes = storage.encodePdu(pduData,
-                                                                parsedPdu.get(DtnStorage.TTL_MAP),
+                                                                metadata.expiryTime - currentTimeSeconds(),
                                                                 parsedPdu.get(DtnStorage.PROTOCOL_MAP),
                                                                 parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
                                                                 parsedPdu.get(DtnStorage.SEGMENT_NUM_MAP),

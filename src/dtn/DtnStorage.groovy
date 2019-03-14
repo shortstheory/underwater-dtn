@@ -90,7 +90,7 @@ class DtnStorage {
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         int minMTU = dtnLink.getMinMTU()
-        int segments = (int)Math.ceil((double)data.length/minMTU)
+        int segments = (data == null) ? 1 : (int)Math.ceil((double)data.length/minMTU)
         int payloadId = (segments > 1) ? dtnLink.random.nextInt() & LOWER_16_BITMASK : 0
 
         if (segments > 0xFFFF) {
@@ -98,8 +98,9 @@ class DtnStorage {
             return false
         }
 
-          for (int i = 0; i < segments; i++) {
-            byte[] segmentData = Arrays.copyOfRange(data, i*minMTU, (i+1)*minMTU)
+        for (int i = 0; i < segments; i++) {
+            byte[] segmentData
+            segmentData = (data == null) ? null : Arrays.copyOfRange(data, i*minMTU, (i+1)*minMTU)
             OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadId, i+1, segments)
 
             FileOutputStream fos
@@ -181,7 +182,9 @@ class DtnStorage {
         pdu.write16(payloadId)
         pdu.write16(segmentNumber)
         pdu.write16(totalSegments)
-        pdu.write(data)
+        if (data != null) {
+            pdu.write(data)
+        }
         return pdu
     }
 
@@ -219,25 +222,6 @@ class DtnStorage {
         }
     }
 
-    OutputPDU getPDU(String messageID, boolean adjustTtl) {
-        try {
-            byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
-            if (pduBytes != null) {
-                Tuple pduTuple = decodePdu(pduBytes)
-                int ttl = (adjustTtl) ? getMetadata(messageID).expiryTime - dtnLink.currentTimeSeconds() : (int)pduTuple.get(0)
-                int protocol = (int)pduTuple.get(1)
-                byte[] data = (byte[])pduTuple.get(2)
-                if (ttl > 0) {
-                    return encodePdu(data, ttl, protocol)
-                }
-            }
-            return null
-        } catch(Exception e) {
-            println "Message ID " + messageID + " not found"
-            return null
-        }
-    }
-
     DtnPduMetadata getMetadata(String messageID) {
         return metadataMap.get(messageID)
     }
@@ -247,10 +231,9 @@ class DtnStorage {
     }
 
     int getArrivalTime(String messageID) {
-        OutputPDU pdu = getPDU(messageID, false)
-        if (pdu != null) {
-            Tuple pduInfo = decodePdu(pdu.toByteArray())
-            int ttl = (int)pduInfo.get(0)
+        HashMap<String, Integer> map = getParsedPDU(messageID)
+        if (map != null) {
+            int ttl = map.get(TTL_MAP)
             int expiryTime = getMetadata(messageID).expiryTime
             return expiryTime - ttl
         }
