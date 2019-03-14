@@ -1,44 +1,40 @@
 issues:
-new ArrayList<AgentID>(Arrays.asList(phy,linkX,link))
-* addroute 2,1,dtnlink - > this makes the regenerated DatagramReq go to node 1 when I do router << new DatagramReq(to: 2) ???
-
-addroute 3,2,dtnlink
-
-dtnlink.send(new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, 5))
-
-dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 5, data: [0,1,2,3,4,5,6,7,8,9])
-dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
-
-router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
-router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
-do two modems in same container cause problems?
-UdpLink ignores distance!
-TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
-
-router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
-router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
-
-addroute 3,2,dtnlink
-router << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
-dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
-dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
 
 
-router << new DatagramReq(to: 3, ttl: 5000, protocol: 29, data: {0,1,2,3,4,5,6,7,8,9})
-
-link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
-link << new org.arl.unet.DatagramReq(to: 0)
 
 pending:
+ROUTER tests:
+
+1 -> 2 -> 3 -> 4 (all 1km apart)
+
+for 1:
+1: to 2 via link/2 [reliable, hops: 1, metric: 6.0]
+2: to 3 via link/2 [reliable, hops: 2, metric: 2.5500002]
+3: to 4 via link/2 [reliable, hops: 3, metric: 2.4]
+
+for 2:
+1: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
+2: to 1 via link/1 [reliable, hops: 1, metric: 6.0]
+3: to 4 via link/3 [reliable, hops: 2, metric: 2.5500002]
+4: to 3 via link/3 [reliable, hops: 1, metric: 6.0]
+
+for 3:
+1: to 2 via link/2 [reliable, hops: 1, metric: 3.0]
+2: to 1 via link/2 [reliable, hops: 2, metric: 5.1]
+3: to 4 via link/4 [reliable, hops: 1, metric: 3.0]
+
+for 4:
+1: to 3 via link/3 [reliable, hops: 1, metric: 3.0]
+2: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
+
+later:
+
+done:
 !!* clean code?
 !!* study some 3B1B
 * do docu
 
 * multihop router tests
-
-later:
-
-done:
 **create issue for the bitrate of the link**
 * start midsem report
 * ask how to write tests
@@ -103,6 +99,39 @@ done:
 * fill in methods for Storage
 * telnet doesn't work for me
 * sending beacon at same causes X_X
+
+
+// random commands:
+
+new ArrayList<AgentID>(Arrays.asList(phy,linkX,link))
+* addroute 2,1,dtnlink - > this makes the regenerated DatagramReq go to node 1 when I do router << new DatagramReq(to: 2) ???
+
+addroute 3,2,dtnlink
+
+dtnlink.send(new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, 5))
+
+dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 5, data: [0,1,2,3,4,5,6,7,8,9])
+dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
+
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 5)
+do two modems in same container cause problems?
+UdpLink ignores distance!
+TTL/size in random simulations is the largest size of the TTL/size that can be selected for these values
+
+router << new org.arl.unet.net.RouteDiscoveryNtf(nextHop: 2, to: 3, link: dtnlink, reliability: true)
+router << new org.arl.unet.DatagramReq(to: 3, reliability: true)
+
+addroute 3,2,dtnlink
+router << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+dtnlink << new DatagramReq(to: 3, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+dtnlink << new DatagramReq(to: 2, ttl: 5000, protocol: 23, data: [0,1,2,3,4,5,6,7,8,9])
+
+
+router << new DatagramReq(to: 3, ttl: 5000, protocol: 29, data: {0,1,2,3,4,5,6,7,8,9})
+
+link << new org.arl.unet.DatagramReq(to: 3, reliability: true)
+link << new org.arl.unet.DatagramReq(to: 0)
 
 
     ArrayList<AgentID> getLinks() {

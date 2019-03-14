@@ -25,7 +25,10 @@ import org.arl.unet.UnetAgent
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
+
+SWTransport
 import org.arl.unet.phy.RxFrameNtf
+import org.arl.unet.transport.SWTransport
 import test.DtnTest
 
 //@TypeChecked
