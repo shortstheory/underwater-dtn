@@ -10,4 +10,5 @@ class DtnPduMetadata {
     int attempts
     boolean delivered
     int payloadID
+    int segmentNumber
 }

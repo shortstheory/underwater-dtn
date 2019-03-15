@@ -13,43 +13,73 @@ class DtnStorage {
     private DtnLink dtnLink
     private HashMap<String, DtnPduMetadata> metadataMap
 
+    enum MessageType {
+        DATAGRAM,
+        PAYLOAD_SEGMENT,
+        PAYLOAD_TRANSFERRED
+    }
+
     class PayloadInfo {
         String datagramID
-        HashSet<String> pendingDatagrams
-        HashSet<String> datagramSet
+        int segments
+        HashMap<String, Integer> segmentMap
 
-        PayloadInfo() {
-            pendingDatagrams = new HashSet<>()
-            datagramSet = new HashSet<>()
+        PayloadInfo(int seg) {
+            segmentMap = new HashMap<>()
+            segments = seg
         }
 
-        void insertEntry(String messageID) {
-            pendingDatagrams.add(messageID)
-            datagramSet.add(messageID)
+        void insertEntry(Integer segmentNumber, String messageID) {
+            segmentMap.put(messageID, segmentNumber)
         }
 
         void removePendingEntry(String messageID) {
-            pendingDatagrams.remove(messageID)
+            segmentMap.remove(messageID)
         }
 
-        boolean payloadTransferred() {
-            return pendingDatagrams.isEmpty()
+        boolean outboundPayloadTransferred() {
+            return segmentMap.isEmpty()
+        }
+
+        boolean inboundPayloadTransferred() {
+            return (segmentMap.size() == segments)
+        }
+
+        byte[] reassemblePayloadData() {
+            ArrayList<DtnPduMetadata> segmentMetadata = new ArrayList<>()
+            if (inboundPayloadTransferred()) {
+                for (String id : segmentMap) {
+                    DtnPduMetadata metadata = getMetadata(id)
+                    if (metadata == null) {
+                        return null
+                    } else {
+                        segmentMetadata.add(metadata)
+                    }
+                }
+                Collections.sort(segmentMetadata, new Comparator<DtnPduMetadata>() {
+                    @Override
+                    int compare(DtnPduMetadata a, DtnPduMetadata b) {
+                        return a.segmentNumber - b.segmentNumber
+                    }
+                })
+            }
         }
     }
 
     class PayloadTracker {
         HashMap<Integer, PayloadInfo> payloadMap
+
         PayloadTracker() {
             payloadMap = new HashMap<>()
         }
 
-        void insertPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID) {
+        void insertPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
             if (payloadID != 0) {
                 if (payloadMap.get(payloadID) == null) {
-                    payloadMap.put(payloadID, new PayloadInfo())
+                    payloadMap.put(payloadID, new PayloadInfo(segments))
                     payloadMap.get(payloadID).datagramID = payloadMessageID
                 }
-                payloadMap.get(payloadID).insertEntry(segmentID)
+                payloadMap.get(payloadID).insertEntry(segmentNumber, segmentID)
             }
         }
 
@@ -60,15 +90,15 @@ class DtnStorage {
         }
 
         boolean payloadTransferred(Integer payloadID) {
-            return (payloadID == 0) ? false : payloadMap.get(payloadID).payloadTransferred()
+            return (payloadID == 0) ? false : payloadMap.get(payloadID).outboundPayloadTransferred()
         }
 
         HashSet getPayloadSegments(Integer payloadID) {
-            return (payloadID == 0) ? null : payloadMap.get(payloadID).datagramSet
+            return (payloadID == 0) ? null : payloadMap.get(payloadID).segmentMap
         }
     }
-
-    private PayloadTracker outboundPayloads
+//
+    private PayloadTracker outboundPayloads = new PayloadTracker()
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -98,7 +128,8 @@ class DtnStorage {
 
         metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
-        outboundPayloads = new PayloadTracker<>()
+        // FIXME: this causes a compiler bug!!!
+//        outboundPayloads = new PayloadTracker<>()
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
@@ -179,40 +210,55 @@ class DtnStorage {
                 fos.close()
             }
         } else {
-//            for (int i = 0; i < segments; i++) {
-//                byte[] segmentData = null
-//                int startPtr = i * minMTU
-//                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
-//                segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
-//
-//                FileOutputStream fos
-//                int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
-//
-//                try {
-//                    String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
-//                    OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadID, i + 1, segments)
-//                    File dir = new File(directory)
-//                    if (!dir.exists()) {
-//                        dir.mkdirs()
-//                    }
-//                    File file = new File(dir, messageID)
-//                    fos = new FileOutputStream(file)
-//                    outputPDU.writeTo(fos)
-//                    metadataMap.put(segmentID, new DtnPduMetadata(nextHop: nextHop,
-//                            expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
-//                            attempts: 0,
-//                            delivered: false,
-//                            payloadID: payloadID))
-//                    outboundPayloads.insertPayloadSegment(messageID, payloadID, segmentID)
-//                    return true
-//                } catch (IOException e) {
-//                    println "Could not payload file for " + messageID + " / " + payloadID
-//                    return false
-//                } finally {
-//                    fos.close()
-//                }
-//            }
+            for (int i = 0; i < segments; i++) {
+                byte[] segmentData = null
+                int startPtr = i * minMTU
+                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
+                segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
+
+                FileOutputStream fos
+                int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
+                int segmentNumber = i + 1
+                try {
+                    String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
+                    OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadID, segmentNumber, segments)
+                    File dir = new File(directory)
+                    if (!dir.exists()) {
+                        dir.mkdirs()
+                    }
+                    File file = new File(dir, messageID)
+                    fos = new FileOutputStream(file)
+                    outputPDU.writeTo(fos)
+                    metadataMap.put(segmentID, new DtnPduMetadata(nextHop: nextHop,
+                            expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
+                            attempts: 0,
+                            delivered: false,
+                            payloadID: payloadID))
+                    outboundPayloads.insertPayloadSegment(messageID, payloadID, segmentID, segmentNumber, segments)
+                    return true
+                } catch (IOException e) {
+                    println "Could not payload file for " + messageID + " / " + payloadID
+                    return false
+                } finally {
+                    fos.close()
+                }
+            }
         }
+    }
+
+    MessageType updateMaps(String messageID) {
+        DtnPduMetadata metadata = getMetadata(messageID)
+        if (metadata != null) {
+            metadata.delivered = true
+            outboundPayloads.removePendingSegment(metadata.payloadID, messageID)
+            if (metadata.payloadID) {
+                if (outboundPayloads.payloadTransferred(metadata.payloadID)) {
+                    return MessageType.PAYLOAD_TRANSFERRED
+                }
+                return MessageType.PAYLOAD_SEGMENT
+            }
+        }
+        return MessageType.DATAGRAM
     }
 
     Tuple2 deleteFile(String messageID) {
@@ -254,12 +300,6 @@ class DtnStorage {
             }
         }
         return expiredDatagrams
-    }
-
-    void setDelivered(String messageID) {
-        if (getMetadata(messageID) != null) {
-            getMetadata(messageID).delivered = true
-        }
     }
 
     OutputPDU encodePdu(byte[] data, int ttl, int protocol, int payloadId, int segmentNumber, int totalSegments) {

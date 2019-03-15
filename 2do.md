@@ -220,3 +220,19 @@ Node	Tx  	Rx  	Fail	Suc 	Req 	Stor	Rsnt	Expr	Beac	Coll	BadF	F%  	Tx%		Mean	SD
 \bottomrule\\
 \end{tabular}
 \end{table}
+
+
+MessageType updateMaps(String messageID) {
+    DtnPduMetadata metadata = getMetadata(messageID)
+    if (metadata != null) {
+        metadata.delivered = true
+        outboundPayloads.removePendingSegment(metadata.payloadID, messageID)
+        if (metadata.payloadID) {
+            if (outboundPayloads.payloadTransferred(metadata.payloadID)) {
+                return MessageType.PAYLOAD_TRANSFERRED
+            }
+            return MessageType.PAYLOAD_SEGMENT
+        }
+    }
+    return MessageType.DATAGRAM
+}

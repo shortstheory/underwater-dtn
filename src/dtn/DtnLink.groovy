@@ -50,7 +50,7 @@ class DtnLink extends UnetAgent {
     public DtnStats stats
 
     /**
-     * Manages the storage of pending datagrams
+     * Manages the storage of pending segmentMap
      */
     private DtnStorage storage
     private int nodeAddress
@@ -274,6 +274,10 @@ class DtnLink extends UnetAgent {
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
+                    int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
+                    int segmentNumber = map.get(DtnStorage.SEGMENT_NUM_MAP)
+                    int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
+
                     byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
 
                     DatagramNtf ntf = new DatagramNtf()
@@ -297,10 +301,22 @@ class DtnLink extends UnetAgent {
                 if (deliveryTime >= 0) {
                     stats.delivery_times.add(deliveryTime)
                 }
-                storage.setDelivered(originalMessageID)
-                DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
-                notify.send(deliveryNtf)
-                stats.datagrams_success++
+                switch(storage.updateMaps(originalMessageID)) {
+                    case DtnStorage.MessageType.DATAGRAM:
+                        DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+                        notify.send(deliveryNtf)
+                        stats.datagrams_success++
+                        break
+                    case DtnStorage.MessageType.PAYLOAD_SEGMENT:
+                        // no ntf needed
+                        stats.datagrams_success++
+                        break
+                    case DtnStorage.MessageType.PAYLOAD_TRANSFERRED:
+                        String payloadID = storage.getMetadata(originalMessageID)
+                        DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
+                        notify.send(deliveryNtf)
+                        break
+                }
             }
             linkState = LinkState.READY
             datagramCycle.restart()
