@@ -22,50 +22,40 @@ class DtnStorage {
     class PayloadInfo {
         String datagramID
         int segments
-        HashMap<String, Integer> segmentMap
-        int payloadTTL
+        HashSet<String> segmentSet
 
         PayloadInfo(int seg) {
-            segmentMap = new HashMap<>()
+            segmentSet = new HashSet<>()
             segments = seg
         }
 
         void insertEntry(Integer segmentNumber, String messageID) {
-            segmentMap.put(messageID, segmentNumber)
+            segmentSet.add(messageID)
         }
 
         void removePendingEntry(String messageID) {
-            segmentMap.remove(messageID)
+            segmentSet.remove(messageID)
         }
 
         boolean outboundPayloadTransferred() {
-            return segmentMap.isEmpty()
+            return segmentSet.isEmpty()
         }
 
         boolean inboundPayloadTransferred() {
-            return (segmentMap.size() == segments)
+            return (segmentSet.size() == segments)
         }
 
         byte[] reassemblePayloadData() {
-            ArrayList<DtnPduMetadata> segmentData
-
-            ArrayList<DtnPduMetadata> segmentMetadata = new ArrayList<>()
-            if (inboundPayloadTransferred()) {
-                for (String id : segmentMap) {
-                    DtnPduMetadata metadata = getMetadata(id)
-                    if (metadata == null) {
-                        return null
-                    } else {
-                        segmentMetadata.add(metadata)
-                    }
+            byte[] payloadData = new byte[segments*dtnLink.getMinMTU()]
+            for (String id : segmentSet) {
+                int segmentNumber = getMetadata(id).segmentNumber
+                int base = (segmentNumber-1)*dtnLink.getMinMTU()
+                byte[] segmentData = getPDUData(id)
+                for (int i = 0; i < segmentData.length; i++) {
+                    payloadData[i+base] = segmentData[i]
                 }
-                Collections.sort(segmentMetadata, new Comparator<DtnPduMetadata>() {
-                    @Override
-                    int compare(DtnPduMetadata a, DtnPduMetadata b) {
-                        return a.segmentNumber - b.segmentNumber
-                    }
-                })
             }
+            return payloadData
         }
     }
 
@@ -98,6 +88,7 @@ class DtnStorage {
     }
 //
     private PayloadTracker outboundPayloads = new PayloadTracker()
+    private PayloadTracker inboundPayloads = new PayloadTracker()
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -166,6 +157,31 @@ class DtnStorage {
             }
         }
         return data
+    }
+
+    boolean saveIncomingPayloadSegment(byte[] incomingSegment)
+        String messageID
+        FileOutputStream fos
+        try {
+            File dir = new File(directory)
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            File file = new File(dir, messageID)
+            fos = new FileOutputStream(file)
+            outputPDU.writeTo(fos)
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
+                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
+                    attempts: 0,
+                    delivered: false,
+                    payloadID: 0))
+            return true
+        } catch (IOException e) {
+            println "Could not save file for " + messageID
+            return false
+        } finally {
+            fos.close()
+        }
     }
 
     // Fragment PDUs can't be tracked normally lah!!

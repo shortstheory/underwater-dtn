@@ -50,7 +50,7 @@ class DtnLink extends UnetAgent {
     public DtnStats stats
 
     /**
-     * Manages the storage of pending segmentMap
+     * Manages the storage of pending segmentSet
      */
     private DtnStorage storage
     private int nodeAddress
@@ -278,14 +278,18 @@ class DtnLink extends UnetAgent {
                     int segmentNumber = map.get(DtnStorage.SEGMENT_NUM_MAP)
                     int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
 
-                    byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
+                    if (payloadID) {
+                        storage.saveIncomingPayloadSegment(pduBytes)
+                    } else {
+                        byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
+                        DatagramNtf ntf = new DatagramNtf()
+                        ntf.setProtocol(protocol)
+                        ntf.setData(data)
+                        // FIXME: ntf.setTtl(ttl)
+                        notify.send(ntf)
+                        stats.datagrams_received++
+                    }
 
-                    DatagramNtf ntf = new DatagramNtf()
-                    ntf.setProtocol(protocol)
-                    ntf.setData(data)
-                    // FIXME: ntf.setTtl(ttl)
-                    notify.send(ntf)
-                    stats.datagrams_received++
                 }
             } else {
                 stats.datagrams_received++
