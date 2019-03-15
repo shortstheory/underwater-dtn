@@ -23,6 +23,7 @@ class DtnStorage {
         String datagramID
         int segments
         HashMap<String, Integer> segmentMap
+        int payloadTTL
 
         PayloadInfo(int seg) {
             segmentMap = new HashMap<>()
@@ -46,6 +47,8 @@ class DtnStorage {
         }
 
         byte[] reassemblePayloadData() {
+            ArrayList<DtnPduMetadata> segmentData
+
             ArrayList<DtnPduMetadata> segmentMetadata = new ArrayList<>()
             if (inboundPayloadTransferred()) {
                 for (String id : segmentMap) {
@@ -91,10 +94,6 @@ class DtnStorage {
 
         boolean payloadTransferred(Integer payloadID) {
             return (payloadID == 0) ? false : payloadMap.get(payloadID).outboundPayloadTransferred()
-        }
-
-        HashSet getPayloadSegments(Integer payloadID) {
-            return (payloadID == 0) ? null : payloadMap.get(payloadID).segmentMap
         }
     }
 //
