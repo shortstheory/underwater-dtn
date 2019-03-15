@@ -171,14 +171,15 @@ class DtnStorage {
                 fos.close()
             }
         } else {
+            int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
+
             for (int i = 0; i < segments; i++) {
                 byte[] segmentData = null
                 int startPtr = i * minMTU
-                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
+                int endPtr = (minMTU < (data.length - startPtr)) ? (i + 1) * minMTU : data.length
                 segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
 
                 FileOutputStream fos
-                int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
                 int segmentNumber = i + 1
                 try {
                     String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
@@ -187,7 +188,7 @@ class DtnStorage {
                     if (!dir.exists()) {
                         dir.mkdirs()
                     }
-                    File file = new File(dir, messageID)
+                    File file = new File(dir, segmentID)
                     fos = new FileOutputStream(file)
                     outputPDU.writeTo(fos)
                     metadataMap.put(segmentID, new DtnPduMetadata(nextHop: nextHop,
@@ -196,7 +197,6 @@ class DtnStorage {
                             delivered: false,
                             payloadID: payloadID))
                     outboundPayloads.insertOutboundPayloadSegment(messageID, payloadID, segmentID, segmentNumber, segments)
-                    return true
                 } catch (IOException e) {
                     println "Could not payload file for " + messageID + " / " + payloadID
                     return false
@@ -204,6 +204,8 @@ class DtnStorage {
                     fos.close()
                 }
             }
+            println("done")
+            return true
         }
     }
 

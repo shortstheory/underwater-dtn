@@ -24,7 +24,8 @@ class DtnTest {
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
         TIMEOUT, // i.e., is our link still active? - add link, delay
-        MULTI_LINK
+        MULTI_LINK,
+        FRAGEMENTATION
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -224,6 +225,25 @@ class DtnTest {
         assert(link2.linkPriorityExpectMessage == link2.linkPriorityReceivedMessage)
         assert(link3.linkPriorityExpectMessage == link3.linkPriorityReceivedMessage)
     }
+
+    @Test
+    public void testFragmentation() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.FRAGEMENTATION)
+        TestLink link = new TestLink(DtnTest.Tests.FRAGEMENTATION)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME)
+        println("Done")
+        p.shutdown()
+//        assert(app.successfulDeliveryResult)
+//        assert(link.successfulDeliveryResult)
+    }
+
 
     @After
     public void afterTesting() {

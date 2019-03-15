@@ -1,5 +1,6 @@
 package test
 
+import dtn.DtnPduMetadata
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
@@ -187,6 +188,17 @@ class TestApp extends UnetAgent {
                     }
                 })
                 break
+            case DtnTest.Tests.FRAGEMENTATION:
+                byte[] data = new byte[10000]
+                for (int i = 0; i < 10000; i++) {
+                    data[i] = 65
+                }
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                        ttl: DtnTest.MESSAGE_TTL,
+                        msgID: DtnTest.MESSAGE_ID,
+                        protocol: DtnTest.MESSAGE_PROTOCOL,
+                        data: data)
+                sendDatagram(req)
         }
     }
 
@@ -285,6 +297,8 @@ class TestApp extends UnetAgent {
                 if (msg instanceof  DatagramDeliveryNtf) {
                     multiLinkResult = true
                 }
+                break
+            case DtnTest.Tests.FRAGEMENTATION:
                 break
         }
     }
