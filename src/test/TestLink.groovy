@@ -236,6 +236,21 @@ class TestLink extends UnetAgent {
                     }
                 }
                 break
+            case DtnTest.Tests.FRAGEMENTATION:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: msg.getMessageID()))
+                            }
+                        })
+                    } else {
+                        beaconReceived = true
+                    }
+                }
+                break
         }
         return null
     }

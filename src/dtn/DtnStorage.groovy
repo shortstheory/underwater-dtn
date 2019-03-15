@@ -224,6 +224,10 @@ class DtnStorage {
         return MessageType.DATAGRAM
     }
 
+    String getPayloadDatagramID(int payloadID) {
+        return outboundPayloads.payloadMap.get(payloadID).datagramID
+    }
+
     Tuple2 deleteFile(String messageID) {
         int nextHop
         try {

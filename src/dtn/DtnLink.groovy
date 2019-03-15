@@ -325,7 +325,7 @@ class DtnLink extends UnetAgent {
                         stats.datagrams_success++
                         break
                     case DtnStorage.MessageType.PAYLOAD_TRANSFERRED:
-                        String payloadID = storage.getMetadata(originalMessageID)
+                        String payloadID = storage.getPayloadDatagramID(storage.getMetadata(originalMessageID).payloadID)
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
                         notify.send(deliveryNtf)
                         break
@@ -362,17 +362,18 @@ class DtnLink extends UnetAgent {
                             // we are decoding the PDU twice, not good!
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                             byte[] pduData = storage.getPDUData(messageID)
-                            byte[] pduBytes = storage.encodePdu(pduData,
-                                                                metadata.expiryTime - currentTimeSeconds(),
-                                                                parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                                                                parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
-                                                                parsedPdu.get(DtnStorage.SEGMENT_NUM_MAP),
-                                                                parsedPdu.get(DtnStorage.TOTAL_SEGMENTS_MAP))
-                                                                .toByteArray()
+
                             DatagramReq datagramReq
 
                             // this is for short-circuiting PDUs
-                            if (pduProtocol == Protocol.ROUTING) {
+                            if (pduProtocol == Protocol.ROUTING || metadata.payloadID) {
+                                byte[] pduBytes = storage.encodePdu(pduData,
+                                        metadata.expiryTime - currentTimeSeconds(),
+                                        parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                        parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
+                                        parsedPdu.get(DtnStorage.SEGMENT_NUM_MAP),
+                                        parsedPdu.get(DtnStorage.TOTAL_SEGMENTS_MAP))
+                                        .toByteArray()
                                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                         data: pduBytes,
                                         to: node,
