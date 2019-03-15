@@ -279,7 +279,16 @@ class DtnLink extends UnetAgent {
                     int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
 
                     if (payloadID) {
-                        storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl)
+                        storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
+                        if (storage.getInboundPayloadStatus(payloadID)== DtnPayloadTracker.PayloadInfo.Status.SUCCESS) {
+                            byte[] payloadData = storage.getPayloadData(payloadID)
+                            DatagramNtf ntf = new DatagramNtf()
+                            ntf.setProtocol(protocol)
+                            ntf.setData(payloadData)
+                            // FIXME: ntf.setTtl(ttl)
+                            notify.send(ntf)
+                            stats.datagrams_received++
+                        }
                     } else {
                         byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
                         DatagramNtf ntf = new DatagramNtf()

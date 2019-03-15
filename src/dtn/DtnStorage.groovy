@@ -91,7 +91,7 @@ class DtnStorage {
         return data
     }
 
-    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl) {
+    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl, int segments) {
         String messageID = Integer.toString(payloadID) + Integer.toString(segmentNum)
         FileOutputStream fos
         try {
@@ -112,7 +112,7 @@ class DtnStorage {
                                                             segmentNumber: segmentNum))
 //            void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
 
-                inboundPayloads.insertOutboundPayloadSegment(payloadMessageID, payloadID, )
+            inboundPayloads.insertInboundPayloadSegment(payloadID, messageID, segmentNum, segments)
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -120,6 +120,14 @@ class DtnStorage {
         } finally {
             fos.close()
         }
+    }
+
+    DtnPayloadTracker.PayloadInfo.Status getInboundPayloadStatus(int payloadID) {
+        return inboundPayloads.payloadMap.get(payloadID).status
+    }
+
+    byte[] getPayloadData(int payloadID) {
+        return inboundPayloads.payloadMap.get(payloadID).reassemblePayloadData()
     }
 
     // Fragment PDUs can't be tracked normally lah!!

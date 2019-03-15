@@ -78,7 +78,12 @@ class DtnPayloadTracker {
     }
 
     void insertInboundPayloadSegment(Integer payloadID, String messageID, int segmentNumber, int segments) {
-
+        if (payloadID != 0) {
+            if (payloadMap.get(payloadID) == null) {
+                payloadMap.put(payloadID, new PayloadInfo(segments))
+            }
+            payloadMap.get(payloadID).insertEntry(segmentNumber, messageID)
+        }
     }
 
     void removePendingSegment(Integer payloadID, String segmentID) {
