@@ -53,7 +53,7 @@ class DtnLink extends UnetAgent {
      * Manages the storage of pending segmentSet
      */
     private DtnStorage storage
-    private int nodeAddress
+    public int nodeAddress
     private String directory
 
     private ArrayList<AgentID> linksWithReliability
@@ -279,7 +279,7 @@ class DtnLink extends UnetAgent {
                     int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
 
                     if (payloadID) {
-                        storage.saveIncomingPayloadSegment(pduBytes)
+                        storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl)
                     } else {
                         byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
                         DatagramNtf ntf = new DatagramNtf()

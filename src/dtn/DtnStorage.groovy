@@ -18,77 +18,9 @@ class DtnStorage {
         PAYLOAD_SEGMENT,
         PAYLOAD_TRANSFERRED
     }
-
-    class PayloadInfo {
-        String datagramID
-        int segments
-        HashSet<String> segmentSet
-
-        PayloadInfo(int seg) {
-            segmentSet = new HashSet<>()
-            segments = seg
-        }
-
-        void insertEntry(Integer segmentNumber, String messageID) {
-            segmentSet.add(messageID)
-        }
-
-        void removePendingEntry(String messageID) {
-            segmentSet.remove(messageID)
-        }
-
-        boolean outboundPayloadTransferred() {
-            return segmentSet.isEmpty()
-        }
-
-        boolean inboundPayloadTransferred() {
-            return (segmentSet.size() == segments)
-        }
-
-        byte[] reassemblePayloadData() {
-            byte[] payloadData = new byte[segments*dtnLink.getMinMTU()]
-            for (String id : segmentSet) {
-                int segmentNumber = getMetadata(id).segmentNumber
-                int base = (segmentNumber-1)*dtnLink.getMinMTU()
-                byte[] segmentData = getPDUData(id)
-                for (int i = 0; i < segmentData.length; i++) {
-                    payloadData[i+base] = segmentData[i]
-                }
-            }
-            return payloadData
-        }
-    }
-
-    class PayloadTracker {
-        HashMap<Integer, PayloadInfo> payloadMap
-
-        PayloadTracker() {
-            payloadMap = new HashMap<>()
-        }
-
-        void insertPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
-            if (payloadID != 0) {
-                if (payloadMap.get(payloadID) == null) {
-                    payloadMap.put(payloadID, new PayloadInfo(segments))
-                    payloadMap.get(payloadID).datagramID = payloadMessageID
-                }
-                payloadMap.get(payloadID).insertEntry(segmentNumber, segmentID)
-            }
-        }
-
-        void removePendingSegment(Integer payloadID, String segmentID) {
-            if (payloadID != 0) {
-                payloadMap.get(payloadID).removePendingEntry(segmentID)
-            }
-        }
-
-        boolean payloadTransferred(Integer payloadID) {
-            return (payloadID == 0) ? false : payloadMap.get(payloadID).outboundPayloadTransferred()
-        }
-    }
 //
-    private PayloadTracker outboundPayloads = new PayloadTracker()
-    private PayloadTracker inboundPayloads = new PayloadTracker()
+    private DtnPayloadTracker outboundPayloads = new DtnPayloadTracker()
+    private DtnPayloadTracker inboundPayloads = new DtnPayloadTracker()
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -119,7 +51,7 @@ class DtnStorage {
         metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
         // FIXME: this causes a compiler bug!!!
-//        outboundPayloads = new PayloadTracker<>()
+//        outboundPayloads = new DtnPayloadTracker<>()
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
@@ -159,8 +91,8 @@ class DtnStorage {
         return data
     }
 
-    boolean saveIncomingPayloadSegment(byte[] incomingSegment)
-        String messageID
+    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl) {
+        String messageID = Integer.toString(payloadID) + Integer.toString(segmentNum)
         FileOutputStream fos
         try {
             File dir = new File(directory)
@@ -169,12 +101,18 @@ class DtnStorage {
             }
             File file = new File(dir, messageID)
             fos = new FileOutputStream(file)
-            outputPDU.writeTo(fos)
-            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
-                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                    attempts: 0,
-                    delivered: false,
-                    payloadID: 0))
+            fos.write(incomingSegment)
+            // this is just for holding its metadata and deleting it on TTL,
+            // it could have it's own too I guess
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop: -1,
+                                                            expiryTime: (int)ttl, // this will not include transit time!!
+                                                            attempts: 0,
+                                                            delivered: false,
+                                                            payloadID: payloadID,
+                                                            segmentNumber: segmentNum))
+//            void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
+
+                inboundPayloads.insertOutboundPayloadSegment(payloadMessageID, payloadID, )
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -249,7 +187,7 @@ class DtnStorage {
                             attempts: 0,
                             delivered: false,
                             payloadID: payloadID))
-                    outboundPayloads.insertPayloadSegment(messageID, payloadID, segmentID, segmentNumber, segments)
+                    outboundPayloads.insertOutboundPayloadSegment(messageID, payloadID, segmentID, segmentNumber, segments)
                     return true
                 } catch (IOException e) {
                     println "Could not payload file for " + messageID + " / " + payloadID
