@@ -4,9 +4,7 @@ import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
-import org.arl.unet.PDU
 
-import java.lang.reflect.Array
 import java.nio.file.Files
 
 @CompileStatic
@@ -14,6 +12,63 @@ class DtnStorage {
     private final String directory
     private DtnLink dtnLink
     private HashMap<String, DtnPduMetadata> metadataMap
+
+    class PayloadInfo {
+        String datagramID
+        HashSet<String> pendingDatagrams
+        HashSet<String> datagramSet
+
+        PayloadInfo() {
+            pendingDatagrams = new HashSet<>()
+            datagramSet = new HashSet<>()
+        }
+
+        void insertEntry(String messageID) {
+            pendingDatagrams.add(messageID)
+            datagramSet.add(messageID)
+        }
+
+        void removePendingEntry(String messageID) {
+            pendingDatagrams.remove(messageID)
+        }
+
+        boolean payloadTransferred() {
+            return pendingDatagrams.isEmpty()
+        }
+    }
+
+    class PayloadTracker {
+        HashMap<Integer, PayloadInfo> payloadMap
+        PayloadTracker() {
+            payloadMap = new HashMap<>()
+        }
+
+        void insertPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID) {
+            if (payloadID != 0) {
+                if (payloadMap.get(payloadID) == null) {
+                    payloadMap.put(payloadID, new PayloadInfo())
+                    payloadMap.get(payloadID).datagramID = payloadMessageID
+                }
+                payloadMap.get(payloadID).insertEntry(segmentID)
+            }
+        }
+
+        void removePendingSegment(Integer payloadID, String segmentID) {
+            if (payloadID != 0) {
+                payloadMap.get(payloadID).removePendingEntry(segmentID)
+            }
+        }
+
+        boolean payloadTransferred(Integer payloadID) {
+            return (payloadID == 0) ? false : payloadMap.get(payloadID).payloadTransferred()
+        }
+
+        HashSet getPayloadSegments(Integer payloadID) {
+            return (payloadID == 0) ? null : payloadMap.get(payloadID).datagramSet
+        }
+    }
+
+    private PayloadTracker outboundPayloads
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -43,6 +98,7 @@ class DtnStorage {
 
         metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
+        outboundPayloads = new PayloadTracker<>()
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
@@ -82,6 +138,8 @@ class DtnStorage {
         return data
     }
 
+    // Fragment PDUs can't be tracked normally lah!!
+    // dumb mistake for sure
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
@@ -91,24 +149,15 @@ class DtnStorage {
         byte[] data = req.getData()
         int minMTU = dtnLink.getMinMTU()
         int segments = (data == null) ? 1 : (int)Math.ceil((double)data.length/minMTU)
-        int payloadId = (segments > 1) ? dtnLink.random.nextInt() & LOWER_16_BITMASK : 0
 
         if (segments > 0xFFFF) {
 //          too many segments lah! can't send message!
             return false
         }
 
-        for (int i = 0; i < segments; i++) {
-            byte[] segmentData = null
-            int startPtr = i*minMTU
-            if (data != null) {
-                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
-                segmentData = (data == null) ? null : Arrays.copyOfRange(data, startPtr, endPtr)
-            }
-            OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadId, i+1, segments)
-
+        if (segments == 1) {
+            OutputPDU outputPDU = encodePdu(data, ttl, protocol, 0, 0, 0)
             FileOutputStream fos
-
             try {
                 File dir = new File(directory)
                 if (!dir.exists()) {
@@ -118,9 +167,10 @@ class DtnStorage {
                 fos = new FileOutputStream(file)
                 outputPDU.writeTo(fos)
                 metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
-                        expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
+                        expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
                         attempts: 0,
-                        delivered: false))
+                        delivered: false,
+                        payloadID: 0))
                 return true
             } catch (IOException e) {
                 println "Could not save file for " + messageID
@@ -128,6 +178,40 @@ class DtnStorage {
             } finally {
                 fos.close()
             }
+        } else {
+//            for (int i = 0; i < segments; i++) {
+//                byte[] segmentData = null
+//                int startPtr = i * minMTU
+//                int endPtr = (minMTU < (data.length - startPtr)) ? (i * 1) * minMTU : data.length
+//                segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
+//
+//                FileOutputStream fos
+//                int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
+//
+//                try {
+//                    String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
+//                    OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadID, i + 1, segments)
+//                    File dir = new File(directory)
+//                    if (!dir.exists()) {
+//                        dir.mkdirs()
+//                    }
+//                    File file = new File(dir, messageID)
+//                    fos = new FileOutputStream(file)
+//                    outputPDU.writeTo(fos)
+//                    metadataMap.put(segmentID, new DtnPduMetadata(nextHop: nextHop,
+//                            expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
+//                            attempts: 0,
+//                            delivered: false,
+//                            payloadID: payloadID))
+//                    outboundPayloads.insertPayloadSegment(messageID, payloadID, segmentID)
+//                    return true
+//                } catch (IOException e) {
+//                    println "Could not payload file for " + messageID + " / " + payloadID
+//                    return false
+//                } finally {
+//                    fos.close()
+//                }
+//            }
         }
     }
 

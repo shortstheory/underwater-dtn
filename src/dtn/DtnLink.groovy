@@ -65,6 +65,7 @@ class DtnLink extends UnetAgent {
 
     private DtnLinkInfo utility
     private LinkState linkState
+
     public Random random
 
     // all units are in milliseconds below

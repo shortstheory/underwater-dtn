@@ -9,5 +9,5 @@ class DtnPduMetadata {
     int expiryTime
     int attempts
     boolean delivered
-    boolean inTransit
+    int payloadID
 }
