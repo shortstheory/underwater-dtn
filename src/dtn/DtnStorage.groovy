@@ -19,8 +19,8 @@ class DtnStorage {
         PAYLOAD_TRANSFERRED
     }
 //
-    private DtnPayloadTracker outboundPayloads = new DtnPayloadTracker()
-    private DtnPayloadTracker inboundPayloads = new DtnPayloadTracker()
+    private DtnPayloadTracker outboundPayloads = new DtnPayloadTracker(this)
+    private DtnPayloadTracker inboundPayloads = new DtnPayloadTracker(this)
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU

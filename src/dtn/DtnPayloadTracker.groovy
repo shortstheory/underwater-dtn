@@ -1,6 +1,10 @@
 package dtn
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class DtnPayloadTracker {
+    DtnStorage storage
     class PayloadInfo {
         String datagramID
         int segments
@@ -47,11 +51,12 @@ class DtnPayloadTracker {
         }
 
         byte[] reassemblePayloadData() {
-            byte[] payloadData = new byte[segments*dtnLink.getMinMTU()]
+            int minMtu = 1500
+            byte[] payloadData = new byte[segments*minMtu]
             for (String id : segmentSet) {
-                int segmentNumber = getMetadata(id).segmentNumber
-                int base = (segmentNumber-1)*dtnLink.getMinMTU()
-                byte[] segmentData = getPDUData(id)
+                int segmentNumber = storage.getMetadata(id).segmentNumber
+                int base = (segmentNumber-1)*minMtu
+                byte[] segmentData = storage.getPDUData(id)
                 for (int i = 0; i < segmentData.length; i++) {
                     payloadData[i+base] = segmentData[i]
                 }
@@ -63,8 +68,9 @@ class DtnPayloadTracker {
     // PAYLOAD-ID - and its DATAGRAMS
     HashMap<Integer, PayloadInfo> payloadMap
 
-    DtnPayloadTracker() {
+    DtnPayloadTracker(DtnStorage ds) {
         payloadMap = new HashMap<>()
+        storage = ds
     }
 
     void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
