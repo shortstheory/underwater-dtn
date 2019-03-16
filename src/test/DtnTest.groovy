@@ -6,9 +6,6 @@ import org.arl.unet.Protocol
 import org.junit.*
 import org.arl.fjage.*
 import dtn.*
-import java.util.ArrayList
-
-import java.lang.reflect.Array
 
 @CompileStatic
 class DtnTest {
@@ -25,11 +22,13 @@ class DtnTest {
         RANDOM_PRIORITY, // count if all messages have been sent
         TIMEOUT, // i.e., is our link still active? - add link, delay
         MULTI_LINK,
-        FRAGEMENTATION
+        PAYLOAD_FRAGEMENTATION,
+        PAYLOAD_REASSEMBLY
     }
 
     public static final String MESSAGE_ID = "testmessage"
     public static final String MESSAGE_DATA = "testdata"
+    public static final String storagePath = "testStorage"
     public static final int DEST_ADDRESS = 2
     public static final int MESSAGE_TTL = 3600
     public static final int MESSAGE_PROTOCOL = Protocol.USER
@@ -227,11 +226,11 @@ class DtnTest {
     }
 
     @Test
-    public void testFragmentation() {
+    public void testPayloadFragmentation() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.FRAGEMENTATION)
-        TestLink link = new TestLink(DtnTest.Tests.FRAGEMENTATION)
+        TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_FRAGEMENTATION)
+        TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_FRAGEMENTATION)
         c.add("dtnlink", new DtnLink(path))
         c.add("testapp", app)
         c.add("testlink", link)
@@ -244,6 +243,23 @@ class DtnTest {
 //        assert(link.successfulDeliveryResult)
     }
 
+    @Test
+    public void testPayloadReassembly() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_REASSEMBLY)
+        TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_REASSEMBLY)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME)
+        println("Done")
+        p.shutdown()
+//        assert(app.successfulDeliveryResult)
+//        assert(link.successfulDeliveryResult)
+    }
 
     @After
     public void afterTesting() {

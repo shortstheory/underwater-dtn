@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
 
-import java.lang.reflect.Array
+import java.nio.file.Files
 
 @CompileStatic
 class TestLink extends UnetAgent {
@@ -236,7 +236,7 @@ class TestLink extends UnetAgent {
                     }
                 }
                 break
-            case DtnTest.Tests.FRAGEMENTATION:
+            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
                         add(new WakerBehavior(10 * 1000) {
@@ -251,12 +251,34 @@ class TestLink extends UnetAgent {
                     }
                 }
                 break
+            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
+                File dir = new File(DtnTest.storagePath)
+                for (File file : dir.listFiles()) {
+                    if (file.isFile()) {
+                        byte[] data = readFile(file.getName())
+                        add(new WakerBehavior(30*1000) {
+                            @Override
+                            void onWake() {
+                                DatagramReq req = new DatagramReq(protocol: DtnLink.DTN_PROTOCOL,
+                                                                data: data,
+                                                                to: 1,
+                                                                reliability: true)
+                                dtnlink.send(req)
+                            }
+                        })
+                    }
+                }
+                break
         }
         return null
     }
 
     int getMTU() {
         return 1600
+    }
+
+    public byte[] readFile(String messageID) {
+        byte[] pduBytes = Files.readAllBytes(new File(DtnTest.storagePath, messageID).toPath())
     }
 
     HashMap decodePdu(byte[] pduBytes) {

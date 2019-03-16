@@ -1,6 +1,6 @@
 package test
 
-import dtn.DtnPduMetadata
+
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
@@ -188,7 +188,7 @@ class TestApp extends UnetAgent {
                     }
                 })
                 break
-            case DtnTest.Tests.FRAGEMENTATION:
+            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
                 byte[] data = new byte[10000]
                 for (int i = 0; i < 10000; i++) {
                     data[i] = 65
@@ -298,7 +298,9 @@ class TestApp extends UnetAgent {
                     multiLinkResult = true
                 }
                 break
-            case DtnTest.Tests.FRAGEMENTATION:
+            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
+                break
+            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
                 break
         }
     }
