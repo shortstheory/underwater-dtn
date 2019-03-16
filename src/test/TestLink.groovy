@@ -256,14 +256,13 @@ class TestLink extends UnetAgent {
                 for (File file : dir.listFiles()) {
                     if (file.isFile()) {
                         byte[] data = readFile(file.getName())
+                        println(file.getName())
                         add(new WakerBehavior(30*1000) {
                             @Override
                             void onWake() {
-                                DatagramReq req = new DatagramReq(protocol: DtnLink.DTN_PROTOCOL,
-                                                                data: data,
-                                                                to: 1,
-                                                                reliability: true)
-                                dtnlink.send(req)
+                                DatagramNtf ntf = new DatagramNtf(protocol: DtnLink.DTN_PROTOCOL,
+                                                                data: data)
+                                dtnlink.send(ntf)
                             }
                         })
                     }

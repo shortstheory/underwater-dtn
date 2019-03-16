@@ -112,6 +112,8 @@ class DtnLinkInfo {
     }
 
     void updateLastTransmission(AgentID linkID) {
-        linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
+        if (linkInfo.get(linkID) != null) {
+            linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
+        }
     }
 }

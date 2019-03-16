@@ -264,7 +264,7 @@ class DtnLink extends UnetAgent {
             }
         } else if (msg instanceof DatagramNtf) {
             // we will do this for every message? Can't hurt much
-            AgentID link = utility.getLinkForTopic(msg.getRecipient())
+            AgentID link = (msg.getRecipient().isTopic()) ? utility.getLinkForTopic(msg.getRecipient()) : msg.getRecipient()
             utility.addLinkForNode(msg.getFrom(), link)
             utility.updateLastTransmission(link)
 
@@ -274,6 +274,7 @@ class DtnLink extends UnetAgent {
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
+                    // showing negative for some reason?
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int segmentNumber = map.get(DtnStorage.SEGMENT_NUM_MAP)
                     int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
