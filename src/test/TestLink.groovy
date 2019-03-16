@@ -253,7 +253,8 @@ class TestLink extends UnetAgent {
                 break
             case DtnTest.Tests.PAYLOAD_REASSEMBLY:
                 File dir = new File(DtnTest.storagePath)
-                for (File file : dir.listFiles()) {
+                File[] files = dir.listFiles()
+                for (File file : files) {
                     if (file.isFile()) {
                         byte[] data = readFile(file.getName())
                         println(file.getName())
