@@ -53,6 +53,23 @@ class TestLink extends UnetAgent {
                 dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
             }
         })
+        if (test == DtnTest.Tests.PAYLOAD_REASSEMBLY) {
+            File dir = new File(DtnTest.storagePath)
+            File[] files = dir.listFiles()
+            int i = 0
+            for (File file : files) {
+                byte[] data = readFile(file.getName())
+                println(file.getName() + " " + i++)
+                add(new WakerBehavior(30*1000) {
+                    @Override
+                    void onWake() {
+                        DatagramNtf ntf = new DatagramNtf(protocol: DtnLink.DTN_PROTOCOL,
+                                data: data)
+                        dtnlink.send(ntf)
+                    }
+                })
+            }
+        }
     }
 
     Message processRequest(Message msg) {
@@ -252,22 +269,6 @@ class TestLink extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.PAYLOAD_REASSEMBLY:
-                File dir = new File(DtnTest.storagePath)
-                File[] files = dir.listFiles()
-                for (File file : files) {
-                    if (file.isFile()) {
-                        byte[] data = readFile(file.getName())
-                        println(file.getName())
-                        add(new WakerBehavior(30*1000) {
-                            @Override
-                            void onWake() {
-                                DatagramNtf ntf = new DatagramNtf(protocol: DtnLink.DTN_PROTOCOL,
-                                                                data: data)
-                                dtnlink.send(ntf)
-                            }
-                        })
-                    }
-                }
                 break
         }
         return null

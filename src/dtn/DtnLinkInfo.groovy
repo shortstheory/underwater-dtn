@@ -76,9 +76,11 @@ class DtnLinkInfo {
         if (links != null) {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
-                int currentTime = dtnLink.currentTimeSeconds()
-                if (metadata.lastTransmission + dtnLink.LINK_EXPIRY_TIME > currentTime) {
-                    liveLinks.add(link)
+                if (metadata != null) {
+                    int currentTime = dtnLink.currentTimeSeconds()
+                    if (metadata.lastTransmission + dtnLink.LINK_EXPIRY_TIME > currentTime) {
+                        liveLinks.add(link)
+                    }
                 }
             }
         }

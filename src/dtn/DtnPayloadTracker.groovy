@@ -83,6 +83,7 @@ class DtnPayloadTracker {
                 payloadMap.put(payloadID, new PayloadInfo(segments))
             }
             payloadMap.get(payloadID).insertEntry(segmentNumber, messageID)
+            payloadMap.get(payloadID).inboundPayloadTransferred()
         }
     }
 

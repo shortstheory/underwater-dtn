@@ -152,13 +152,15 @@ class DtnLink extends UnetAgent {
             @Override
             void action() {
                 for (Integer node : utility.getDestinationNodes()) {
-                    AgentID nodeLink = utility.getBestLink(node)
-                    if (nodeLink != null) {
-                        // FIXME: later choose links based on bitrate
-                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                        String messageID = selectNextDatagram(datagrams)
-                        if (messageID != null) {
-                            sendDatagram(messageID, node, nodeLink)
+                    if (node) {
+                        AgentID nodeLink = utility.getBestLink(node)
+                        if (nodeLink != null) {
+                            // FIXME: later choose links based on bitrate
+                            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+                            String messageID = selectNextDatagram(datagrams)
+                            if (messageID != null) {
+                                sendDatagram(messageID, node, nodeLink)
+                            }
                         }
                     }
                 }
