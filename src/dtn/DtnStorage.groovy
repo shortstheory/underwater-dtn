@@ -287,7 +287,14 @@ class DtnStorage {
                 deleteFile(messageID)
                 it.remove()
             } else if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                expiredDatagrams.add(deleteFile(messageID))
+                // both inbound and outbound maps get affected by deleted segments
+                if (metadata.getMessageType() == dtn.MessageType.PAYLOAD_SEGMENT) {
+                    // FIXME: think about it here
+//                    expiredDatagrams.add(new Tuple2(metadata.payloadID)
+                } else {
+                    expiredDatagrams.add(deleteFile(messageID))
+                }
+                deleteFile(messageID)
                 it.remove()
             }
         }
@@ -348,6 +355,14 @@ class DtnStorage {
 
     void removeFailedEntry(String newMessageID) {
         datagramMap.remove(newMessageID)
+    }
+
+    void removePayload(int payloadID, PayloadType type) {
+        if (type == PayloadType.INBOUND) {
+            inboundPayloads.removePayload(payloadID)
+        } else {
+            outboundPayloads.removePayload(payloadID)
+        }
     }
 
     int getArrivalTime(String messageID) {

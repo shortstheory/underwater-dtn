@@ -49,4 +49,7 @@ abstract class DtnPayloadTracker {
 
     abstract boolean payloadTransferred(int payloadID)
     abstract PayloadInfo.Status getStatus(int payloadID)
+    void removePayload(Integer payloadID) {
+        payloadMap.remove(payloadID)
+    }
 }

@@ -1,5 +1,6 @@
 package dtn
 
+import com.sun.corba.se.pept.transport.InboundConnectionCache
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
@@ -116,6 +117,7 @@ class DtnLink extends UnetAgent {
         register(Services.LINK)
         register(Services.DATAGRAM)
         addCapability(DatagramCapability.RELIABILITY)
+        addCapability(DatagramCapability.FRAGMENTATION)
     }
 
     @Override
@@ -327,9 +329,11 @@ class DtnLink extends UnetAgent {
                         stats.datagrams_success++
                         break
                     case DtnStorage.MessageType.PAYLOAD_TRANSFERRED:
-                        String payloadID = storage.getPayloadDatagramID(storage.getMetadata(originalMessageID).payloadID)
+                        DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
+                        String payloadID = storage.getPayloadDatagramID(metadata.payloadID)
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
                         notify.send(deliveryNtf)
+                        storage.removePayload(metadata.payloadID, DtnStorage.PayloadType.INBOUND)
                         break
                 }
             }

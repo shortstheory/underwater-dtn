@@ -3,30 +3,14 @@ issues:
 
 
 pending:
-ROUTER tests:
-
-1 -> 2 -> 3 -> 4 (all 1km apart)
-
-for 1:
-1: to 2 via link/2 [reliable, hops: 1, metric: 6.0]
-2: to 3 via link/2 [reliable, hops: 2, metric: 2.5500002]
-3: to 4 via link/2 [reliable, hops: 3, metric: 2.4]
-
-for 2:
-1: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
-2: to 1 via link/1 [reliable, hops: 1, metric: 6.0]
-3: to 4 via link/3 [reliable, hops: 2, metric: 2.5500002]
-4: to 3 via link/3 [reliable, hops: 1, metric: 6.0]
-
-for 3:
-1: to 2 via link/2 [reliable, hops: 1, metric: 3.0]
-2: to 1 via link/2 [reliable, hops: 2, metric: 5.1]
-3: to 4 via link/4 [reliable, hops: 1, metric: 3.0]
-
-for 4:
-1: to 3 via link/3 [reliable, hops: 1, metric: 3.0]
-2: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
-
+* fragmentation
+    * what works
+        * splitting  & reassembly
+    * what doesn't
+        * deletion of expired payloads
+        * probably a lot of other things too, but they need to be worked out
+    * write tests
+    * refactor and redo v. v. messy deletion logic!!
 later:
 
 done:
@@ -236,3 +220,27 @@ MessageType updateMaps(String messageID) {
     }
     return MessageType.DATAGRAM
 }
+ROUTER tests:
+
+1 -> 2 -> 3 -> 4 (all 1km apart)
+
+for 1:
+1: to 2 via link/2 [reliable, hops: 1, metric: 6.0]
+2: to 3 via link/2 [reliable, hops: 2, metric: 2.5500002]
+3: to 4 via link/2 [reliable, hops: 3, metric: 2.4]
+
+for 2:
+1: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
+2: to 1 via link/1 [reliable, hops: 1, metric: 6.0]
+3: to 4 via link/3 [reliable, hops: 2, metric: 2.5500002]
+4: to 3 via link/3 [reliable, hops: 1, metric: 6.0]
+
+for 3:
+1: to 2 via link/2 [reliable, hops: 1, metric: 3.0]
+2: to 1 via link/2 [reliable, hops: 2, metric: 5.1]
+3: to 4 via link/4 [reliable, hops: 1, metric: 3.0]
+
+for 4:
+1: to 3 via link/3 [reliable, hops: 1, metric: 3.0]
+2: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
+
