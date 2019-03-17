@@ -288,6 +288,7 @@ class DtnLink extends UnetAgent {
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)
                             ntf.setData(payloadData)
+                            // FIXME: delete the paylaods here without DDNs/DFNs
                             // FIXME: ntf.setTtl(ttl)
                             notify.send(ntf)
                             stats.datagrams_received++

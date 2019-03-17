@@ -199,6 +199,8 @@ class TestApp extends UnetAgent {
                         protocol: DtnTest.MESSAGE_PROTOCOL,
                         data: data)
                 sendDatagram(req)
+            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
+                break
         }
     }
 
@@ -301,6 +303,10 @@ class TestApp extends UnetAgent {
             case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
                 break
             case DtnTest.Tests.PAYLOAD_REASSEMBLY:
+                if (msg instanceof DatagramNtf) {
+                    DatagramNtf res = msg
+                    println "Got a big Dntf"
+                }
                 break
         }
     }

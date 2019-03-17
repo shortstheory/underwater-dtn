@@ -126,6 +126,10 @@ class DtnStorage {
         return inboundPayloads.payloadMap.get(payloadID).status
     }
 
+    void deletePayloadData(int payloadID) {
+
+    }
+
     byte[] getPayloadData(int payloadID) {
         return inboundPayloads.payloadMap.get(payloadID).reassemblePayloadData()
     }
