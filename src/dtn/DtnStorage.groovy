@@ -243,6 +243,7 @@ class DtnStorage {
         }
     }
 
+    // FIXME: this method is a bit weird but it still works
     Tuple2 deleteFile(String messageID) {
         int nextHop
         try {
@@ -258,6 +259,7 @@ class DtnStorage {
                     break
                 }
             }
+            // doesn't apply for payload datagrams
             datagramMap.remove(key)
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + metadataMap.size()
