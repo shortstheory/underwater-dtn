@@ -111,12 +111,7 @@ class TestApp extends UnetAgent {
                             msgID: Integer.toString(DtnTest.PRIORITY_MESSAGES - 1 - i),
                             protocol: DtnTest.MESSAGE_PROTOCOL,
                             data: b)
-                    add(new WakerBehavior(i*1000) {
-                        @Override
-                        void onWake() {
-                            sendDatagram(req)
-                        }
-                    })
+                    sendDatagram(req)
                 }
                 break
             case DtnTest.Tests.RANDOM_PRIORITY:
