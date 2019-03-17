@@ -3,13 +3,9 @@ package dtn
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class DtnOutboundPayloadTracker implements DtnPayloadTrackerInterface {
-    HashMap<Integer, PayloadInfo> payloadMap
-    DtnStorage storage
-
+class DtnOutboundPayloadTracker extends DtnPayloadTracker {
     DtnOutboundPayloadTracker(DtnStorage ds) {
-        payloadMap = new HashMap<>()
-        storage = ds
+        super(ds)
     }
 
     @Override

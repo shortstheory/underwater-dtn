@@ -1,7 +1,6 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
 import org.arl.fjage.Message
@@ -26,10 +25,6 @@ import org.arl.unet.phy.BadFrameNtf
 import org.arl.unet.phy.CollisionNtf
 
 import org.arl.unet.phy.RxFrameNtf
-import org.arl.unet.transport.SWTransport
-import test.DtnTest
-
-import java.lang.reflect.Array
 
 //@TypeChecked
 @CompileStatic
@@ -284,7 +279,7 @@ class DtnLink extends UnetAgent {
 
                     if (payloadID) {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
-                        if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.INBOUND) ==  DtnPayloadTrackerInterface.PayloadInfo.Status.SUCCESS) {
+                        if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)

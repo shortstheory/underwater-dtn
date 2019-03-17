@@ -131,7 +131,7 @@ class DtnStorage {
 
     }
 
-    DtnPayloadTrackerInterface.PayloadInfo.Status getPayloadStatus(int payloadID, PayloadType type) {
+    PayloadInfo.Status getPayloadStatus(int payloadID, PayloadType type) {
         if (type == PayloadType.INBOUND) {
             return inboundPayloads.getStatus(payloadID)
         } else {
