@@ -1,5 +1,8 @@
 package dtn
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class DtnOutboundPayloadTracker implements DtnPayloadTrackerInterface {
     DtnOutboundPayloadTracker(DtnStorage ds) {
         payloadMap = new HashMap<>()
@@ -19,12 +22,18 @@ class DtnOutboundPayloadTracker implements DtnPayloadTrackerInterface {
 
     @Override
     boolean payloadTransferred(int payloadID) {
-        return (payloadID == 0) ? false : payloadMap.get(payloadID).outboundPayloadTransferred()
+        PayloadInfo payload = payloadMap.get(payloadID)
+        if (payload.segmentSet.isEmpty()) {
+            payload.status = PayloadInfo.Status.SUCCESS
+            return true
+        }
+        payload.status = PayloadInfo.Status.PENDING
+        return false
     }
 
     void removeSegment(Integer payloadID, String segmentID) {
         if (payloadID != 0) {
-            payloadMap.get(payloadID).removePendingEntry(segmentID)
+            payloadMap.get(payloadID).removeEntry(segmentID)
         }
     }
 }

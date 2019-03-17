@@ -1,5 +1,8 @@
 package dtn
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 interface DtnPayloadTrackerInterface {
     DtnStorage storage
     class PayloadInfo {
@@ -23,42 +26,8 @@ interface DtnPayloadTrackerInterface {
             segmentSet.add(messageID)
         }
 
-        void removePendingEntry(String messageID) {
+        void removeEntry(String messageID) {
             segmentSet.remove(messageID)
-        }
-
-        boolean outboundPayloadTransferred() {
-            if (segmentSet.isEmpty()) {
-                status = Status.SUCCESS
-                return true
-            } else {
-                status = Status.PENDING
-                return false
-            }
-        }
-
-        boolean inboundPayloadTransferred() {
-            if (segmentSet.size() == segments) {
-                status = Status.SUCCESS
-                return true
-            } else {
-                status = Status.PENDING
-                return false
-            }
-        }
-
-        byte[] reassemblePayloadData() {
-            int minMtu = 1500
-            byte[] payloadData = new byte[segments*minMtu]
-            for (String id : segmentSet) {
-                int segmentNumber = storage.getMetadata(id).segmentNumber
-                int base = (segmentNumber-1)*minMtu
-                byte[] segmentData = storage.getPDUData(id)
-                for (int i = 0; i < segmentData.length; i++) {
-                    payloadData[i+base] = segmentData[i]
-                }
-            }
-            return payloadData
         }
     }
 
