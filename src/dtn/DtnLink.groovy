@@ -428,14 +428,6 @@ class DtnLink extends UnetAgent {
         return minMTU - HEADER_SIZE
     }
 
-    int getMinMTU() {
-        int minMTU = Integer.MAX_VALUE
-        for (DtnLinkInfo.LinkMetadata metadata : utility.getLinkInfo().values()) {
-            minMTU = Math.min(metadata.linkMTU, minMTU)
-        }
-        return minMTU - HEADER_SIZE
-    }
-
     void setBEACON_PERIOD(int period) {
         BEACON_PERIOD = period
         beaconBehavior.stop()

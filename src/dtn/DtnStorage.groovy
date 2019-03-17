@@ -24,8 +24,8 @@ class DtnStorage {
         OUTBOUND
     }
 //
-    private DtnOutboundPayloadTracker outboundPayloads = new DtnOutboundPayloadTracker(this)
-    private DtnInboundPayloadTracker inboundPayloads = new DtnInboundPayloadTracker(this)
+    private DtnOutboundPayloadTracker outboundPayloads
+    private DtnInboundPayloadTracker inboundPayloads
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -56,6 +56,8 @@ class DtnStorage {
 
         metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
+        outboundPayloads = new DtnOutboundPayloadTracker(this)
+        inboundPayloads = new DtnInboundPayloadTracker(this)
         // FIXME: this causes a compiler bug!!!
 //        outboundPayloads = new DtnPayloadTracker<>()
     }
@@ -118,7 +120,8 @@ class DtnStorage {
                                                             segmentNumber: segmentNum))
 //            void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
 
-            inboundPayloads.insertSegment(null, payloadID, messageID, segmentNum, segments)
+            inboundPayloads.insertSegment(payloadID, messageID, segmentNum, segments)
+            inboundPayloads.setPayloadMTU(payloadID, dtnLink.getMTU())
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -149,7 +152,7 @@ class DtnStorage {
         int ttl = (Math.round(req.getTtl()) & LOWER_24_BITMASK)
         String messageID = req.getMessageID()
         byte[] data = req.getData()
-        int minMTU = dtnLink.getMinMTU()
+        int minMTU = dtnLink.getMTU()
         int segments = (data == null) ? 1 : (int)Math.ceil((double)data.length/minMTU)
 
         if (segments > 0xFFFF) {

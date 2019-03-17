@@ -6,6 +6,7 @@ class PayloadInfo {
     String datagramID
     int segments
     HashSet<String> segmentSet
+    int MTU
 
     enum Status {
         PENDING, SUCCESS, FAILURE
@@ -17,6 +18,10 @@ class PayloadInfo {
         segmentSet = new HashSet<>()
         segments = seg
         status = Status.PENDING
+    }
+
+    void setMTU(int mtu) {
+        MTU = mtu
     }
 
     void insertEntry(Integer segmentNumber, String messageID) {
@@ -42,7 +47,6 @@ abstract class DtnPayloadTracker {
         storage = ds
     }
 
-    abstract void insertSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments)
     abstract boolean payloadTransferred(int payloadID)
     abstract PayloadInfo.Status getStatus(int payloadID)
 }
