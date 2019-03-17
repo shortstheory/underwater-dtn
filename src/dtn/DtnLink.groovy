@@ -281,6 +281,8 @@ class DtnLink extends UnetAgent {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
                         if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
+                            // by marking it as delivered, it will get deleted on the next sweep!
+                            storage.payloadReceived(payloadID)
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)
                             ntf.setData(payloadData)

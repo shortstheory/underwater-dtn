@@ -4,9 +4,6 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class DtnInboundPayloadTracker extends DtnPayloadTracker {
-    HashMap<Integer, PayloadInfo> payloadMap
-    DtnStorage storage
-
     DtnInboundPayloadTracker(DtnStorage ds) {
         super(ds)
     }
@@ -32,7 +29,6 @@ class DtnInboundPayloadTracker extends DtnPayloadTracker {
         payload.status = PayloadInfo.Status.PENDING
         return false
     }
-
 
     @Override
     PayloadInfo.Status getStatus(int payloadID) {

@@ -97,7 +97,7 @@ class DtnStorage {
     }
 
     boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl, int segments) {
-        String messageID = Integer.toString(payloadID) + Integer.toString(segmentNum)
+        String messageID = Integer.toString(payloadID) + "_" + Integer.toString(segmentNum)
         FileOutputStream fos
         try {
             File dir = new File(directory)
@@ -125,10 +125,6 @@ class DtnStorage {
         } finally {
             fos.close()
         }
-    }
-
-    void deletePayloadData(int payloadID) {
-
     }
 
     PayloadInfo.Status getPayloadStatus(int payloadID, PayloadType type) {
@@ -241,6 +237,12 @@ class DtnStorage {
         return outboundPayloads.payloadMap.get(payloadID).datagramID
     }
 
+    void payloadReceived(int payloadID) {
+        for (String id : inboundPayloads.payloadMap.get(payloadID).segmentSet) {
+            metadataMap.get(id).delivered = true
+        }
+    }
+
     Tuple2 deleteFile(String messageID) {
         int nextHop
         try {
@@ -304,7 +306,7 @@ class DtnStorage {
         HashMap<String, Integer> map = new HashMap<>()
         map.put(TTL_MAP, (int)pdu.read24())
         map.put(PROTOCOL_MAP, (int)pdu.read8())
-        map.put(PAYLOAD_ID_MAP, (int)pdu.read16())
+        map.put(PAYLOAD_ID_MAP, (int)pdu.read16() & 0x0000FFFF)
         map.put(SEGMENT_NUM_MAP, (int)pdu.read16())
         map.put(TOTAL_SEGMENTS_MAP, (int)pdu.read16())
         return map
