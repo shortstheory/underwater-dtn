@@ -5,7 +5,6 @@ import org.jline.utils.Status
 
 @CompileStatic
 interface DtnPayloadTrackerInterface {
-    DtnStorage storage
     class PayloadInfo {
         String datagramID
         int segments
@@ -35,8 +34,6 @@ interface DtnPayloadTrackerInterface {
             return status
         }
     }
-
-    HashMap<Integer, PayloadInfo> payloadMap
     void insertSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments)
     boolean payloadTransferred(int payloadID)
     DtnPayloadTrackerInterface.PayloadInfo.Status getStatus(int payloadID)

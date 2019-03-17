@@ -4,6 +4,9 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class DtnOutboundPayloadTracker implements DtnPayloadTrackerInterface {
+    HashMap<Integer, PayloadInfo> payloadMap
+    DtnStorage storage
+
     DtnOutboundPayloadTracker(DtnStorage ds) {
         payloadMap = new HashMap<>()
         storage = ds

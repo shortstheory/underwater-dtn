@@ -271,7 +271,7 @@ class DtnStorage {
             Map.Entry entry = (Map.Entry)it.next()
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
-            if (metadata.delivered) {
+            if (metadata.delivered) { // put the deletion logic here!
                 deleteFile(messageID)
                 it.remove()
             } else if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
