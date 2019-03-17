@@ -2,7 +2,6 @@ package dtn
 
 import groovy.transform.CompileStatic
 
-
 class PayloadInfo {
     String datagramID
     int segments
