@@ -103,8 +103,8 @@ class DtnLinkInfo {
         return null
     }
 
-    AgentID getLinkForTopic(AgentID topic) {
-        AgentID link = topic.getOwner().getAgentID()
+    AgentID getLink(AgentID l) {
+        AgentID link = (l.isTopic()) ? l.getOwner().getAgentID() : l
         for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
             if (entry.getKey().getName() == link.getName()) {
                 return entry.getKey()

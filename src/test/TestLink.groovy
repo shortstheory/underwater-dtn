@@ -47,7 +47,7 @@ class TestLink extends UnetAgent {
 
     void startup() {
         dtnlink = agent("dtnlink")
-        add(new WakerBehavior(300*1000) {
+        add(new WakerBehavior(30*1000) {
             @Override
             void onWake() {
                 dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))

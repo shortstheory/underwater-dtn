@@ -266,7 +266,8 @@ class DtnLink extends UnetAgent {
             }
         } else if (msg instanceof DatagramNtf) {
             // we will do this for every message? Can't hurt much
-            AgentID link = (msg.getRecipient().isTopic()) ? utility.getLinkForTopic(msg.getRecipient()) : msg.getRecipient()
+            AgentID link = utility.getLink(msg.getSender())
+//            AgentID link = utility.getLinkForTopic(msg.getRecipient())
             utility.addLinkForNode(msg.getFrom(), link)
             utility.updateLastTransmission(link)
 
