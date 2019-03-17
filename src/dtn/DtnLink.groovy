@@ -312,7 +312,7 @@ class DtnLink extends UnetAgent {
             String originalMessageID = storage.getOriginalMessageID(messageID)
             // it can happen that the DDN comes just after a TTL
             if (originalMessageID != null) {
-                int deliveryTime = storage.getTimeSinceArrival(originalMessageID)
+                int deliveryTime = currentTimeSeconds() - storage.getArrivalTime(originalMessageID)
                 if (deliveryTime >= 0) {
                     stats.delivery_times.add(deliveryTime)
                 }

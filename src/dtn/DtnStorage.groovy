@@ -34,6 +34,7 @@ class DtnStorage {
      * Pair of the new MessageID and old MessageID
      */
     private HashMap<String, String> datagramMap
+
     private static final int LOWER_16_BITMASK = (int)0x0000FFFF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
     private static final int UPPER_16_BITMASK = (int)0xFFFF0000
@@ -183,13 +184,13 @@ class DtnStorage {
             int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
 
             for (int i = 0; i < segments; i++) {
-                byte[] segmentData = null
+                byte[] segmentData
+                int segmentNumber = i + 1
                 int startPtr = i * minMTU
-                int endPtr = (minMTU < (data.length - startPtr)) ? (i + 1) * minMTU : data.length
+                int endPtr = (minMTU < (data.length - startPtr)) ? (segmentNumber) * minMTU : data.length
                 segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
 
                 FileOutputStream fos
-                int segmentNumber = i + 1
                 try {
                     String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
                     OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadID, segmentNumber, segments)
@@ -249,22 +250,26 @@ class DtnStorage {
         try {
             File file = new File(directory, messageID)
             file.delete()
-            nextHop = getMetadata(messageID).nextHop
-            String key
+            DtnPduMetadata metadata = getMetadata(messageID)
+            if (metadata.getMessageType() == dtn.MessageType.DATAGRAM) {
+                nextHop = getMetadata(messageID).nextHop
+                String key
 
-            // Can be done in O(1) with bi-map? But not a big deal
-            for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
-                if (entry.getValue() == messageID) {
-                    key = entry.getKey()
-                    break
+                // Can be done in O(1) with bi-map? But not a big deal
+                for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
+                    if (entry.getValue() == messageID) {
+                        key = entry.getKey()
+                        break
+                    }
                 }
+                // doesn't apply for payload datagrams
+                datagramMap.remove(key)
+                return new Tuple2(messageID, nextHop)
             }
-            // doesn't apply for payload datagrams
-            datagramMap.remove(key)
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + metadataMap.size()
         }
-        return new Tuple2(messageID, nextHop)
+        return null
     }
 
     ArrayList<Tuple2> deleteExpiredDatagrams() {
@@ -350,10 +355,5 @@ class DtnStorage {
             return expiryTime - ttl
         }
         return -1
-    }
-
-    int getTimeSinceArrival(String messageID) {
-        int arrivalTime
-        return ((arrivalTime = getArrivalTime(messageID)) > 0) ? dtnLink.currentTimeSeconds() - arrivalTime : -1
     }
 }

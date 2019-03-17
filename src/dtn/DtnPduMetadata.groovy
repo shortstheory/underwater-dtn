@@ -11,4 +11,13 @@ class DtnPduMetadata {
     boolean delivered
     int payloadID
     int segmentNumber
+
+    MessageType getMessageType() {
+        return (payloadID) ? MessageType.PAYLOAD_SEGMENT : MessageType.DATAGRAM
+    }
+}
+
+enum MessageType {
+    PAYLOAD_SEGMENT,
+    DATAGRAM
 }
