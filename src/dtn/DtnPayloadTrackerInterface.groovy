@@ -1,6 +1,7 @@
 package dtn
 
 import groovy.transform.CompileStatic
+import org.jline.utils.Status
 
 @CompileStatic
 interface DtnPayloadTrackerInterface {
@@ -29,9 +30,14 @@ interface DtnPayloadTrackerInterface {
         void removeEntry(String messageID) {
             segmentSet.remove(messageID)
         }
+
+        Status getStatus() {
+            return status
+        }
     }
 
     HashMap<Integer, PayloadInfo> payloadMap
     void insertSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments)
     boolean payloadTransferred(int payloadID)
+    DtnPayloadTrackerInterface.PayloadInfo.Status getStatus(int payloadID)
 }

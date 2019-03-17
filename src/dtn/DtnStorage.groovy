@@ -18,9 +18,14 @@ class DtnStorage {
         PAYLOAD_SEGMENT,
         PAYLOAD_TRANSFERRED
     }
+
+    enum PayloadType {
+        INBOUND,
+        OUTBOUND
+    }
 //
-    private DtnPayloadTracker outboundPayloads = new DtnPayloadTracker(this)
-    private DtnPayloadTracker inboundPayloads = new DtnPayloadTracker(this)
+    private DtnOutboundPayloadTracker outboundPayloads = new DtnOutboundPayloadTracker(this)
+    private DtnInboundPayloadTracker inboundPayloads = new DtnInboundPayloadTracker(this)
     // PDU Structure
     // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // no payload ID for messages which fit in the MTU
@@ -112,7 +117,7 @@ class DtnStorage {
                                                             segmentNumber: segmentNum))
 //            void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
 
-            inboundPayloads.insertInboundPayloadSegment(payloadID, messageID, segmentNum, segments)
+            inboundPayloads.insertSegment(null, payloadID, messageID, segmentNum, segments)
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -122,16 +127,20 @@ class DtnStorage {
         }
     }
 
-    DtnPayloadTracker.PayloadInfo.Status getInboundPayloadStatus(int payloadID) {
-        return inboundPayloads.payloadMap.get(payloadID).status
-    }
-
     void deletePayloadData(int payloadID) {
 
     }
 
+    DtnPayloadTrackerInterface.PayloadInfo.Status getPayloadStatus(int payloadID, PayloadType type) {
+        if (type == PayloadType.INBOUND) {
+            return inboundPayloads.getStatus(payloadID)
+        } else {
+            return outboundPayloads.getStatus(payloadID)
+        }
+    }
+
     byte[] getPayloadData(int payloadID) {
-        return inboundPayloads.payloadMap.get(payloadID).reassemblePayloadData()
+        return inboundPayloads.reassemblePayloadData(payloadID)
     }
 
     // Fragment PDUs can't be tracked normally lah!!
@@ -200,7 +209,7 @@ class DtnStorage {
                             attempts: 0,
                             delivered: false,
                             payloadID: payloadID))
-                    outboundPayloads.insertOutboundPayloadSegment(messageID, payloadID, segmentID, segmentNumber, segments)
+                    outboundPayloads.insertSegment(messageID, payloadID, segmentID, segmentNumber, segments)
                 } catch (IOException e) {
                     println "Could not payload file for " + messageID + " / " + payloadID
                     return false
@@ -217,7 +226,7 @@ class DtnStorage {
         DtnPduMetadata metadata = getMetadata(messageID)
         if (metadata != null) {
             metadata.delivered = true
-            outboundPayloads.removePendingSegment(metadata.payloadID, messageID)
+            outboundPayloads.removeSegment(metadata.payloadID, messageID)
             if (metadata.payloadID) {
                 if (outboundPayloads.payloadTransferred(metadata.payloadID)) {
                     return MessageType.PAYLOAD_TRANSFERRED

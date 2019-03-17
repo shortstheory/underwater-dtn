@@ -32,6 +32,11 @@ class DtnInboundPayloadTracker implements DtnPayloadTrackerInterface {
     }
 
 
+    @Override
+    PayloadInfo.Status getStatus(int payloadID) {
+        return payloadMap.get(payloadID).getStatus()
+    }
+
     byte[] reassemblePayloadData(int payloadID) {
         int minMtu = 1500
         PayloadInfo payload = payloadMap.get(payloadID)

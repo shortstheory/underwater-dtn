@@ -283,7 +283,7 @@ class DtnLink extends UnetAgent {
 
                     if (payloadID) {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
-                        if (storage.getInboundPayloadStatus(payloadID)== DtnPayloadTracker.PayloadInfo.Status.SUCCESS) {
+                        if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.OUTBOUND) ==  DtnPayloadTrackerInterface.PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)

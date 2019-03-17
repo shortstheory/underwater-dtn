@@ -31,6 +31,11 @@ class DtnOutboundPayloadTracker implements DtnPayloadTrackerInterface {
         return false
     }
 
+    @Override
+    PayloadInfo.Status getStatus(int payloadID) {
+        return payloadMap.get(payloadID).getStatus()
+    }
+
     void removeSegment(Integer payloadID, String segmentID) {
         if (payloadID != 0) {
             payloadMap.get(payloadID).removeEntry(segmentID)
