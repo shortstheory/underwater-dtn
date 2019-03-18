@@ -49,7 +49,13 @@ abstract class DtnPayloadTracker {
 
     abstract boolean payloadTransferred(int payloadID)
     abstract PayloadInfo.Status getStatus(int payloadID)
-    void removePayload(Integer payloadID) {
-        payloadMap.remove(payloadID)
+    boolean exists(Integer payloadID) {
+        if (payloadMap.get(payloadID) != null) {
+            return true
+        }
+        return false
+    }
+    PayloadInfo removePayload(Integer payloadID) {
+        return payloadMap.remove(payloadID)
     }
 }

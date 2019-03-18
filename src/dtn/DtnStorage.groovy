@@ -251,17 +251,28 @@ class DtnStorage {
         try {
             File file = new File(directory, messageID)
             file.delete()
-            if (metadata.getMessageType() == dtn.MessageType.DATAGRAM) {
-                int nextHop = metadata.nextHop
-                Iterator it = datagramMap.entrySet().iterator()
-                while (it.hasNext()) {
-                    Map.Entry entry = (Map.Entry) it.next()
-                    if (entry.getValue() == messageID) {
-                        it.remove()
-                        if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                            dtnLink.sendFailureNtf(messageID, nextHop)
-                        }
+            int nextHop = metadata.nextHop
+            Iterator it = datagramMap.entrySet().iterator()
+
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+                if (metadata.getMessageType() == dtn.MessageType.DATAGRAM) {
+                    dtnLink.sendFailureNtf(messageID, nextHop)
+                } else if (metadata.getMessageType() == dtn.MessageType.PAYLOAD_SEGMENT) {
+                    if (inboundPayloads.exists(metadata.payloadID)) {
+                        PayloadInfo info = removePayload(metadata.payloadID, PayloadType.INBOUND)
+                    } else if (outboundPayloads.exists(metadata.payloadID)) {
+                        PayloadInfo info = removePayload(metadata.payloadID, PayloadType.OUTBOUND)
+                        dtnLink.sendFailureNtf(info.datagramID, metadata.nextHop)
                     }
+                }
+            }
+
+            // removes from tracking map
+            while (it.hasNext()) {
+                Map.Entry entry = (Map.Entry) it.next()
+                if (entry.getValue() == messageID) {
+                    it.remove()
+                    return
                 }
             }
         } catch (Exception e) {
@@ -338,11 +349,11 @@ class DtnStorage {
         datagramMap.remove(newMessageID)
     }
 
-    void removePayload(int payloadID, PayloadType type) {
+    PayloadInfo removePayload(int payloadID, PayloadType type) {
         if (type == PayloadType.INBOUND) {
-            inboundPayloads.removePayload(payloadID)
+            return inboundPayloads.removePayload(payloadID)
         } else {
-            outboundPayloads.removePayload(payloadID)
+            return outboundPayloads.removePayload(payloadID)
         }
     }
 
