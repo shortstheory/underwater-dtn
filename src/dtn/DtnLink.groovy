@@ -1,6 +1,6 @@
 package dtn
 
-import com.sun.corba.se.pept.transport.InboundConnectionCache
+
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
@@ -168,14 +168,7 @@ class DtnLink extends UnetAgent {
         add(new TickerBehavior(SWEEP_PERIOD) {
             @Override
             void onTick() {
-                ArrayList<Tuple2> expiredDatagrams = storage.deleteExpiredDatagrams()
-                // now send DFNs for all of these
-                for (Tuple2 expiredDatagram : expiredDatagrams) {
-                    notify.send(new DatagramFailureNtf(inReplyTo: (String)expiredDatagram.getFirst(),
-                            to: (int)expiredDatagram.getSecond()))
-                    println "Datagram - " + expiredDatagram.getFirst() + " has expired"
-                    stats.datagrams_expired++
-                }
+                storage.deleteFiles()
             }
         })
 
@@ -185,6 +178,13 @@ class DtnLink extends UnetAgent {
                 datagramCycle.restart()
             }
         })
+    }
+
+    void sendFailureNtf(String messageID, int nextHop) {
+        notify.send(new DatagramFailureNtf(inReplyTo: messageID,
+                                            to: nextHop))
+        println "Datagram - " + messageID + " has expired"
+        stats.datagrams_expired++
     }
 
     String selectNextDatagram(ArrayList<String> datagrams) {
@@ -284,7 +284,7 @@ class DtnLink extends UnetAgent {
                         if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
                             // by marking it as delivered, it will get deleted on the next sweep!
-                            storage.payloadReceived(payloadID)
+                            storage.payloadDelivered(payloadID)
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)
                             ntf.setData(payloadData)

@@ -241,64 +241,60 @@ class DtnStorage {
         return outboundPayloads.payloadMap.get(payloadID).datagramID
     }
 
-    void payloadReceived(int payloadID) {
+    void payloadDelivered(int payloadID) {
         for (String id : inboundPayloads.payloadMap.get(payloadID).segmentSet) {
             metadataMap.get(id).delivered = true
         }
     }
 
     // FIXME: this method is a bit weird but it still works
-    Tuple2 deleteFile(String messageID) {
-        int nextHop
+    void deleteFile(String messageID) {
         try {
             File file = new File(directory, messageID)
             file.delete()
             DtnPduMetadata metadata = getMetadata(messageID)
             if (metadata.getMessageType() == dtn.MessageType.DATAGRAM) {
-                nextHop = getMetadata(messageID).nextHop
-                String key
+                int nextHop = metadata.nextHop
+                String originalMessageID
 
-                // Can be done in O(1) with bi-map? But not a big deal
-                for (Map.Entry<String, String> entry : datagramMap.entrySet()) {
+                Iterator it = metadataMap.entrySet().iterator()
+                while (it.hasNext()) {
+                    Map.Entry entry = (Map.Entry) it.next()
+
                     if (entry.getValue() == messageID) {
-                        key = entry.getKey()
-                        break
+                        originalMessageID = entry.getKey()
+                        dtnLink.sendFailureNtf(originalMessageID, nextHop)
+                        it.remove()
                     }
                 }
-                // doesn't apply for payload datagrams
-                datagramMap.remove(key)
-                return new Tuple2(messageID, nextHop)
             }
         } catch (Exception e) {
             println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + metadataMap.size()
         }
-        return null
     }
 
-    ArrayList<Tuple2> deleteExpiredDatagrams() {
-        ArrayList<Tuple2> expiredDatagrams = new ArrayList<>()
-
+    void deleteFiles() {
         Iterator it = metadataMap.entrySet().iterator()
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry)it.next()
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
-            if (metadata.delivered) { // put the deletion logic here!
-                deleteFile(messageID)
-                it.remove()
-            } else if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                // both inbound and outbound maps get affected by deleted segments
-                if (metadata.getMessageType() == dtn.MessageType.PAYLOAD_SEGMENT) {
-                    // FIXME: think about it here
-//                    expiredDatagrams.add(new Tuple2(metadata.payloadID)
-                } else {
-                    expiredDatagrams.add(deleteFile(messageID))
-                }
+            if (metadata.delivered || dtnLink.currentTimeSeconds() > metadata.expiryTime) { // put the deletion logic here!
                 deleteFile(messageID)
                 it.remove()
             }
+//            else if () {
+//                // both inbound and outbound maps get affected by deleted segments
+//                if (metadata.getMessageType() == dtn.MessageType.PAYLOAD_SEGMENT) {
+//                    // FIXME: think about it here
+////                    expiredDatagrams.add(new Tuple2(metadata.payloadID)
+//                } else {
+//                    expiredDatagrams.add(deleteFile(messageID))
+//                }
+//                deleteFile(messageID)
+//                it.remove()
+//            }
         }
-        return expiredDatagrams
     }
 
     OutputPDU encodePdu(byte[] data, int ttl, int protocol, int payloadId, int segmentNumber, int totalSegments) {
