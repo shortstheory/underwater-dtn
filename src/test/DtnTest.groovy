@@ -259,7 +259,6 @@ class DtnTest {
         println("Done")
         p.shutdown()
         assert(app.reassemblyResult)
-//        assert(link.successfulDeliveryResult)
     }
 
     @After

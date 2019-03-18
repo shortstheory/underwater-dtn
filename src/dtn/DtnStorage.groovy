@@ -75,9 +75,7 @@ class DtnStorage {
                 // instead, it will be deleted by the next DtnLink sweep
                 continue
             } else if (metadata.attempts > dtnLink.MAX_RETRIES) {
-                // one hack for cleaning MAX_RETRIES being exceeded.
-                // this won't cause a DFN because it will be caught in the
-                // check for message delivery
+                // one hack for cleaning MAX_RETRIES being exceeded
                 metadata.expiryTime = 0
                 continue
             }
