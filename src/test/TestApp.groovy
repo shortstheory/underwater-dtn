@@ -19,6 +19,8 @@ class TestApp extends UnetAgent {
     public boolean timeoutD1Success = false
     public boolean timeoutD2Failed = false
     public boolean multiLinkResult = false
+    public boolean fragementationResult = false
+    public boolean reassemblyResult = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -184,8 +186,8 @@ class TestApp extends UnetAgent {
                 })
                 break
             case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
-                byte[] data = new byte[10000]
-                for (int i = 0; i < 10000; i++) {
+                byte[] data = new byte[DtnTest.PAYLOAD_SIZE]
+                for (int i = 0; i < DtnTest.PAYLOAD_SIZE; i++) {
                     data[i] = 65
                 }
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
@@ -296,11 +298,24 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
+                        fragementationResult = true
+                    }
+                }
                 break
             case DtnTest.Tests.PAYLOAD_REASSEMBLY:
                 if (msg instanceof DatagramNtf) {
-                    DatagramNtf res = msg
-                    println "Got a big Dntf"
+                    byte[] msgBytes = msg.getData()
+                    boolean byteCheck = true
+                    for (int i = 0; i < DtnTest.PAYLOAD_SIZE; i++) {
+                        if (msgBytes[i] != 65) {
+                            byteCheck = false
+                        }
+                    }
+                    if (byteCheck && msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        reassemblyResult = true
+                    }
                 }
                 break
         }

@@ -283,12 +283,15 @@ class DtnLink extends UnetAgent {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
                         if (storage.getPayloadStatus(payloadID, DtnType.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
-                            // by marking it as delivered, it will get deleted on the next sweep!
+                            // by marking an outbound payload as delivered, it will get deleted on the next sweep!
                             storage.payloadDelivered(payloadID)
+                            storage.removePayload(payloadID, DtnType.PayloadType.INBOUND)
+
                             DatagramNtf ntf = new DatagramNtf()
                             ntf.setProtocol(protocol)
                             ntf.setData(payloadData)
-                            // FIXME: delete the paylaods here without DDNs/DFNs
+                            ntf.setFrom(msg.getFrom())
+                            ntf.setTo(msg.getTo())
                             // FIXME: ntf.setTtl(ttl)
                             notify.send(ntf)
                             stats.datagrams_received++
@@ -298,6 +301,8 @@ class DtnLink extends UnetAgent {
                         DatagramNtf ntf = new DatagramNtf()
                         ntf.setProtocol(protocol)
                         ntf.setData(data)
+                        ntf.setFrom(msg.getFrom())
+                        ntf.setTo(msg.getTo())
                         // FIXME: ntf.setTtl(ttl)
                         notify.send(ntf)
                         stats.datagrams_received++
@@ -319,22 +324,22 @@ class DtnLink extends UnetAgent {
                     stats.delivery_times.add(deliveryTime)
                 }
                 switch(storage.updateMaps(originalMessageID)) {
-                    case DtnType.MessageResult.DATAGRAM:
-                        DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
-                        notify.send(deliveryNtf)
-                        stats.datagrams_success++
-                        break
-                    case DtnType.MessageResult.PAYLOAD_SEGMENT:
-                        // no ntf needed
-                        stats.datagrams_success++
-                        break
-                    case DtnType.MessageResult.PAYLOAD_TRANSFERRED:
-                        DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
-                        String payloadID = storage.getPayloadDatagramID(metadata.payloadID)
-                        DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
-                        notify.send(deliveryNtf)
-                        storage.removePayload(metadata.payloadID, DtnType.PayloadType.INBOUND)
-                        break
+                case DtnType.MessageResult.DATAGRAM:
+                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+                    notify.send(deliveryNtf)
+                    stats.datagrams_success++
+                    break
+                case DtnType.MessageResult.PAYLOAD_SEGMENT:
+                    // no ntf needed
+                    stats.datagrams_success++
+                    break
+                case DtnType.MessageResult.PAYLOAD_TRANSFERRED:
+                    DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
+                    String payloadID = storage.getPayloadDatagramID(metadata.payloadID)
+                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
+                    notify.send(deliveryNtf)
+                    storage.removePayload(metadata.payloadID, DtnType.PayloadType.OUTBOUND)
+                    break
                 }
             }
             linkState = LinkState.READY
@@ -372,7 +377,7 @@ class DtnLink extends UnetAgent {
                             DatagramReq datagramReq
 
                             // this is for short-circuiting PDUs
-                            if (pduProtocol == Protocol.ROUTING || metadata.payloadID) {
+                            if (pduProtocol == Protocol.ROUTING || metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
                                 byte[] pduBytes = storage.encodePdu(pduData,
                                         metadata.expiryTime - currentTimeSeconds(),
                                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),

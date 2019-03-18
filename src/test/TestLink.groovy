@@ -25,6 +25,8 @@ class TestLink extends UnetAgent {
     public boolean linkPriorityReceivedMessage = false
     public boolean beaconReceived = false
 
+    int fragmentsReceived = 0
+
     int DATAGRAM_ATTEMPTS = 0
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -256,6 +258,9 @@ class TestLink extends UnetAgent {
             case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
+                        if (msg.getData().length <= getMTU()) {
+                            fragmentsReceived++
+                        }
                         add(new WakerBehavior(10 * 1000) {
                             @Override
                             void onWake() {

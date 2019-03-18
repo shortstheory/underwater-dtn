@@ -37,6 +37,7 @@ class DtnTest {
 
     public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 600
+    public static final int PAYLOAD_SIZE = 10000
 
     public static ArrayList<AgentID> LINK_ORDER = new ArrayList<>()
 
@@ -239,8 +240,8 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-//        assert(app.successfulDeliveryResult)
-//        assert(link.successfulDeliveryResult)
+        assert(app.fragementationResult)
+        assert(link.fragmentsReceived*link.getMTU() >= PAYLOAD_SIZE)
     }
 
     @Test
