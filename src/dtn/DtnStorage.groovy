@@ -13,17 +13,6 @@ class DtnStorage {
     private DtnLink dtnLink
     private HashMap<String, DtnPduMetadata> metadataMap
 
-    enum MessageType {
-        DATAGRAM,
-        PAYLOAD_SEGMENT,
-        PAYLOAD_TRANSFERRED
-    }
-
-    enum PayloadType {
-        INBOUND,
-        OUTBOUND
-    }
-//
     private DtnOutboundPayloadTracker outboundPayloads
     private DtnInboundPayloadTracker inboundPayloads
     // PDU Structure
@@ -131,8 +120,8 @@ class DtnStorage {
         }
     }
 
-    PayloadInfo.Status getPayloadStatus(int payloadID, PayloadType type) {
-        if (type == PayloadType.INBOUND) {
+    PayloadInfo.Status getPayloadStatus(int payloadID, DtnType.PayloadType type) {
+        if (type == DtnType.PayloadType.INBOUND) {
             return inboundPayloads.getStatus(payloadID)
         } else {
             return outboundPayloads.getStatus(payloadID)
@@ -222,19 +211,19 @@ class DtnStorage {
         }
     }
 
-    MessageType updateMaps(String messageID) {
+    DtnType.MessageResult updateMaps(String messageID) {
         DtnPduMetadata metadata = getMetadata(messageID)
         if (metadata != null) {
             metadata.delivered = true
             outboundPayloads.removeSegment(metadata.payloadID, messageID)
             if (metadata.payloadID) {
                 if (outboundPayloads.payloadTransferred(metadata.payloadID)) {
-                    return MessageType.PAYLOAD_TRANSFERRED
+                    return DtnType.MessageResult.PAYLOAD_TRANSFERRED
                 }
-                return MessageType.PAYLOAD_SEGMENT
+                return DtnType.MessageResult.PAYLOAD_SEGMENT
             }
         }
-        return MessageType.DATAGRAM
+        return DtnType.MessageResult.DATAGRAM
     }
 
     String getPayloadDatagramID(int payloadID) {
@@ -255,13 +244,13 @@ class DtnStorage {
             Iterator it = datagramMap.entrySet().iterator()
 
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                if (metadata.getMessageType() == dtn.MessageType.DATAGRAM) {
+                if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
                     dtnLink.sendFailureNtf(messageID, nextHop)
-                } else if (metadata.getMessageType() == dtn.MessageType.PAYLOAD_SEGMENT) {
+                } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
                     if (inboundPayloads.exists(metadata.payloadID)) {
-                        PayloadInfo info = removePayload(metadata.payloadID, PayloadType.INBOUND)
+                        PayloadInfo info = removePayload(metadata.payloadID, DtnType.PayloadType.INBOUND)
                     } else if (outboundPayloads.exists(metadata.payloadID)) {
-                        PayloadInfo info = removePayload(metadata.payloadID, PayloadType.OUTBOUND)
+                        PayloadInfo info = removePayload(metadata.payloadID, DtnType.PayloadType.OUTBOUND)
                         dtnLink.sendFailureNtf(info.datagramID, metadata.nextHop)
                     }
                 }
@@ -349,10 +338,10 @@ class DtnStorage {
         datagramMap.remove(newMessageID)
     }
 
-    PayloadInfo removePayload(int payloadID, PayloadType type) {
-        if (type == PayloadType.INBOUND) {
+    PayloadInfo removePayload(int payloadID, DtnType.PayloadType type) {
+        if (type == DtnType.PayloadType.INBOUND) {
             return inboundPayloads.removePayload(payloadID)
-        } else if (type == PayloadType.OUTBOUND) {
+        } else if (type == DtnType.PayloadType.OUTBOUND) {
             return outboundPayloads.removePayload(payloadID)
         }
     }

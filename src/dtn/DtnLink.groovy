@@ -281,7 +281,7 @@ class DtnLink extends UnetAgent {
 
                     if (payloadID) {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
-                        if (storage.getPayloadStatus(payloadID, DtnStorage.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
+                        if (storage.getPayloadStatus(payloadID, DtnType.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
                             // by marking it as delivered, it will get deleted on the next sweep!
                             storage.payloadDelivered(payloadID)
@@ -319,21 +319,21 @@ class DtnLink extends UnetAgent {
                     stats.delivery_times.add(deliveryTime)
                 }
                 switch(storage.updateMaps(originalMessageID)) {
-                    case DtnStorage.MessageType.DATAGRAM:
+                    case DtnType.MessageResult.DATAGRAM:
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                         notify.send(deliveryNtf)
                         stats.datagrams_success++
                         break
-                    case DtnStorage.MessageType.PAYLOAD_SEGMENT:
+                    case DtnType.MessageResult.PAYLOAD_SEGMENT:
                         // no ntf needed
                         stats.datagrams_success++
                         break
-                    case DtnStorage.MessageType.PAYLOAD_TRANSFERRED:
+                    case DtnType.MessageResult.PAYLOAD_TRANSFERRED:
                         DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
                         String payloadID = storage.getPayloadDatagramID(metadata.payloadID)
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
                         notify.send(deliveryNtf)
-                        storage.removePayload(metadata.payloadID, DtnStorage.PayloadType.INBOUND)
+                        storage.removePayload(metadata.payloadID, DtnType.PayloadType.INBOUND)
                         break
                 }
             }
