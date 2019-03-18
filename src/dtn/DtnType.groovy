@@ -1,0 +1,5 @@
+package dtn
+
+class DtnType {
+
+}

@@ -352,7 +352,7 @@ class DtnStorage {
     PayloadInfo removePayload(int payloadID, PayloadType type) {
         if (type == PayloadType.INBOUND) {
             return inboundPayloads.removePayload(payloadID)
-        } else {
+        } else if (type == PayloadType.OUTBOUND) {
             return outboundPayloads.removePayload(payloadID)
         }
     }
