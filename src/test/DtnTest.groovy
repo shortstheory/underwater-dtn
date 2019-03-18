@@ -258,7 +258,7 @@ class DtnTest {
         p.delay(DELAY_TIME)
         println("Done")
         p.shutdown()
-//        assert(app.successfulDeliveryResult)
+        assert(app.reassemblyResult)
 //        assert(link.successfulDeliveryResult)
     }
 
