@@ -205,7 +205,6 @@ class DtnStorage {
                     fos.close()
                 }
             }
-            println("done")
             return true
         }
     }
