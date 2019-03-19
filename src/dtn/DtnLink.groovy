@@ -366,6 +366,7 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
                 @Override
                 void onWake() {
+                    int linkMTU = utility.getLinkMetadata(nodeLink).linkMTU
                     HashMap<String, Integer> parsedPdu = storage.getParsedPDU(messageID)
                     if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
@@ -379,34 +380,38 @@ class DtnLink extends UnetAgent {
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                             byte[] pduData = storage.getPDUData(messageID)
 
-                            DatagramReq datagramReq
-
-                            // this is for short-circuiting PDUs
-                            if (pduProtocol == Protocol.ROUTING || metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
-                                byte[] pduBytes = storage.encodePdu(pduData,
-                                        metadata.expiryTime - currentTimeSeconds(),
-                                        parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                                        parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
-                                        parsedPdu.get(DtnStorage.SEGMENT_NUM_MAP),
-                                        parsedPdu.get(DtnStorage.TOTAL_SEGMENTS_MAP))
-                                        .toByteArray()
-                                datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                        data: pduBytes,
-                                        to: node,
-                                        reliability: true)
-                            } else {
-                                datagramReq = new DatagramReq(protocol: pduProtocol,
-                                        data: pduData,
-                                        to: node,
-                                        reliability: true)
-                            }
-                            storage.trackDatagram(datagramReq.getMessageID(), messageID)
-                            // FIXME: use send or request here?
-                            nodeLink.send(datagramReq)
-                            if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
+                            if (pduData.length + HEADER_SIZE <= linkMTU) {
+                                DatagramReq datagramReq
+                                // this is for short-circuiting PDUs
+                                if (pduProtocol == Protocol.ROUTING) {
+                                    byte[] pduBytes = storage.encodePdu(pduData,
+                                            metadata.expiryTime - currentTimeSeconds(),
+                                            parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                            true,
+                                            parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
+                                            parsedPdu.get(DtnStorage.START_PTR_MAP))
+                                            .toByteArray()
+                                    datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                            data: pduBytes,
+                                            to: node,
+                                            reliability: true)
+                                } else {
+                                    datagramReq = new DatagramReq(protocol: pduProtocol,
+                                            data: pduData,
+                                            to: node,
+                                            reliability: true)
+                                }
+                                storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                // FIXME: use send or request here?
+                                nodeLink.send(datagramReq)
                                 stats.datagrams_sent++
-                            } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
-                                stats.payloads_sent++
+                            } else {
+                                DatagramReq datagramReq
+                                int startPtr = metadata.bytesSent
+                                int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
+                                boolean tbc = (endPtr == pduData.length) ? true : false
+                                byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
+
                             }
                         }
                     } else {
