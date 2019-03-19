@@ -5,6 +5,7 @@ issues:
 pending:
 * fragmentation
 * delete stats tracker eventually
+* prof's idea is better than mine
 
 later:
 

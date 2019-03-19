@@ -273,14 +273,14 @@ class DtnLink extends UnetAgent {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = storage.decodePdu(pduBytes)
+                byte[] data = storage.getDataFromPDU()
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
-                    // showing negative for some reason?
+                    boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
-                    int segmentNumber = map.get(DtnStorage.SEGMENT_NUM_MAP)
-                    int totalSegments = map.get(DtnStorage.TOTAL_SEGMENTS_MAP)
-
+                    int startPtr = map.get(DtnStorage.START_PTR_MAP)
+//                    byte[] data =
                     if (payloadID) {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
                         stats.segments_received++
@@ -322,31 +322,29 @@ class DtnLink extends UnetAgent {
             // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
-            String messageID = msg.getInReplyTo()
+            String[] split = msg.getInReplyTo().split("_")
+            String messageID = split[0]
             String originalMessageID = storage.getOriginalMessageID(messageID)
-            // it can happen that the DDN comes just after a TTL
-            if (originalMessageID != null) {
-                int deliveryTime = currentTimeSeconds() - storage.getArrivalTime(originalMessageID)
-                if (deliveryTime >= 0) {
-                    stats.delivery_times.add(deliveryTime)
+            // for payloads
+            if (split.size() == 2) {
+                int endPtr = Integer.valueOf(split[1])
+                DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
+                metadata.bytesSent = endPtr
+                if (metadata.bytesSent == metadata.size) {
+                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+                    notify.send(deliveryNtf)
                 }
-                switch(storage.updateMaps(originalMessageID)) {
-                case DtnType.MessageResult.DATAGRAM:
+                // for non-payloads
+            } else {
+                // it can happen that the DDN comes just after a TTL
+                if (originalMessageID != null) {
+                    int deliveryTime = currentTimeSeconds() - storage.getArrivalTime(originalMessageID)
+                    if (deliveryTime >= 0) {
+                        stats.delivery_times.add(deliveryTime)
+                    }
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
                     stats.datagrams_success++
-                    break
-                case DtnType.MessageResult.PAYLOAD_SEGMENT:
-                    // no ntf needed
-                    stats.segments_received++
-                    break
-                case DtnType.MessageResult.PAYLOAD_TRANSFERRED:
-                    DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
-                    String payloadID = storage.getPayloadDatagramID(metadata.payloadID)
-                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: payloadID, to: node)
-                    notify.send(deliveryNtf)
-                    storage.removePayload(metadata.payloadID, DtnType.PayloadType.OUTBOUND)
-                    break
                 }
             }
             linkState = LinkState.READY
@@ -382,6 +380,7 @@ class DtnLink extends UnetAgent {
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                             byte[] pduData = storage.getPDUData(messageID)
                             int expiryTime = metadata.expiryTime - currentTimeSeconds()
+                            metadata.size = pduData.length
                             DatagramReq datagramReq
                             if (pduData.length + HEADER_SIZE <= linkMTU) {
                                 // this is for short-circuiting PDUs
@@ -419,6 +418,7 @@ class DtnLink extends UnetAgent {
                                                     payloadID,
                                                     startPtr)
                                                     .toByteArray()
+                                // separator should not conflict with a regular DReq
                                 String dreqID = Integer.toString(payloadID) + "_" + endPtr
                                 datagramReq = new DatagramReq(protocol: pduProtocol,
                                                 data: pduBytes,

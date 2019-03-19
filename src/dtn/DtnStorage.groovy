@@ -83,28 +83,8 @@ class DtnStorage {
     }
 
     boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl, int segments) {
-        String messageID = Integer.toString(payloadID) + "_" + Integer.toString(segmentNum)
-        FileOutputStream fos
         try {
-            File dir = new File(directory)
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-            File file = new File(dir, messageID)
-            fos = new FileOutputStream(file)
-            fos.write(incomingSegment)
-            // this is just for holding its metadata and deleting it on TTL,
-            // it could have it's own too I guess
-            metadataMap.put(messageID, new DtnPduMetadata(nextHop: -1,
-                                                            expiryTime: (int)ttl, // this will not include transit time!!
-                                                            attempts: 0,
-                                                            delivered: false,
-                                                            payloadID: payloadID,
-                                                            segmentNumber: segmentNum))
-//            void insertOutboundPayloadSegment(String payloadMessageID, Integer payloadID, String segmentID, int segmentNumber, int segments) {
-
-            inboundPayloads.insertSegment(payloadID, messageID, segmentNum, segments)
-            inboundPayloads.setPayloadMTU(payloadID, dtnLink.getMTU())
+            String messageID = Integer.toString(payloadID) + "_" + Integer.toString(segmentNum)
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -240,7 +220,7 @@ class DtnStorage {
         pdu.write24(ttl)
         pdu.write8(protocol)
         int payloadFields
-        payloadFields = (tbc) ? 1 << 32 ? 0
+        payloadFields = (tbc) ? (1 << 32) : 0
         payloadFields |= (payloadID << 23)
         payloadFields |= startPtr
         pdu.write32(payloadFields)
@@ -281,10 +261,14 @@ class DtnStorage {
         return map
     }
 
+    byte[] getDataFromPDU(byte[] pdu) {
+        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
+    }
+
     byte[] getPDUData(String messageID) {
         byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
         if (pduBytes != null) {
-            return Arrays.copyOfRange(pduBytes, dtnLink.HEADER_SIZE, pduBytes.length)
+            return getDataFromPDU(pduBytes)
         }
     }
 
