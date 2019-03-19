@@ -17,7 +17,8 @@ class DtnStorage {
     private DtnOutboundPayloadTracker outboundPayloads
     private DtnInboundPayloadTracker inboundPayloads
     // PDU Structure
-    // |TTL (32)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
+    // |TTL (24)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
+    // |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (31)|
     // no payload ID for messages which fit in the MTU
 
     /**
