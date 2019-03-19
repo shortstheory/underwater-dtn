@@ -187,6 +187,8 @@ class DtnLink extends UnetAgent {
         stats.datagrams_expired++
     }
 
+    // If we're sending a payload, ARRIVAL & EXPIRY will always choose it again
+    // But RANDOM could be well, random
     String selectNextDatagram(ArrayList<String> datagrams) {
         switch (DATAGRAM_PRIORITY) {
             case DatagramPriority.ARRIVAL:
@@ -379,17 +381,17 @@ class DtnLink extends UnetAgent {
                             // we are decoding the PDU twice, not good!
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                             byte[] pduData = storage.getPDUData(messageID)
-
+                            int expiryTime = metadata.expiryTime - currentTimeSeconds()
+                            DatagramReq datagramReq
                             if (pduData.length + HEADER_SIZE <= linkMTU) {
-                                DatagramReq datagramReq
                                 // this is for short-circuiting PDUs
                                 if (pduProtocol == Protocol.ROUTING) {
                                     byte[] pduBytes = storage.encodePdu(pduData,
-                                            metadata.expiryTime - currentTimeSeconds(),
-                                            parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                            expiryTime,
+                                            pduProtocol,
                                             true,
-                                            parsedPdu.get(DtnStorage.PAYLOAD_ID_MAP),
-                                            parsedPdu.get(DtnStorage.START_PTR_MAP))
+                                            0,
+                                            0)
                                             .toByteArray()
                                     datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                             data: pduBytes,
@@ -403,16 +405,28 @@ class DtnLink extends UnetAgent {
                                 }
                                 storage.trackDatagram(datagramReq.getMessageID(), messageID)
                                 // FIXME: use send or request here?
-                                nodeLink.send(datagramReq)
                                 stats.datagrams_sent++
                             } else {
-                                DatagramReq datagramReq
                                 int startPtr = metadata.bytesSent
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
                                 boolean tbc = (endPtr == pduData.length) ? true : false
                                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-
+                                int payloadID = storage.getPayloadID(messageID)
+                                byte[] pduBytes = storage.encodePdu(data,
+                                                    expiryTime,
+                                                    parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                                    tbc,
+                                                    payloadID,
+                                                    startPtr)
+                                                    .toByteArray()
+                                String dreqID = Integer.toString(payloadID) + "_" + endPtr
+                                datagramReq = new DatagramReq(protocol: pduProtocol,
+                                                data: pduBytes,
+                                                to: node,
+                                                reliability: true,
+                                                id: dreqID)
                             }
+                            nodeLink.send(datagramReq)
                         }
                     } else {
                         linkState = LinkState.READY

@@ -9,6 +9,7 @@ class DtnPduMetadata {
     int attempts
     boolean delivered
     int bytesSent
+    int payloadID
 
     DtnType.MessageType getMessageType() {
         return (payloadID) ? DtnType.MessageType.PAYLOAD_SEGMENT : DtnType.MessageType.DATAGRAM

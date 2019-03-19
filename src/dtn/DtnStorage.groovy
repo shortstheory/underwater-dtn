@@ -23,6 +23,7 @@ class DtnStorage {
      */
     private HashMap<String, String> datagramMap
 
+    private static final int LOWER_8_BITMASK  = (int)0x000000FF
     private static final int LOWER_16_BITMASK = (int)0x0000FFFF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
     private static final int UPPER_16_BITMASK = (int)0xFFFF0000
@@ -247,6 +248,19 @@ class DtnStorage {
             pdu.write(data)
         }
         return pdu
+    }
+
+    int getPayloadID(String messageID) {
+        Iterator it = datagramMap.entrySet().iterator()
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next()
+            if (pair.getValue() == messageID) {
+                return pair.getKey()
+            }
+        }
+        int randomID = dtnLink.random.nextInt() & LOWER_8_BITMASK
+        datagramMap.put(Integer.toString(randomID), messageID)
+        return randomID
     }
 
     HashMap decodePdu(byte[] pduBytes) {
