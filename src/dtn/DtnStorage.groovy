@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
+import org.arl.unet.net.Router
 
 import java.nio.file.Files
 
@@ -302,7 +303,7 @@ class DtnStorage {
         HashMap<String, Integer> map = new HashMap<>()
         map.put(TTL_MAP, (int)pdu.read24())
         map.put(PROTOCOL_MAP, (int)pdu.read8())
-        map.put(PAYLOAD_ID_MAP, (int)pdu.read16() & 0x0000FFFF)
+        map.put(PAYLOAD_ID_MAP, (int)pdu.read16() & LOWER_16_BITMASK)
         map.put(SEGMENT_NUM_MAP, (int)pdu.read16())
         map.put(TOTAL_SEGMENTS_MAP, (int)pdu.read16())
         return map

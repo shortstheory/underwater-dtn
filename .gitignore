@@ -1,6 +1,7 @@
 [0-9]*/
 *.iml
 *.json
+.directory
 .idea/
 testNode/
 testStorage

@@ -281,6 +281,7 @@ class DtnLink extends UnetAgent {
 
                     if (payloadID) {
                         storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
+                        stats.segments_received++
                         if (storage.getPayloadStatus(payloadID, DtnType.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
                             byte[] payloadData = storage.getPayloadData(payloadID)
                             // by marking an outbound payload as delivered, it will get deleted on the next sweep!
@@ -294,9 +295,13 @@ class DtnLink extends UnetAgent {
                             ntf.setTo(msg.getTo())
                             // FIXME: ntf.setTtl(ttl)
                             notify.send(ntf)
-                            stats.datagrams_received++
+                            stats.payloads_received++
                         }
                     } else {
+                        // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
+                        // broadcast it on our topic for anyone who's listening (read: ROUTER)
+
+                        // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
                         byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
                         DatagramNtf ntf = new DatagramNtf()
                         ntf.setProtocol(protocol)
@@ -331,7 +336,7 @@ class DtnLink extends UnetAgent {
                     break
                 case DtnType.MessageResult.PAYLOAD_SEGMENT:
                     // no ntf needed
-                    stats.datagrams_success++
+                    stats.segments_received++
                     break
                 case DtnType.MessageResult.PAYLOAD_TRANSFERRED:
                     DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
@@ -398,7 +403,11 @@ class DtnLink extends UnetAgent {
                             storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             // FIXME: use send or request here?
                             nodeLink.send(datagramReq)
-                            stats.datagrams_sent++
+                            if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
+                                stats.datagrams_sent++
+                            } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
+                                stats.payloads_sent++
+                            }
                         }
                     } else {
                         linkState = LinkState.READY

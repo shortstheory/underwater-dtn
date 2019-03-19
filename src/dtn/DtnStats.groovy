@@ -21,6 +21,10 @@ class DtnStats {
     public int datagrams_expired = 0
     public int frame_collisions = 0
     public int bad_frames = 0
+    public int payloads_sent = 0
+    public int payloads_received = 0
+    public int segments_received = 0
+    public int segments_sent = 0
 
     public ArrayList<Integer> delivery_times = new ArrayList<>()
 

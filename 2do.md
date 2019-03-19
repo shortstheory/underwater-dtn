@@ -4,20 +4,23 @@ issues:
 
 pending:
 * fragmentation
-    * what works
-        * splitting  & reassembly
-    * what doesn't
-        * deletion of expired payloads
-        * probably a lot of other things too, but they need to be worked out
-    * write tests
-    * refactor and redo v. v. messy deletion logic!!
+* delete stats tracker eventually
+
 later:
 
-done:
+in progress:
+* what works
+    * splitting  & reassembly
+* what doesn't
+    * probably a lot of other things too, but they need to be worked out
+        * deletion of expired payloads
+    * write tests
+    * refactor and redo v. v. messy deletion logic!!
 !!* clean code?
 !!* study some 3B1B
 * do docu
 
+done:
 * multihop router tests
 **create issue for the bitrate of the link**
 * start midsem report
