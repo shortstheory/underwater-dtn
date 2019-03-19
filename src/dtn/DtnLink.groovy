@@ -35,7 +35,7 @@ class DtnLink extends UnetAgent {
     /**
      * DtnLink header comprises of the message TTL and protocol number
      */
-    public static final int HEADER_SIZE  = 10
+    public static final int HEADER_SIZE  = 8
     public static final int DTN_PROTOCOL = 50
 
     int MTU
@@ -439,11 +439,12 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-        int minMTU = Integer.MAX_VALUE
-        for (DtnLinkInfo.LinkMetadata metadata : utility.getLinkInfo().values()) {
-            minMTU = Math.min(metadata.linkMTU, minMTU)
-        }
-        return minMTU - HEADER_SIZE
+//        int minMTU = Integer.MAX_VALUE
+//        for (DtnLinkInfo.LinkMetadata metadata : utility.getLinkInfo().values()) {
+//            minMTU = Math.min(metadata.linkMTU, minMTU)
+//        }
+//        return minMTU - HEADER_SIZE
+        return 2^24
     }
 
     void setBEACON_PERIOD(int period) {

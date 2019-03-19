@@ -8,8 +8,7 @@ class DtnPduMetadata {
     int expiryTime
     int attempts
     boolean delivered
-    int payloadID
-    int segmentNumber
+    int bytesSent
 
     DtnType.MessageType getMessageType() {
         return (payloadID) ? DtnType.MessageType.PAYLOAD_SEGMENT : DtnType.MessageType.DATAGRAM

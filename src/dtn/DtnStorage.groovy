@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
-import org.arl.unet.net.Router
 
 import java.nio.file.Files
 
@@ -14,8 +13,6 @@ class DtnStorage {
     private DtnLink dtnLink
     private HashMap<String, DtnPduMetadata> metadataMap
 
-    private DtnOutboundPayloadTracker outboundPayloads
-    private DtnInboundPayloadTracker inboundPayloads
     // PDU Structure
     // |TTL (24)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (31)|
@@ -32,9 +29,9 @@ class DtnStorage {
 
     public static final String TTL_MAP            = "ttl"
     public static final String PROTOCOL_MAP       = "protocol"
+    public static final String TBC_BIT_MAP        = "tbc"
     public static final String PAYLOAD_ID_MAP     = "pid"
-    public static final String SEGMENT_NUM_MAP    = "segnum"
-    public static final String TOTAL_SEGMENTS_MAP = "totseg"
+    public static final String START_PTR_MAP      = "startptr"
 
     DtnStorage(DtnLink link, String dir) {
         directory = dir
@@ -47,10 +44,6 @@ class DtnStorage {
 
         metadataMap = new HashMap<>()
         datagramMap = new HashMap<>()
-        outboundPayloads = new DtnOutboundPayloadTracker(this)
-        inboundPayloads = new DtnInboundPayloadTracker(this)
-        // FIXME: this causes a compiler bug!!!
-//        outboundPayloads = new DtnPayloadTracker<>()
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
@@ -141,72 +134,31 @@ class DtnStorage {
         int ttl = (Math.round(req.getTtl()) & LOWER_24_BITMASK)
         String messageID = req.getMessageID()
         byte[] data = req.getData()
-        int minMTU = dtnLink.getMTU()
-        int segments = (data == null) ? 1 : (int)Math.ceil((double)data.length/minMTU)
-
-        if (segments > 0xFFFF) {
-//          too many segments lah! can't send message!
+        if (dtnLink.getMTU() < data.length) {
             return false
         }
 
-        if (segments == 1) {
-            OutputPDU outputPDU = encodePdu(data, ttl, protocol, 0, 0, 0)
-            FileOutputStream fos
-            try {
-                File dir = new File(directory)
-                if (!dir.exists()) {
-                    dir.mkdirs()
-                }
-                File file = new File(dir, messageID)
-                fos = new FileOutputStream(file)
-                outputPDU.writeTo(fos)
-                metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
-                        expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                        attempts: 0,
-                        delivered: false,
-                        payloadID: 0))
-                return true
-            } catch (IOException e) {
-                println "Could not save file for " + messageID
-                return false
-            } finally {
-                fos.close()
+        OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, 0, 0)
+        FileOutputStream fos
+        try {
+            File dir = new File(directory)
+            if (!dir.exists()) {
+                dir.mkdirs()
             }
-        } else {
-            int payloadID = dtnLink.random.nextInt() & LOWER_16_BITMASK
-
-            for (int i = 0; i < segments; i++) {
-                byte[] segmentData
-                int segmentNumber = i + 1
-                int startPtr = i * minMTU
-                int endPtr = (minMTU < (data.length - startPtr)) ? (segmentNumber) * minMTU : data.length
-                segmentData = Arrays.copyOfRange(data, startPtr, endPtr)
-
-                FileOutputStream fos
-                try {
-                    String segmentID = Integer.toString(payloadID) + "_" + Integer.toString(i) // nice and simple scheme
-                    OutputPDU outputPDU = encodePdu(segmentData, ttl, protocol, payloadID, segmentNumber, segments)
-                    File dir = new File(directory)
-                    if (!dir.exists()) {
-                        dir.mkdirs()
-                    }
-                    File file = new File(dir, segmentID)
-                    fos = new FileOutputStream(file)
-                    outputPDU.writeTo(fos)
-                    metadataMap.put(segmentID, new DtnPduMetadata(nextHop: nextHop,
-                            expiryTime: (int) ttl + dtnLink.currentTimeSeconds(),
-                            attempts: 0,
-                            delivered: false,
-                            payloadID: payloadID))
-                    outboundPayloads.insertSegment(messageID, payloadID, segmentID, segmentNumber, segments)
-                } catch (IOException e) {
-                    println "Could not payload file for " + messageID + " / " + payloadID
-                    return false
-                } finally {
-                    fos.close()
-                }
-            }
+            File file = new File(dir, messageID)
+            fos = new FileOutputStream(file)
+            outputPDU.writeTo(fos)
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
+                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
+                    attempts: 0,
+                    delivered: false,
+                    bytesSent: 0))
             return true
+        } catch (IOException e) {
+            println "Could not save file for " + messageID
+            return false
+        } finally {
+            fos.close()
         }
     }
 
@@ -281,14 +233,16 @@ class DtnStorage {
         }
     }
 
-    OutputPDU encodePdu(byte[] data, int ttl, int protocol, int payloadId, int segmentNumber, int totalSegments) {
+    OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + dtnLink.HEADER_SIZE)
         pdu.write24(ttl)
         pdu.write8(protocol)
-        pdu.write16(payloadId)
-        pdu.write16(segmentNumber)
-        pdu.write16(totalSegments)
+        int payloadFields
+        payloadFields = (tbc) ? 1 << 32 ? 0
+        payloadFields |= (payloadID << 23)
+        payloadFields |= startPtr
+        pdu.write32(payloadFields)
         if (data != null) {
             pdu.write(data)
         }
@@ -303,9 +257,13 @@ class DtnStorage {
         HashMap<String, Integer> map = new HashMap<>()
         map.put(TTL_MAP, (int)pdu.read24())
         map.put(PROTOCOL_MAP, (int)pdu.read8())
-        map.put(PAYLOAD_ID_MAP, (int)pdu.read16() & LOWER_16_BITMASK)
-        map.put(SEGMENT_NUM_MAP, (int)pdu.read16())
-        map.put(TOTAL_SEGMENTS_MAP, (int)pdu.read16())
+        int payloadFields = (int)pdu.read32()
+        int tbc = (payloadFields & 0x80000000) >> 31
+        int payloadID = (payloadFields & 0x7F800000) >> 19
+        int startPtr = (payloadFields & 0xFFFFFF)
+        map.put(TBC_BIT_MAP, tbc)
+        map.put(PAYLOAD_ID_MAP, payloadID)
+        map.put(START_PTR_MAP, startPtr)
         return map
     }
 
