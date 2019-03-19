@@ -82,7 +82,19 @@ class DtnStorage {
         return data
     }
 
-    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int segmentNum, int ttl, int segments) {
+    boolean saveFragment(int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
+
+    }
+
+    byte[] readPayload(int payloadID) {
+
+    }
+
+    void deletePayload(int payloadID) {
+
+    }
+
+    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int startPtr, int ttl, int segments) {
         try {
             String messageID = Integer.toString(payloadID) + "_" + Integer.toString(segmentNum)
             return true

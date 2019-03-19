@@ -280,41 +280,24 @@ class DtnLink extends UnetAgent {
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
-//                    byte[] data =
-                    if (payloadID) {
-                        storage.saveIncomingPayloadSegment(pduBytes, payloadID, segmentNumber, ttl, totalSegments)
-                        stats.segments_received++
-                        if (storage.getPayloadStatus(payloadID, DtnType.PayloadType.INBOUND) ==  PayloadInfo.Status.SUCCESS) {
-                            byte[] payloadData = storage.getPayloadData(payloadID)
-                            // by marking an outbound payload as delivered, it will get deleted on the next sweep!
-                            storage.payloadDelivered(payloadID)
-                            storage.removePayload(payloadID, DtnType.PayloadType.INBOUND)
 
-                            DatagramNtf ntf = new DatagramNtf()
-                            ntf.setProtocol(protocol)
-                            ntf.setData(payloadData)
-                            ntf.setFrom(msg.getFrom())
-                            ntf.setTo(msg.getTo())
+                    if (payloadID) {
+                        storage.saveFragment(payloadID, protocol, startPtr, ttl, data)
+                        if (tbc) {
                             // FIXME: ntf.setTtl(ttl)
-                            notify.send(ntf)
-                            stats.payloads_received++
+                            byte[] payloadData = storage.readPayload(payloadID)
+                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: payloadData))
+                            storage.deletePayload(payloadID)
                         }
                     } else {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
                         // broadcast it on our topic for anyone who's listening (read: ROUTER)
 
                         // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
-                        byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
-                        DatagramNtf ntf = new DatagramNtf()
-                        ntf.setProtocol(protocol)
-                        ntf.setData(data)
-                        ntf.setFrom(msg.getFrom())
-                        ntf.setTo(msg.getTo())
                         // FIXME: ntf.setTtl(ttl)
-                        notify.send(ntf)
+                        notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data))
                         stats.datagrams_received++
                     }
-
                 }
             } else {
                 stats.datagrams_received++
