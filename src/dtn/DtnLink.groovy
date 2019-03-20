@@ -339,7 +339,14 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             stats.datagrams_failed++
             // FIXME: increment retries of payloads here
-            storage.removeFailedEntry(msg.getInReplyTo())
+            String[] split = msg.getInReplyTo().split("_")
+            String messageID = split[0]
+            if (split.length == 2) {
+                // This means it's a payload ID
+                storage.getMetadata(messageID).attempts++
+            } else {
+                storage.removeFailedEntry(messageID)
+            }
             linkState = LinkState.READY
         } else if (msg instanceof CollisionNtf) {
             stats.frame_collisions++

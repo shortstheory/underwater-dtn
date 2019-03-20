@@ -155,7 +155,7 @@ class DtnStorage {
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         int mtu = dtnLink.getMTU()
-        if (dtnLink.getMTU() < data.length) {
+        if (data != null && dtnLink.getMTU() < data.length) {
             return false
         }
 
