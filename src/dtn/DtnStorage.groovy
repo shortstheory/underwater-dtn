@@ -82,12 +82,60 @@ class DtnStorage {
         return data
     }
 
-    boolean saveFragment(int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
+    boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
+        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+        File file = new File(directory, filename)
+
+        byte[] fileBytes
+        if (file.exists()) {
+            byte[] payload = readPayload(src, payloadID)
+            fileBytes = new byte[Math.min(payload.length, startPtr + data.length)]
+            // copy the data
+            int i = 0
+            for (byte b : payload) {
+                fileBytes[i++] = b
+            }
+            i = startPtr
+            for (byte b : data) {
+                fileBytes[i++] = b
+            }
+            FileOutputStream fos = new FileOutputStream(file)
+            try {
+                fos.write(fileBytes)
+                return true
+            } catch (IOException e) {
+                return false
+            } finally {
+                fos.close()
+            }
+        } else {
+            // FIXME: this isn't really the best structure for files, but it does what we need
+            OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
+            FileOutputStream fos = new FileOutputStream(file)
+            // FIXME: we might have to add to payload tracking map here
+            // Only thing the tracking map is doing here is maintaining TTL and delivered status
+            metadataMap.put(filename, new DtnPduMetadata(nextHop: -1,
+                                    expiryTime: (int)ttl, // this will not include transit time!!
+                                    attempts: 0,
+                                    delivered: false,
+                                    payloadID: payloadID,
+                                    bytesSent: 0))
+            try {
+                pdu.writeTo(fos)
+                return true
+            } catch (IOException e) {
+                return false
+            } finally {
+                fos.close()
+            }
+        }
+
 
     }
 
-    byte[] readPayload(int payloadID) {
-
+    byte[] readPayload(int src, int payloadID) {
+        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+        return Files.readAllBytes(new File(directory, filename).toPath())
     }
 
     void deletePayload(int payloadID) {
