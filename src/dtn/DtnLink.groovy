@@ -287,7 +287,9 @@ class DtnLink extends UnetAgent {
                             // FIXME: ntf.setTtl(ttl)
                             byte[] msgBytes = storage.getDataFromPDU(storage.readPayload(src, payloadID))
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
-                            storage.deletePayload(src, payloadID)
+                            String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
+                            storage.setDelivered(messageID)
+//                            storage.deletePayload(src, payloadID)
                         }
                     } else {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
@@ -316,6 +318,7 @@ class DtnLink extends UnetAgent {
                 if (metadata.bytesSent == metadata.size) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
+                    storage.setDelivered(originalMessageID)
                 }
                 // for non-payloads
             } else {
@@ -328,6 +331,7 @@ class DtnLink extends UnetAgent {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
                     stats.datagrams_success++
+                    storage.setDelivered(originalMessageID)
                 }
             }
             linkState = LinkState.READY

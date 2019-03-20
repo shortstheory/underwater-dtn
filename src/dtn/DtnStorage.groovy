@@ -141,7 +141,6 @@ class DtnStorage {
         String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
         File file = new File(directory, filename)
         file.delete()
-        metadataMap.remove(filename)
         // FIXME: on TTL expiry we have to make sure that this method is called
         // No DDN/DFN required if this is deleted
         // so behave the same as regular message delivery as well
@@ -180,34 +179,27 @@ class DtnStorage {
         }
     }
 
-    void deleteFile(String messageID, DtnPduMetadata metadata) {
-        try {
-            File file = new File(directory, messageID)
-            file.delete()
-            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-                    Iterator it = datagramMap.entrySet().iterator()
-                    dtnLink.sendFailureNtf(messageID, metadata.nextHop)
-                    // removes from tracking map
-                    while (it.hasNext()) {
-                        Map.Entry entry = (Map.Entry) it.next()
-                        if (entry.getValue() == messageID) {
-                            it.remove()
-                            return
-                        }
-                    }
-                } else if (metadata.getMessageType() == DtnPduMetadata.MessageType.INBOUND) {
-//                    String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+    void setDelivered(String messageID) {
+        metadataMap.get(messageID).delivered = true
+    }
 
-                    // FIXME: INBOUND AND OUTBOUND PAYLOADS HAVE DIFFERENT BEHAVIOURS HERE
-                    String[] split = messageID.split("_")
-                    int src = Integer.valueOf(split[0])
-                    int payloadID = Integer.valueOf(split[1])
-                    deletePayload(src, payloadID)
-                }
+    void deleteFile(String messageID, DtnPduMetadata metadata) {
+        File file = new File(directory, messageID)
+        file.delete()
+        // remove from tracking map
+        Iterator it = datagramMap.entrySet().iterator()
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry) it.next()
+            if (entry.getValue() == messageID) {
+                it.remove()
+                break
             }
-        } catch (Exception e) {
-            println "Could not delete file for " + messageID + " files " + datagramMap.size() + "/" + metadataMap.size()
+        }
+        // If TTL'ed send the appropriate ntf
+        if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+            if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+                dtnLink.sendFailureNtf(messageID, metadata.nextHop)
+            }
         }
     }
 
