@@ -280,14 +280,14 @@ class DtnLink extends UnetAgent {
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
-
+                    int src = msg.getFrom()
                     if (payloadID) {
-                        storage.saveFragment(payloadID, protocol, startPtr, ttl, data)
+                        storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
                             // FIXME: ntf.setTtl(ttl)
-                            byte[] payloadData = storage.readPayload(payloadID)
+                            byte[] payloadData = storage.readPayload(src, payloadID)
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: payloadData))
-                            storage.deletePayload(payloadID)
+                            storage.deletePayload(src, payloadID)
                         }
                     } else {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just

@@ -138,8 +138,14 @@ class DtnStorage {
         return Files.readAllBytes(new File(directory, filename).toPath())
     }
 
-    void deletePayload(int payloadID) {
-
+    void deletePayload(int src, int payloadID) {
+        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+        File file = new File(directory, filename)
+        file.delete()
+        metadataMap.remove(filename)
+        // FIXME: on TTL expiry we have to make sure that this method is called
+        // No DDN/DFN required if this is killed
+        // so behave the same as regular message delivery as well
     }
 
     boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int startPtr, int ttl, int segments) {
