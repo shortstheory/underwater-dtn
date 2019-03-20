@@ -10,6 +10,13 @@ class DtnPduMetadata {
     boolean delivered
     int bytesSent
     int size
-    DtnType.MessageType messageType
+
+    DtnType.MessageType getMessageType() {
+        if (nextHop != -1) {
+            return DtnType.MessageType.DATAGRAM
+        } else {
+            return DtnType.MessageType.PAYLOAD
+        }
+    }
 }
 

@@ -12,6 +12,7 @@ class DtnType {
         OUTBOUND
     }
 
+    // FIXME: Change the names of these message types
     static enum MessageType {
         PAYLOAD,
         DATAGRAM

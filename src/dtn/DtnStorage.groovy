@@ -189,17 +189,16 @@ class DtnStorage {
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
                     dtnLink.sendFailureNtf(messageID, nextHop)
+                    // removes from tracking map
+                    while (it.hasNext()) {
+                        Map.Entry entry = (Map.Entry) it.next()
+                        if (entry.getValue() == messageID) {
+                            it.remove()
+                            return
+                        }
+                    }
                 } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD) {
                     // FIXME: INBOUND AND OUTBOUND PAYLOADS HAVE DIFFERENT BEHAVIOURS HERE
-                }
-            }
-
-            // removes from tracking map
-            while (it.hasNext()) {
-                Map.Entry entry = (Map.Entry) it.next()
-                if (entry.getValue() == messageID) {
-                    it.remove()
-                    return
                 }
             }
         } catch (Exception e) {
