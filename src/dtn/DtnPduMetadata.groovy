@@ -11,12 +11,18 @@ class DtnPduMetadata {
     int bytesSent
     int size
 
-    DtnType.MessageType getMessageType() {
+    MessageType getMessageType() {
         if (nextHop != -1) {
-            return DtnType.MessageType.OUTBOUND
+            return MessageType.OUTBOUND
         } else {
-            return DtnType.MessageType.INBOUND
+            return MessageType.INBOUND
         }
+    }
+
+        // FIXME: Change the names of these message types
+    enum MessageType {
+        INBOUND,
+        OUTBOUND
     }
 }
 

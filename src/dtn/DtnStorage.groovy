@@ -184,7 +184,7 @@ class DtnStorage {
             File file = new File(directory, messageID)
             file.delete()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                if (metadata.getMessageType() == DtnType.MessageType.OUTBOUND) {
+                if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
                     Iterator it = datagramMap.entrySet().iterator()
                     dtnLink.sendFailureNtf(messageID, metadata.nextHop)
                     // removes from tracking map
@@ -195,7 +195,7 @@ class DtnStorage {
                             return
                         }
                     }
-                } else if (metadata.getMessageType() == DtnType.MessageType.INBOUND) {
+                } else if (metadata.getMessageType() == DtnPduMetadata.MessageType.INBOUND) {
 //                    String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
 
                     // FIXME: INBOUND AND OUTBOUND PAYLOADS HAVE DIFFERENT BEHAVIOURS HERE
