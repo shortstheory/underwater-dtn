@@ -4,12 +4,26 @@ issues:
 
 pending:
 * fragmentation
-* delete stats tracker eventually
-* prof's idea is better than mine
+* delete stats tracker NOW
+    * replace it with the generator and the testApp for collecting stats which can be displayed
+* change the place where the retry count & all is incremented
+* datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
+* add a new SIMS folder :P
+* lots of duplications may be needed in tests
+    * can be circumvented by using the same cases and just sending a BAM and checking that it behaves well
 
 later:
 
 in progress:
+
+done:
+* prof's idea is better than mine
+* multihop router tests
+**create issue for the bitrate of the link**
+* start midsem report
+* ask how to write tests
+* configurable containers
+
 * what works
     * splitting  & reassembly
 * what doesn't
@@ -20,13 +34,6 @@ in progress:
 !!* clean code?
 !!* study some 3B1B
 * do docu
-
-done:
-* multihop router tests
-**create issue for the bitrate of the link**
-* start midsem report
-* ask how to write tests
-* configurable containers
 
 * what MTU to use?
 * using debugger in router causes different outputs in the processRequest function of DtnLink

@@ -453,11 +453,6 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-//        int minMTU = Integer.MAX_VALUE
-//        for (DtnLinkInfo.LinkMetadata metadata : utility.getLinkInfo().values()) {
-//            minMTU = Math.min(metadata.linkMTU, minMTU)
-//        }
-//        return minMTU - HEADER_SIZE
         return 8388607 - HEADER_SIZE
     }
 
