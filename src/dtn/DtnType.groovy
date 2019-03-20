@@ -13,7 +13,7 @@ class DtnType {
     }
 
     static enum MessageType {
-        PAYLOAD_SEGMENT,
+        PAYLOAD,
         DATAGRAM
     }
 }

@@ -385,7 +385,6 @@ class DtnLink extends UnetAgent {
                                             to: node,
                                             reliability: true)
                                 }
-                                storage.trackDatagram(datagramReq.getMessageID(), messageID)
                                 // FIXME: use send or request here?
                                 stats.datagrams_sent++
                             } else {
@@ -407,8 +406,9 @@ class DtnLink extends UnetAgent {
                                                 data: pduBytes,
                                                 to: node,
                                                 reliability: true,
-                                                id: dreqID)
+                                                messageID: dreqID)
                             }
+                            storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             nodeLink.send(datagramReq)
                         }
                     } else {

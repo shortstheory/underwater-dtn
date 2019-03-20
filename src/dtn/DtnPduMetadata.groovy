@@ -9,7 +9,7 @@ class DtnPduMetadata {
     int attempts
     boolean delivered
     int bytesSent
-//    int payloadID
     int size
+    DtnType.MessageType messageType
 }
 

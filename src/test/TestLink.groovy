@@ -295,9 +295,13 @@ class TestLink extends UnetAgent {
         HashMap<String, Integer> map = new HashMap<>()
         map.put(DtnStorage.TTL_MAP, (int)pdu.read24())
         map.put(DtnStorage.PROTOCOL_MAP, (int)pdu.read8())
-        map.put(DtnStorage.PAYLOAD_ID_MAP, (int)pdu.read16())
-        map.put(DtnStorage.SEGMENT_NUM_MAP, (int)pdu.read16())
-        map.put(DtnStorage.TOTAL_SEGMENTS_MAP, (int)pdu.read16())
+        int payloadFields = (int)pdu.read32()
+        int tbc = ((payloadFields & 0x80000000).toInteger() >> 31)
+        int payloadID = ((payloadFields & 0x7F800000) >> 19)
+        int startPtr = (payloadFields & 0xFFFFFF)
+        map.put(DtnStorage.TBC_BIT_MAP, tbc)
+        map.put(DtnStorage.PAYLOAD_ID_MAP, payloadID)
+        map.put(DtnStorage.START_PTR_MAP, startPtr)
         return map
     }
 }

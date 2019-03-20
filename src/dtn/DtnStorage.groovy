@@ -118,7 +118,6 @@ class DtnStorage {
                                     expiryTime: (int)ttl, // this will not include transit time!!
                                     attempts: 0,
                                     delivered: false,
-                                    payloadID: payloadID,
                                     bytesSent: 0))
             try {
                 pdu.writeTo(fos)
@@ -148,31 +147,6 @@ class DtnStorage {
         // so behave the same as regular message delivery as well
     }
 
-    boolean saveIncomingPayloadSegment(byte[] incomingSegment, int payloadID, int startPtr, int ttl, int segments) {
-        try {
-            String messageID = Integer.toString(payloadID) + "_" + Integer.toString(segmentNum)
-            return true
-        } catch (IOException e) {
-            println "Could not save file for " + messageID
-            return false
-        } finally {
-            fos.close()
-        }
-    }
-
-    PayloadInfo.Status getPayloadStatus(int payloadID, DtnType.PayloadType type) {
-        if (type == DtnType.PayloadType.INBOUND) {
-            return inboundPayloads.getStatus(payloadID)
-        } else {
-            return outboundPayloads.getStatus(payloadID)
-        }
-    }
-
-    byte[] getPayloadData(int payloadID) {
-        return inboundPayloads.reassemblePayloadData(payloadID)
-    }
-
-    // Fragment PDUs can't be tracked normally lah!!
     // dumb mistake for sure
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
@@ -205,31 +179,6 @@ class DtnStorage {
         }
     }
 
-    DtnType.MessageResult updateMaps(String messageID) {
-        DtnPduMetadata metadata = getMetadata(messageID)
-        if (metadata != null) {
-            metadata.delivered = true
-            outboundPayloads.removeSegment(metadata.payloadID, messageID)
-            if (metadata.payloadID) {
-                if (outboundPayloads.payloadTransferred(metadata.payloadID)) {
-                    return DtnType.MessageResult.PAYLOAD_TRANSFERRED
-                }
-                return DtnType.MessageResult.PAYLOAD_SEGMENT
-            }
-        }
-        return DtnType.MessageResult.DATAGRAM
-    }
-
-    String getPayloadDatagramID(int payloadID) {
-        return outboundPayloads.payloadMap.get(payloadID).datagramID
-    }
-
-    void payloadDelivered(int payloadID) {
-        for (String id : inboundPayloads.payloadMap.get(payloadID).segmentSet) {
-            metadataMap.get(id).delivered = true
-        }
-    }
-
     void deleteFile(String messageID, DtnPduMetadata metadata) {
         try {
             File file = new File(directory, messageID)
@@ -240,13 +189,8 @@ class DtnStorage {
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
                     dtnLink.sendFailureNtf(messageID, nextHop)
-                } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD_SEGMENT) {
-                    if (inboundPayloads.exists(metadata.payloadID)) {
-                        PayloadInfo info = removePayload(metadata.payloadID, DtnType.PayloadType.INBOUND)
-                    } else if (outboundPayloads.exists(metadata.payloadID)) {
-                        PayloadInfo info = removePayload(metadata.payloadID, DtnType.PayloadType.OUTBOUND)
-                        dtnLink.sendFailureNtf(info.datagramID, metadata.nextHop)
-                    }
+                } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD) {
+                    // FIXME: INBOUND AND OUTBOUND PAYLOADS HAVE DIFFERENT BEHAVIOURS HERE
                 }
             }
 
@@ -314,8 +258,8 @@ class DtnStorage {
         map.put(TTL_MAP, (int)pdu.read24())
         map.put(PROTOCOL_MAP, (int)pdu.read8())
         int payloadFields = (int)pdu.read32()
-        int tbc = (payloadFields & 0x80000000) >> 31
-        int payloadID = (payloadFields & 0x7F800000) >> 19
+        int tbc = ((payloadFields & 0x80000000).toInteger() >> 31)
+        int payloadID = ((payloadFields & 0x7F800000) >> 19)
         int startPtr = (payloadFields & 0xFFFFFF)
         map.put(TBC_BIT_MAP, tbc)
         map.put(PAYLOAD_ID_MAP, payloadID)
@@ -353,14 +297,6 @@ class DtnStorage {
 
     void removeFailedEntry(String newMessageID) {
         datagramMap.remove(newMessageID)
-    }
-
-    PayloadInfo removePayload(int payloadID, DtnType.PayloadType type) {
-        if (type == DtnType.PayloadType.INBOUND) {
-            return inboundPayloads.removePayload(payloadID)
-        } else if (type == DtnType.PayloadType.OUTBOUND) {
-            return outboundPayloads.removePayload(payloadID)
-        }
     }
 
     int getArrivalTime(String messageID) {
