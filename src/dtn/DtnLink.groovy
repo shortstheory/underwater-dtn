@@ -273,7 +273,7 @@ class DtnLink extends UnetAgent {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = storage.decodePdu(pduBytes)
-                byte[] data = storage.getDataFromPDU()
+                byte[] data = storage.getDataFromPDU(pduBytes)
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
@@ -285,8 +285,8 @@ class DtnLink extends UnetAgent {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
                             // FIXME: ntf.setTtl(ttl)
-                            byte[] payloadData = storage.readPayload(src, payloadID)
-                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: payloadData))
+                            byte[] msgBytes = storage.getDataFromPDU(storage.readPayload(src, payloadID))
+                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
                             storage.deletePayload(src, payloadID)
                         }
                     } else {
@@ -334,6 +334,7 @@ class DtnLink extends UnetAgent {
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
             stats.datagrams_failed++
+            // FIXME: increment retries of payloads here
             storage.removeFailedEntry(msg.getInReplyTo())
             linkState = LinkState.READY
         } else if (msg instanceof CollisionNtf) {
@@ -386,6 +387,7 @@ class DtnLink extends UnetAgent {
                                             reliability: true)
                                 }
                                 // FIXME: use send or request here?
+                                storage.trackDatagram(datagramReq.getMessageID(), messageID)
                                 stats.datagrams_sent++
                             } else {
                                 int startPtr = metadata.bytesSent
@@ -402,13 +404,12 @@ class DtnLink extends UnetAgent {
                                                     .toByteArray()
                                 // separator should not conflict with a regular DReq
                                 String dreqID = Integer.toString(payloadID) + "_" + endPtr
-                                datagramReq = new DatagramReq(protocol: pduProtocol,
+                                datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                 data: pduBytes,
                                                 to: node,
                                                 reliability: true,
                                                 messageID: dreqID)
                             }
-                            storage.trackDatagram(datagramReq.getMessageID(), messageID)
                             nodeLink.send(datagramReq)
                         }
                     } else {
@@ -446,7 +447,7 @@ class DtnLink extends UnetAgent {
 //            minMTU = Math.min(metadata.linkMTU, minMTU)
 //        }
 //        return minMTU - HEADER_SIZE
-        return 2^24
+        return 8388607 - HEADER_SIZE
     }
 
     void setBEACON_PERIOD(int period) {

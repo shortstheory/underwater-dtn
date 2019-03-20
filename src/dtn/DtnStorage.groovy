@@ -89,13 +89,13 @@ class DtnStorage {
         byte[] fileBytes
         if (file.exists()) {
             byte[] payload = readPayload(src, payloadID)
-            fileBytes = new byte[Math.min(payload.length, startPtr + data.length)]
+            fileBytes = new byte[Math.max(payload.length, startPtr + data.length + dtnLink.HEADER_SIZE)]
             // copy the data
             int i = 0
             for (byte b : payload) {
                 fileBytes[i++] = b
             }
-            i = startPtr
+            i = startPtr + dtnLink.HEADER_SIZE
             for (byte b : data) {
                 fileBytes[i++] = b
             }
@@ -155,6 +155,7 @@ class DtnStorage {
         int ttl = (Math.round(req.getTtl()) & LOWER_24_BITMASK)
         String messageID = req.getMessageID()
         byte[] data = req.getData()
+        int mtu = dtnLink.getMTU()
         if (dtnLink.getMTU() < data.length) {
             return false
         }
@@ -244,7 +245,7 @@ class DtnStorage {
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next()
             if (pair.getValue() == messageID) {
-                return pair.getKey()
+                return Integer.valueOf((String)pair.getKey())
             }
         }
         int randomID = dtnLink.random.nextInt() & LOWER_8_BITMASK

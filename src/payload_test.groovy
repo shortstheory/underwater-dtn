@@ -15,14 +15,14 @@ channel.pDecoding = 1
 int[] dest1 = [2]
 
 def dist = 200.m
-def msgSize = 100*1000
+def msgSize = 5*1000
 def msgFreq = 900*1000
 def msgTtl = 100000
 
 def T = 1.hour
 int nodeCount = 2
 
-for (int f = 0; f < nodeCount; f++) {
+for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
