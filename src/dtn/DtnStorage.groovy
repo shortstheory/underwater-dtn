@@ -14,8 +14,8 @@ class DtnStorage {
     private HashMap<String, DtnPduMetadata> metadataMap
 
     // PDU Structure
-    // |TTL (24)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
-    // |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (31)|
+    // **OLD** - |TTL (24)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
+    // **NEW** - |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (23)|
     // no payload ID for messages which fit in the MTU
 
     /**
@@ -144,7 +144,7 @@ class DtnStorage {
         file.delete()
         metadataMap.remove(filename)
         // FIXME: on TTL expiry we have to make sure that this method is called
-        // No DDN/DFN required if this is killed
+        // No DDN/DFN required if this is deleted
         // so behave the same as regular message delivery as well
     }
 
@@ -188,11 +188,7 @@ class DtnStorage {
         OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, 0, 0)
         FileOutputStream fos
         try {
-            File dir = new File(directory)
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-            File file = new File(dir, messageID)
+            File file = new File(directory, messageID)
             fos = new FileOutputStream(file)
             outputPDU.writeTo(fos)
             metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
