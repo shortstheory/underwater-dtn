@@ -14,7 +14,7 @@ class DtnStorage {
     private HashMap<String, DtnPduMetadata> metadataMap
 
     // PDU Structure
-    // **OLD** - |TTL (24)| PAYLOAD (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
+    // **OLD** - |TTL (24)| INBOUND (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // **NEW** - |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (23)|
     // no payload ID for messages which fit in the MTU
 
@@ -183,12 +183,10 @@ class DtnStorage {
         try {
             File file = new File(directory, messageID)
             file.delete()
-            int nextHop = metadata.nextHop
-            Iterator it = datagramMap.entrySet().iterator()
-
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                if (metadata.getMessageType() == DtnType.MessageType.DATAGRAM) {
-                    dtnLink.sendFailureNtf(messageID, nextHop)
+                if (metadata.getMessageType() == DtnType.MessageType.OUTBOUND) {
+                    Iterator it = datagramMap.entrySet().iterator()
+                    dtnLink.sendFailureNtf(messageID, metadata.nextHop)
                     // removes from tracking map
                     while (it.hasNext()) {
                         Map.Entry entry = (Map.Entry) it.next()
@@ -197,8 +195,14 @@ class DtnStorage {
                             return
                         }
                     }
-                } else if (metadata.getMessageType() == DtnType.MessageType.PAYLOAD) {
+                } else if (metadata.getMessageType() == DtnType.MessageType.INBOUND) {
+//                    String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+
                     // FIXME: INBOUND AND OUTBOUND PAYLOADS HAVE DIFFERENT BEHAVIOURS HERE
+                    String[] split = messageID.split("_")
+                    int src = Integer.valueOf(split[0])
+                    int payloadID = Integer.valueOf(split[1])
+                    deletePayload(src, payloadID)
                 }
             }
         } catch (Exception e) {

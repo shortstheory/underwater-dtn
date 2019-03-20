@@ -13,9 +13,9 @@ class DtnPduMetadata {
 
     DtnType.MessageType getMessageType() {
         if (nextHop != -1) {
-            return DtnType.MessageType.DATAGRAM
+            return DtnType.MessageType.OUTBOUND
         } else {
-            return DtnType.MessageType.PAYLOAD
+            return DtnType.MessageType.INBOUND
         }
     }
 }
