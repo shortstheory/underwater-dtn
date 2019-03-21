@@ -27,8 +27,11 @@ class DtnTest {
     }
 
     public static final String MESSAGE_ID = "testmessage"
+    public static final String BIG_MESSAGE_ID = "bigmessage"
     public static final String MESSAGE_DATA = "testdata"
     public static final String storagePath = "testStorage"
+    public static final String payloadPath = "testPayload"
+
     public static final int DEST_ADDRESS = 2
     public static final int MESSAGE_TTL = 3600
     public static final int MESSAGE_PROTOCOL = Protocol.USER
@@ -38,13 +41,14 @@ class DtnTest {
     public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 600
     public static final int PAYLOAD_SIZE = 10000
-
+    public String payloadText
     public static ArrayList<AgentID> LINK_ORDER = new ArrayList<>()
 
     @Before
     public void beforeTesting() {
         println("Cleaning Dirs")
         FileUtils.deleteDirectory(new File(path))
+        payloadText = new File(payloadPath).text
     }
 
     @Test

@@ -52,6 +52,7 @@ class Scratchpad {
         int startPtr = 8000*1000
         byte[] res = encodePdu(data, ttl, protocol, tbc, id, startPtr).toByteArray()
         HashMap map = decodePdu(res)
-        println("done")
+//        String payload = new File("testPayload").text
+//        println("done")
     }
 }
