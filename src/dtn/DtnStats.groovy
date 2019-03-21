@@ -92,9 +92,12 @@ class DtnStats {
         println("")
         for (int stat = 1; stat <= nodes; stat++) {
             Gson gson = new Gson()
-            String json = new File(Integer.toString(stat)+".json").text
-            DtnStats dtnStats = gson.fromJson(json, DtnStats.class)
-            dtnStats.printValues()
+            File f = new File(Integer.toString(stat)+".json")
+            if (f.exists()) {
+                String json = f.text
+                DtnStats dtnStats = gson.fromJson(json, DtnStats.class)
+                dtnStats.printValues()
+            }
         }
     }
 }

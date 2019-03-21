@@ -40,11 +40,6 @@ class DtnLink extends UnetAgent {
     int MTU
 
     /**
-     * Collects statistics for the simulation
-     */
-    public DtnStats stats
-
-    /**
      * Manages the storage of pending segmentSet
      */
     private DtnStorage storage
@@ -126,7 +121,6 @@ class DtnLink extends UnetAgent {
         nodeAddress = (get(nodeInfo, NodeInfoParam.address) != null) ? (int)get(nodeInfo, NodeInfoParam.address) : 1
         notify = topic()
 
-        stats = new DtnStats(nodeAddress)
         storage = new DtnStorage(this, directory)
         utility = new DtnLinkInfo(this)
 
@@ -183,7 +177,6 @@ class DtnLink extends UnetAgent {
         notify.send(new DatagramFailureNtf(inReplyTo: messageID,
                                             to: nextHop))
         println "Datagram - " + messageID + " has expired"
-        stats.datagrams_expired++
     }
 
     // If we're sending a payload, ARRIVAL & EXPIRY will always choose it again
@@ -246,7 +239,6 @@ class DtnLink extends UnetAgent {
                 return new Message(msg, Performative.REFUSE)
             } else {
                 int x = currentTimeSeconds()
-                stats.datagrams_requested++
                 return new Message(msg, Performative.AGREE)
             }
         }
@@ -256,7 +248,6 @@ class DtnLink extends UnetAgent {
     @Override
     protected void processMessage(Message msg) {
         if (msg instanceof RxFrameNtf) {
-            stats.beacons_snooped++
             AgentID phy = msg.getRecipient().getOwner().getAgentID()
             AgentID link = utility.getLinkForPhy(phy)
             if (link != null) {
@@ -297,11 +288,8 @@ class DtnLink extends UnetAgent {
                         // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
                         // FIXME: ntf.setTtl(ttl)
                         notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data))
-                        stats.datagrams_received++
                     }
                 }
-            } else {
-                stats.datagrams_received++
             }
             // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
@@ -324,19 +312,14 @@ class DtnLink extends UnetAgent {
                 // it can happen that the DDN comes just after a TTL
                 if (originalMessageID != null) {
                     int deliveryTime = currentTimeSeconds() - storage.getArrivalTime(originalMessageID)
-                    if (deliveryTime >= 0) {
-                        stats.delivery_times.add(deliveryTime)
-                    }
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
-                    stats.datagrams_success++
                     storage.setDelivered(originalMessageID)
                 }
             }
             linkState = LinkState.READY
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
-            stats.datagrams_failed++
             // FIXME: increment retries of payloads here
             String[] split = msg.getInReplyTo().split("_")
             String messageID = split[0]
@@ -348,10 +331,6 @@ class DtnLink extends UnetAgent {
                 storage.removeFailedEntry(messageID)
             }
             linkState = LinkState.READY
-        } else if (msg instanceof CollisionNtf) {
-            stats.frame_collisions++
-        } else if (msg instanceof BadFrameNtf) {
-            stats.bad_frames++
         }
     }
 
@@ -367,7 +346,6 @@ class DtnLink extends UnetAgent {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             if (metadata.attempts > 0) {
-                                stats.datagrams_resent++
                                 println("Resending datagram: " + messageID + " attempt " + storage.getMetadata(messageID).attempts)
                             }
                             // check for protocol number here?
@@ -399,7 +377,6 @@ class DtnLink extends UnetAgent {
                                 }
                                 // FIXME: use send or request here?
                                 storage.trackDatagram(datagramReq.getMessageID(), messageID)
-                                stats.datagrams_sent++
                             } else {
                                 int startPtr = metadata.bytesSent
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
@@ -477,15 +454,5 @@ class DtnLink extends UnetAgent {
 
     Set<Integer> getDISCOVERED_NODES() {
         return utility.getDestinationNodes()
-    }
-
-    DtnStats getStats() {
-        return stats
-    }
-
-    @Override
-    void stop() {
-        super.stop()
-        stats.writeToFile()
     }
 }
