@@ -47,7 +47,6 @@ class DtnStorage {
     }
 
     void trackDatagram(String newMessageID, String oldMessageID) {
-        getMetadata(oldMessageID).attempts++
         datagramMap.put(newMessageID, oldMessageID)
     }
 
