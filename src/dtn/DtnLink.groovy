@@ -39,9 +39,6 @@ class DtnLink extends UnetAgent {
 
     int MTU
 
-    /**
-     * Manages the storage of pending segmentSet
-     */
     private DtnStorage storage
     public int nodeAddress
     private String directory
@@ -64,8 +61,10 @@ class DtnLink extends UnetAgent {
     int DATAGRAM_PERIOD = 10*1000
     int RANDOM_DELAY = 5*1000
     int MAX_RETRIES = 5
+
     // uses seconds
     int LINK_EXPIRY_TIME = 10*6000
+
     DatagramPriority DATAGRAM_PRIORITY
     ArrayList<AgentID> LINK_PRIORITY
 
@@ -256,7 +255,6 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramNtf) {
             // we will do this for every message? Can't hurt much
             AgentID link = utility.getLink(msg.getSender())
-//            AgentID link = utility.getLinkForTopic(msg.getRecipient())
             utility.addLinkForNode(msg.getFrom(), link)
             utility.updateLastTransmission(link)
 
