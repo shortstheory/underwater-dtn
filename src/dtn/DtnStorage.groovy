@@ -115,7 +115,7 @@ class DtnStorage {
             // FIXME: we might have to add to payload tracking map here
             // Only thing the tracking map is doing here is maintaining TTL and delivered status
             metadataMap.put(filename, new DtnPduMetadata(nextHop: -1,
-                                    expiryTime: (int)ttl, // this will not include transit time!!
+                                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
                                     attempts: 0,
                                     delivered: false,
                                     bytesSent: 0))

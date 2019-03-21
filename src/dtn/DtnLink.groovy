@@ -1,6 +1,5 @@
 package dtn
 
-
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.CyclicBehavior
@@ -343,6 +342,7 @@ class DtnLink extends UnetAgent {
             String messageID = split[0]
             if (split.length == 2) {
                 // This means it's a payload ID
+                // FIXME: NPE, needs to be investigated!!!
                 storage.getMetadata(messageID).attempts++
             } else {
                 storage.removeFailedEntry(messageID)

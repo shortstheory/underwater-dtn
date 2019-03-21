@@ -15,7 +15,7 @@ channel.pDecoding = 1
 int[] dest1 = [2]
 
 def dist = 200.m
-def msgSize = 5*1000
+def msgSize = 500*1000
 def msgFreq = 900*1000
 def msgTtl = 100000
 
