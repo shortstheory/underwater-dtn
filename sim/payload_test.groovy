@@ -13,7 +13,7 @@ platform = DiscreteEventSimulator
 //channel.model = BasicAcousticChannel
 channel.model = ProtocolChannelModel
 channel.pDetection = 1.0
-channel.pDecoding = 0.8
+channel.pDecoding = 1.0
 
 int[] dest1 = [2]
 
@@ -30,15 +30,20 @@ for (int f = 1; f <= nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
+DatagramGenerator dg1 = new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, DatagramGenerator.Mode.PAYLOAD)
+DatagramGenerator dg2 = new DatagramGenerator()
+
 simulate {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
-        container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, DatagramGenerator.Mode.PAYLOAD)
+        container.add 'testagent', dg1
     }
     node 'b', address: 2, location: [dist, 0, 0], shell: 5000, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
-        container.add 'receiver', new DatagramGenerator()
+        container.add 'receiver', dg2
     }
 }
+println "Sent" + dg1.payloadsSent
+println "Rec" + dg2.payloadsReceived

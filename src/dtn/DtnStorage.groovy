@@ -154,10 +154,9 @@ class DtnStorage {
         }
 
         OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, 0, 0)
-        FileOutputStream fos
+        File file = new File(directory, messageID)
+        FileOutputStream fos = new FileOutputStream(file)
         try {
-            File file = new File(directory, messageID)
-            fos = new FileOutputStream(file)
             outputPDU.writeTo(fos)
             metadataMap.put(messageID, new DtnPduMetadata(nextHop, ttl + dtnLink.currentTimeSeconds()))
             return true

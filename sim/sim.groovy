@@ -77,6 +77,5 @@ for (def i = 0; i < 10; i++) {
             container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, false)
         }
     }
-    DtnStats.printAllStats(nodeCount)
 }
 

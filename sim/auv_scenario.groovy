@@ -66,5 +66,4 @@ for (int i = 1; i <= 10; i++) {
                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
 
     }
-    DtnStats.printAllStats(nodeCount)
 }

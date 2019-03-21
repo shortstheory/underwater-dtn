@@ -1,6 +1,8 @@
 package test
 
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
 import dtn.DtnLink
+import groovy.transform.CompileStatic
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message
@@ -15,16 +17,6 @@ import org.arl.unet.ParameterRsp
 import org.arl.unet.UnetAgent
 
 class DatagramGenerator extends UnetAgent{
-    int payloadsSent      = 0
-    int payloadsSuccess   = 0
-    int payloadsFailure   = 0
-    int payloadsReceived  = 0
-
-    int datagramsSent     = 0
-    int datagramsSuccess  = 0
-    int datagramsFailure  = 0
-    int datagramsReceived = 0
-
     enum Mode {
         REGULAR,
         RANDOM_TTL,
@@ -49,14 +41,15 @@ class DatagramGenerator extends UnetAgent{
     String payloadPath = "testPayload"
     String payloadText = new File(payloadPath).text
 
-    ArrayList<String> sentDatagrams
-    ArrayList<String> sentPayloads
-
-    DatagramGenerator() {
+    ArrayList<String> sentDatagrams = new ArrayList<>()
+    ArrayList<String> sentPayloads = new ArrayList<>()
+    DtnStats stats
+    DatagramGenerator(DtnStats stat) {
         mode = Mode.RECEIVER
+        stats = stat
     }
 
-    DatagramGenerator(int[] destNodes, int period, int size, int ttl, Mode mode) {
+    DatagramGenerator(int[] destNodes, int period, int size, int ttl, Mode mode, DtnStats stat) {
         this.destNodes = destNodes
         messagePeriod = period
 
@@ -64,6 +57,7 @@ class DatagramGenerator extends UnetAgent{
         messagePeriod = period
         msgTtl = ttl
         this.mode = mode
+        stats = stat
     }
 
     private static String createDataSize(int msgSize) {
@@ -79,7 +73,8 @@ class DatagramGenerator extends UnetAgent{
     protected void startup() {
         dtnLink = agent("dtnlink")
         link = agent("link")
-        subscribe(topic(dtnLink))
+        subscribe(dtnLink)
+        subscribe(link)
 
         switch (mode) {
         case Mode.RANDOM_TTL:
@@ -92,7 +87,7 @@ class DatagramGenerator extends UnetAgent{
                         byte[] bytes = data.getBytes()
                         DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: protocolNumber)
                         dtnLink.send(req)
-                        datagramsSent++
+                        stats.datagramsSent++
                         sentDatagrams.add(req.getMessageID())
                     }
                 }
@@ -107,7 +102,7 @@ class DatagramGenerator extends UnetAgent{
                     for (int destNode : destNodes) {
                         DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: protocolNumber)
                         dtnLink.send(req)
-                        datagramsSent++
+                        stats.datagramsSent++
                         sentDatagrams.add(req.getMessageID())
                     }
                 }
@@ -125,7 +120,7 @@ class DatagramGenerator extends UnetAgent{
                     for (int destNode : destNodes) {
                         DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: payloadProtocolNumber)
                         dtnLink.send(req)
-                        payloadsSent++
+                        stats.payloadsSent++
                         sentPayloads.add(req.getMessageID())
                     }
                 }
@@ -141,7 +136,7 @@ class DatagramGenerator extends UnetAgent{
     protected void processMessage(Message msg) {
         if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == protocolNumber) {
-                datagramsReceived++
+                stats.datagramsReceived++
             } else if (msg.getProtocol() == payloadProtocolNumber) {
                 def x = msg
                 String s = new String(msg.getData())
@@ -150,21 +145,21 @@ class DatagramGenerator extends UnetAgent{
                 } else {
                     println "Fail"
                 }
-                payloadsReceived++
+                stats.payloadsReceived++
             }
         } else if (msg instanceof DatagramDeliveryNtf) {
             if (sentDatagrams.contains(msg.getInReplyTo())) {
-                datagramsSuccess++
+                stats.datagramsSuccess++
             }
             if (sentPayloads.contains(msg.getInReplyTo())) {
-                datagramsSuccess++
+                stats.payloadsSuccess++
             }
         } else if (msg instanceof DatagramFailureNtf) {
             if (sentDatagrams.contains(msg.getInReplyTo())) {
-                datagramsFailure++
+                stats.datagramsFailure++
             }
             if (sentPayloads.contains(msg.getInReplyTo())) {
-                payloadsFailure++
+                stats.payloadsFailure++
             }
         }
     }
