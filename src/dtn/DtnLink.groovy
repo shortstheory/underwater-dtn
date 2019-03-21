@@ -322,9 +322,11 @@ class DtnLink extends UnetAgent {
             String[] split = msg.getInReplyTo().split("_")
             String messageID = split[0]
             String originalMessageID = storage.getOriginalMessageID(messageID)
+
+            println("Datagram: " + messageID + " Failed w/ " + storage.getMetadata(originalMessageID).attempts + " Bytes: " + storage.getMetadata(originalMessageID).bytesSent)
+
             if (split.length == 2) {
                 // This means it's a payload ID
-                // FIXME: NPE, needs to be investigated!!!
                 storage.getMetadata(originalMessageID).attempts++
             } else {
                 storage.removeTracking(messageID)
@@ -345,9 +347,6 @@ class DtnLink extends UnetAgent {
                     if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
-                            if (metadata.attempts > 0) {
-                                println("Resending datagram: " + messageID + " attempt " + storage.getMetadata(messageID).attempts)
-                            }
                             // check for protocol number here?
                             // we are decoding the PDU twice, not good!
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)

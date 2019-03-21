@@ -2,6 +2,7 @@ import dtn.DtnLink
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.DiscreteEventSimulator
 import org.arl.unet.link.ReliableLink
+import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.channels.ProtocolChannelModel
 import test.DatagramGenerator
 import test.DummyApp
@@ -9,9 +10,10 @@ import test.DummyApp
 import java.nio.file.Files
 platform = DiscreteEventSimulator
 
+//channel.model = BasicAcousticChannel
 channel.model = ProtocolChannelModel
-channel.pDetection = 1
-channel.pDecoding = 0.2
+channel.pDetection = 1.0
+channel.pDecoding = 0.8
 
 int[] dest1 = [2]
 
@@ -32,11 +34,11 @@ simulate {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
-        container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, false)
+        container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, DatagramGenerator.Mode.PAYLOAD)
     }
     node 'b', address: 2, location: [dist, 0, 0], shell: 5000, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
-        container.add 'dummy', new DummyApp()
+        container.add 'receiver', new DatagramGenerator()
     }
 }
