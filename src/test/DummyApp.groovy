@@ -1,3 +1,5 @@
+package test
+
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.fjage.Message

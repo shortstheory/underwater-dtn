@@ -1,3 +1,5 @@
+package test
+
 import dtn.DtnLink
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID

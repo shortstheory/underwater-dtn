@@ -1,9 +1,10 @@
 import dtn.DtnLink
-import dtn.DtnStats
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.DiscreteEventSimulator
 import org.arl.unet.link.ReliableLink
 import org.arl.unet.sim.channels.ProtocolChannelModel
+import test.DatagramGenerator
+import test.DummyApp
 
 import java.nio.file.Files
 platform = DiscreteEventSimulator
@@ -15,7 +16,7 @@ channel.pDecoding = 1
 int[] dest1 = [2]
 
 def dist = 200.m
-def msgSize = 500*1000
+def msgSize = 5*1000
 def msgFreq = 900*1000
 def msgTtl = 100000
 

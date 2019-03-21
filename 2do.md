@@ -4,19 +4,19 @@ issues:
 
 pending:
 * fragmentation
-* delete stats tracker NOW
-    * replace it with the generator and the testApp for collecting stats which can be displayed
+* replace it with the generator and the testApp for collecting stats which can be displayed
 * change the place where the retry count & all is incremented
 * datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
-* add a new SIMS folder :P
 * lots of duplications may be needed in tests
     * can be circumvented by using the same cases and just sending a BAM and checking that it behaves well
+* add a new SIMS folder :P
 
 later:
 
 in progress:
 
 done:
+* delete stats tracker NOW
 * prof's idea is better than mine
 * multihop router tests
 **create issue for the bitrate of the link**
