@@ -185,7 +185,6 @@ class DtnLink extends UnetAgent {
             case DatagramPriority.ARRIVAL:
                 int minArrivalTime = Integer.MAX_VALUE
                 String messageID
-                // FIXME: why calling gAT twice?
                 for (String id : datagrams) {
                     int arrivalTime = storage.getArrivalTime(id)
                     if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
@@ -318,7 +317,6 @@ class DtnLink extends UnetAgent {
             linkState = LinkState.READY
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
-            // FIXME: increment retries of payloads here
             String[] split = msg.getInReplyTo().split("_")
             String messageID = split[0]
             String originalMessageID = storage.getOriginalMessageID(messageID)
@@ -429,6 +427,7 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
+        // FIXME: check if this MTU value is correct
         return 8388607 - HEADER_SIZE
     }
 
