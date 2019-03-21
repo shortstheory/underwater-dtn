@@ -4,7 +4,8 @@ import org.arl.fjage.DiscreteEventSimulator
 import org.arl.unet.link.ReliableLink
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import test.DatagramGenerator
+import test.DtnApp
+import test.DtnApp
 import test.DummyApp
 
 import java.nio.file.Files
@@ -30,8 +31,8 @@ for (int f = 1; f <= nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
-DatagramGenerator dg1 = new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, DatagramGenerator.Mode.PAYLOAD)
-DatagramGenerator dg2 = new DatagramGenerator()
+DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.PAYLOAD)
+DtnApp dg2 = new DtnApp()
 
 simulate {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->

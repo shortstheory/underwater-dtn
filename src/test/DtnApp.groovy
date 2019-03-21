@@ -16,7 +16,7 @@ import org.arl.unet.ParameterReq
 import org.arl.unet.ParameterRsp
 import org.arl.unet.UnetAgent
 
-class DatagramGenerator extends UnetAgent{
+class DtnApp extends UnetAgent{
     enum Mode {
         REGULAR,
         RANDOM_TTL,
@@ -44,12 +44,13 @@ class DatagramGenerator extends UnetAgent{
     ArrayList<String> sentDatagrams = new ArrayList<>()
     ArrayList<String> sentPayloads = new ArrayList<>()
     DtnStats stats
-    DatagramGenerator(DtnStats stat) {
+
+    DtnApp(DtnStats stat) {
         mode = Mode.RECEIVER
         stats = stat
     }
 
-    DatagramGenerator(int[] destNodes, int period, int size, int ttl, Mode mode, DtnStats stat) {
+    DtnApp(int[] destNodes, int period, int size, int ttl, Mode mode, DtnStats stat) {
         this.destNodes = destNodes
         messagePeriod = period
 

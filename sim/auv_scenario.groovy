@@ -9,7 +9,7 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.net.RouteDiscoveryProtocol
-import DatagramGenerator
+import test.DtnApp
 
 import java.nio.file.Files
 
@@ -42,12 +42,12 @@ for (int i = 1; i <= 10; i++) {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-//            container.add 'testagent', new test.DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, true)
+//            container.add 'testagent', new test.DtnApp(dest1, msgFreq, msgSize, msgTtl, true)
         }
         def auvR = node '2', address: 2, mobility: true, location: [2400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-//            container.add 'testagent', new test.DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, true)
+//            container.add 'testagent', new test.DtnApp(dest2, msgFreq, msgSize, msgTtl, true)
         }
         auvR.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
@@ -57,7 +57,7 @@ for (int i = 1; i <= 10; i++) {
         def auvL = node '3', address: 3, mobility: true, location: [-2400.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, true)
+            container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, true)
         }
         auvL.motionModel = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                            [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],

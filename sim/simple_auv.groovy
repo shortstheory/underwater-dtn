@@ -9,7 +9,8 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import test.DatagramGenerator
+import test.DtnApp
+import test.DtnApp
 
 import java.nio.file.Files
 
@@ -47,14 +48,14 @@ for (int i = 1; i <= 1; i++) {
 //            container.add 'udp', new UdpLink()
 //            container.add 'link_r', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, DatagramGenerator.Mode.REGULAR, stat1)
+            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
         }
         def auvR = node '2', address: 2, mobility: true, location: [dist.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
 //            container.add 'udp', new UdpLink()
 //            container.add 'link_r', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testapp', new DatagramGenerator(stat2)
+            container.add 'testapp', new DtnApp(stat2)
         }
         def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                             [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],

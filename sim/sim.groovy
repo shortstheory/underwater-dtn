@@ -11,7 +11,7 @@ import org.arl.unet.net.Router
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import test.DatagramGenerator
+import test.DtnApp
 
 import java.nio.file.Files
 
@@ -64,17 +64,17 @@ for (def i = 0; i < 10; i++) {
         node 'a', address: 1, location: [0, 0, 0], shell: 5000, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DatagramGenerator(dest1, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, false)
         }
         node 'b', address: 2, location: [dist, 0, 0], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testagent', new DatagramGenerator(dest2, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest2, msgFreq, msgSize, msgTtl, false)
         }
         node 'c', address: 3, location: [0, dist, 0], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DatagramGenerator(dest3, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, false)
         }
     }
 }
