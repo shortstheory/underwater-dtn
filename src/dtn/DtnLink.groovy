@@ -323,12 +323,14 @@ class DtnLink extends UnetAgent {
             // FIXME: increment retries of payloads here
             String[] split = msg.getInReplyTo().split("_")
             String messageID = split[0]
+            String originalMessageID = storage.getOriginalMessageID(messageID)
             if (split.length == 2) {
                 // This means it's a payload ID
                 // FIXME: NPE, needs to be investigated!!!
-//                storage.getMetadata(messageID).attempts++
+                storage.getMetadata(originalMessageID).attempts++
             } else {
-                storage.removeFailedEntry(messageID)
+                storage.removeTracking(messageID)
+                storage.getMetadata(originalMessageID).attempts++
             }
             linkState = LinkState.READY
         }

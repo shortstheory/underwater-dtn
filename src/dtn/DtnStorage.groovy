@@ -14,7 +14,6 @@ class DtnStorage {
     private HashMap<String, DtnPduMetadata> metadataMap
 
     // PDU Structure
-    // **OLD** - |TTL (24)| INBOUND (16)| PROTOCOL (8)|TOTAL_SEG (16) - SEGMENT_NUM (16)|
     // **NEW** - |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (23)|
     // no payload ID for messages which fit in the MTU
 
@@ -114,11 +113,7 @@ class DtnStorage {
             FileOutputStream fos = new FileOutputStream(file)
             // FIXME: we might have to add to payload tracking map here
             // Only thing the tracking map is doing here is maintaining TTL and delivered status
-            metadataMap.put(filename, new DtnPduMetadata(nextHop: -1,
-                                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                                    attempts: 0,
-                                    delivered: false,
-                                    bytesSent: 0))
+            metadataMap.put(filename, new DtnPduMetadata(-1, ttl + dtnLink.currentTimeSeconds()))
             try {
                 pdu.writeTo(fos)
                 return true
@@ -165,11 +160,7 @@ class DtnStorage {
             File file = new File(directory, messageID)
             fos = new FileOutputStream(file)
             outputPDU.writeTo(fos)
-            metadataMap.put(messageID, new DtnPduMetadata(nextHop: nextHop,
-                    expiryTime: (int)ttl + dtnLink.currentTimeSeconds(),
-                    attempts: 0,
-                    delivered: false,
-                    bytesSent: 0))
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop, ttl + dtnLink.currentTimeSeconds()))
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID
@@ -291,7 +282,7 @@ class DtnStorage {
         return metadataMap.get(messageID)
     }
 
-    void removeFailedEntry(String newMessageID) {
+    void removeTracking(String newMessageID) {
         datagramMap.remove(newMessageID)
     }
 

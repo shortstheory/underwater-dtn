@@ -9,7 +9,7 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import DatagramGenerator
+import test.DatagramGenerator
 
 import java.nio.file.Files
 

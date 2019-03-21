@@ -11,6 +11,14 @@ class DtnPduMetadata {
     int bytesSent
     int size
 
+    DtnPduMetadata(int hop, int expiry) {
+        attempts = 1
+        bytesSent = 0
+        delivered = false
+        nextHop = hop
+        expiryTime = expiry
+    }
+
     MessageType getMessageType() {
         if (nextHop != -1) {
             return MessageType.OUTBOUND

@@ -11,7 +11,7 @@ platform = DiscreteEventSimulator
 
 channel.model = ProtocolChannelModel
 channel.pDetection = 1
-channel.pDecoding = 1
+channel.pDecoding = 0.2
 
 int[] dest1 = [2]
 
