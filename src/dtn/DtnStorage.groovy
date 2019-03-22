@@ -65,7 +65,7 @@ class DtnStorage {
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime
                 || metadata.delivered
-                || metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+                || metadata.getMessageType() == DtnPduMetadata.MessageType.INBOUND) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next DtnLink sweep
                 continue
