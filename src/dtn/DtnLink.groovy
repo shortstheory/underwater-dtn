@@ -231,7 +231,6 @@ class DtnLink extends UnetAgent {
     @Override
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
-            // FIXME: check for buffer space too, probably in saveDatagram!
             if (msg.getTtl().isNaN() || !storage.saveDatagram(msg)) {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
@@ -373,7 +372,7 @@ class DtnLink extends UnetAgent {
                                             reliability: true)
                                 }
                                 // FIXME: use send or request here?
-                                storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                // if link refuses it, we are in irrecoverable state!!
                             } else {
                                 int startPtr = metadata.bytesSent
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
@@ -395,7 +394,14 @@ class DtnLink extends UnetAgent {
                                                 reliability: true,
                                                 messageID: dreqID)
                             }
-                            nodeLink.send(datagramReq)
+                            Message rsp = nodeLink.request(datagramReq, 1000)
+                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                if (!datagramReq.messageID.contains("_")) { // then it's a regular
+                                    storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                }
+                            } else {
+                                linkState = LinkState.READY
+                            }
                         }
                     } else {
                         linkState = LinkState.READY
@@ -428,7 +434,7 @@ class DtnLink extends UnetAgent {
 
     int getMTU() {
         // FIXME: check if this MTU value is correct
-        return 8388607 - HEADER_SIZE
+        return 0x7FFFFF - HEADER_SIZE
     }
 
     void setBEACON_PERIOD(int period) {

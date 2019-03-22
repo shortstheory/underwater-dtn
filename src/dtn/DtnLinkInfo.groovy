@@ -15,7 +15,6 @@ class DtnLinkInfo {
         AgentID phyID
         int lastTransmission
         int linkMTU
-        int priority
     }
 
     private HashMap<AgentID, LinkMetadata> linkInfo

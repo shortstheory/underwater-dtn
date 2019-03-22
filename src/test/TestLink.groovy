@@ -172,6 +172,7 @@ class TestLink extends UnetAgent {
                             }
                         })
                     }
+                    return new Message(msg, Performative.AGREE)
                 }
                 break
             case DtnTest.Tests.EXPIRY_PRIORITY:
@@ -195,6 +196,7 @@ class TestLink extends UnetAgent {
                             }
                         })
                     }
+                    return new Message(msg, Performative.AGREE)
                 }
                 break
             case DtnTest.Tests.RANDOM_PRIORITY:
@@ -218,6 +220,7 @@ class TestLink extends UnetAgent {
                             }
                         })
                     }
+                    return new Message(msg, Performative.AGREE)
                 }
                 break
             case DtnTest.Tests.TIMEOUT:
@@ -237,6 +240,7 @@ class TestLink extends UnetAgent {
                             timeoutD2Failed = false
                         }
                     }
+                    return new Message(msg, Performative.AGREE)
                 }
                 break
             case DtnTest.Tests.MULTI_LINK:
@@ -253,6 +257,7 @@ class TestLink extends UnetAgent {
                     } else {
                         beaconReceived = true
                     }
+                    return new Message(msg, Performative.AGREE)
                 }
                 break
             case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
