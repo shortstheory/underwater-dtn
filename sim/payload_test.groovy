@@ -11,16 +11,16 @@ import test.DummyApp
 import java.nio.file.Files
 platform = DiscreteEventSimulator
 
-//channel.model = BasicAcousticChannel
-channel.model = ProtocolChannelModel
-channel.pDetection = 1.0
-channel.pDecoding = 1.0
+channel.model = BasicAcousticChannel
+//channel.model = ProtocolChannelModel
+//channel.pDetection = 1.0
+//channel.pDecoding = 1.0
 
 int[] dest1 = [2]
 
 def dist = 200.m
 def msgSize = 5*1000
-def msgFreq = 900*1000
+def msgFreq = 100*1000
 def msgTtl = 100000
 
 def T = 1.hour
@@ -37,10 +37,10 @@ test.DtnStats stat2 = new test.DtnStats()
 DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.PAYLOAD, stat1)
 DtnApp dg2 = new DtnApp(stat2)
 
-simulate {
+simulate T, {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(1))
+        container.add 'dtnlink', new DtnLink(Integer.toString(1), DtnLink.DatagramPriority.RANDOM)
         container.add 'testagent', dg1
     }
     node 'b', address: 2, location: [dist, 0, 0], shell: 5000, stack: { container ->

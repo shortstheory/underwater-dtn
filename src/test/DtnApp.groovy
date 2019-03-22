@@ -55,7 +55,6 @@ class DtnApp extends UnetAgent{
         messagePeriod = period
 
         msgSize = size
-        messagePeriod = period
         msgTtl = ttl
         this.mode = mode
         stats = stat
@@ -112,10 +111,10 @@ class DtnApp extends UnetAgent{
         case Mode.PAYLOAD:
             String data = payloadText
             byte[] bytes = data.getBytes()
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, PAYLOAD_RETRIES)
-                ParameterRsp rsp = (ParameterRsp)dtnLink.request(parameterReq, 1000)
+            ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, PAYLOAD_RETRIES)
+            ParameterRsp rsp = (ParameterRsp)dtnLink.request(parameterReq, 1000)
 
-                add(new TickerBehavior(messagePeriod) {
+            add(new TickerBehavior(messagePeriod) {
                 @Override
                 void onTick() {
                     for (int destNode : destNodes) {

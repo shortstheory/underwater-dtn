@@ -175,18 +175,20 @@ class DtnStorage {
         File file = new File(directory, messageID)
         file.delete()
         // remove from tracking map
-        Iterator it = datagramMap.entrySet().iterator()
-        while (it.hasNext()) {
-            Map.Entry entry = (Map.Entry) it.next()
-            if (entry.getValue() == messageID) {
-                it.remove()
-                break
+        if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+            Iterator it = datagramMap.entrySet().iterator()
+            while (it.hasNext()) {
+                Map.Entry entry = (Map.Entry) it.next()
+                if (entry.getValue() == messageID) {
+                    it.remove()
+                    break
+                }
             }
-        }
-        // If TTL'ed send the appropriate ntf
-        if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-            if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-                dtnLink.sendFailureNtf(messageID, metadata.nextHop)
+            // If TTL'ed send the appropriate ntf
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+                if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+                    dtnLink.sendFailureNtf(messageID, metadata.nextHop)
+                }
             }
         }
     }

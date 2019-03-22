@@ -277,6 +277,7 @@ class DtnLink extends UnetAgent {
                 int endPtr = Integer.valueOf(split[1])
                 DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
                 metadata.bytesSent = endPtr
+                println("Datagram: " + messageID + " Bytes Sent " + storage.getMetadata(originalMessageID).bytesSent)
                 if (metadata.bytesSent == metadata.size) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
