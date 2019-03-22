@@ -31,8 +31,11 @@ for (int f = 1; f <= nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
-DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.PAYLOAD)
-DtnApp dg2 = new DtnApp()
+test.DtnStats stat1 = new test.DtnStats()
+test.DtnStats stat2 = new test.DtnStats()
+
+DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.PAYLOAD, stat1)
+DtnApp dg2 = new DtnApp(stat2)
 
 simulate {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
@@ -46,5 +49,7 @@ simulate {
         container.add 'receiver', dg2
     }
 }
-println "Sent" + dg1.payloadsSent
-println "Rec" + dg2.payloadsReceived
+
+stat1.printStats()
+stat2.printStats()
+

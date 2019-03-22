@@ -55,23 +55,6 @@ class TestLink extends UnetAgent {
                 dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
             }
         })
-        if (test == DtnTest.Tests.PAYLOAD_REASSEMBLY) {
-            File dir = new File(DtnTest.storagePath)
-            File[] files = dir.listFiles()
-            int i = 0
-            for (File file : files) {
-                byte[] data = readFile(file.getName())
-                println(file.getName() + " " + i++)
-                add(new WakerBehavior(30*1000) {
-                    @Override
-                    void onWake() {
-                        DatagramNtf ntf = new DatagramNtf(protocol: DtnLink.DTN_PROTOCOL,
-                                data: data)
-                        dtnlink.send(ntf)
-                    }
-                })
-            }
-        }
     }
 
     Message processRequest(Message msg) {
@@ -259,26 +242,6 @@ class TestLink extends UnetAgent {
                     }
                     return new Message(msg, Performative.AGREE)
                 }
-                break
-            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
-                if (msg instanceof DatagramReq) {
-                    if (msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
-                        if (msg.getData().length <= getMTU()) {
-                            fragmentsReceived++
-                        }
-                        add(new WakerBehavior(10 * 1000) {
-                            @Override
-                            void onWake() {
-                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
-                                        inReplyTo: msg.getMessageID()))
-                            }
-                        })
-                    } else {
-                        beaconReceived = true
-                    }
-                }
-                break
-            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
                 break
         }
         return null

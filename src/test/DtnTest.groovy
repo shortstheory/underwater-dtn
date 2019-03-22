@@ -21,9 +21,7 @@ class DtnTest {
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
         TIMEOUT, // i.e., is our link still active? - add link, delay
-        MULTI_LINK,
-        PAYLOAD_FRAGEMENTATION,
-        PAYLOAD_REASSEMBLY
+        MULTI_LINK
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -228,41 +226,6 @@ class DtnTest {
         assert(link1.linkPriorityExpectMessage == link1.linkPriorityReceivedMessage)
         assert(link2.linkPriorityExpectMessage == link2.linkPriorityReceivedMessage)
         assert(link3.linkPriorityExpectMessage == link3.linkPriorityReceivedMessage)
-    }
-
-//    @Test
-    public void testPayloadFragmentation() {
-        Platform p = new DiscreteEventSimulator()
-        Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_FRAGEMENTATION)
-        TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_FRAGEMENTATION)
-        c.add("dtnlink", new DtnLink(path))
-        c.add("testapp", app)
-        c.add("testlink", link)
-        p.start()
-        println("Running")
-        p.delay(DELAY_TIME)
-        println("Done")
-        p.shutdown()
-        assert(app.fragementationResult)
-        assert(link.fragmentsReceived*link.getMTU() >= PAYLOAD_SIZE)
-    }
-
-//    @Test
-    public void testPayloadReassembly() {
-        Platform p = new DiscreteEventSimulator()
-        Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_REASSEMBLY)
-        TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_REASSEMBLY)
-        c.add("testapp", app)
-        c.add("testlink", link)
-        c.add("dtnlink", new DtnLink(path))
-        p.start()
-        println("Running")
-        p.delay(DELAY_TIME)
-        println("Done")
-        p.shutdown()
-        assert(app.reassemblyResult)
     }
 
     @After

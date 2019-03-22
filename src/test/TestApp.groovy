@@ -185,19 +185,6 @@ class TestApp extends UnetAgent {
                     }
                 })
                 break
-            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
-                byte[] data = new byte[DtnTest.PAYLOAD_SIZE]
-                for (int i = 0; i < DtnTest.PAYLOAD_SIZE; i++) {
-                    data[i] = 65
-                }
-                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                        ttl: DtnTest.MESSAGE_TTL,
-                        msgID: DtnTest.MESSAGE_ID,
-                        protocol: DtnTest.MESSAGE_PROTOCOL,
-                        data: data)
-                sendDatagram(req)
-            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
-                break
             default:
                 println("Unhandled case!")
         }
@@ -297,27 +284,6 @@ class TestApp extends UnetAgent {
             case DtnTest.Tests.MULTI_LINK:
                 if (msg instanceof  DatagramDeliveryNtf) {
                     multiLinkResult = true
-                }
-                break
-            case DtnTest.Tests.PAYLOAD_FRAGEMENTATION:
-                if (msg instanceof DatagramDeliveryNtf) {
-                    if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
-                        fragementationResult = true
-                    }
-                }
-                break
-            case DtnTest.Tests.PAYLOAD_REASSEMBLY:
-                if (msg instanceof DatagramNtf) {
-                    byte[] msgBytes = msg.getData()
-                    boolean byteCheck = true
-                    for (int i = 0; i < DtnTest.PAYLOAD_SIZE; i++) {
-                        if (msgBytes[i] != 65) {
-                            byteCheck = false
-                        }
-                    }
-                    if (byteCheck && msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
-                        reassemblyResult = true
-                    }
                 }
                 break
         }

@@ -73,5 +73,3 @@ for (int i = 1; i <= 1; i++) {
 
 stat1.printStats()
 stat2.printStats()
-
-println("done")
