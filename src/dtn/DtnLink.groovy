@@ -184,7 +184,7 @@ class DtnLink extends UnetAgent {
         switch (DATAGRAM_PRIORITY) {
             case DatagramPriority.ARRIVAL:
                 int minArrivalTime = Integer.MAX_VALUE
-                String messageID
+                String messageID = null
                 for (String id : datagrams) {
                     int arrivalTime = storage.getArrivalTime(id)
                     if (arrivalTime >= 0 && arrivalTime < minArrivalTime) {
@@ -195,7 +195,7 @@ class DtnLink extends UnetAgent {
                 return messageID
             case DatagramPriority.EXPIRY:
                 int minExpiryTime = Integer.MAX_VALUE
-                String messageID
+                String messageID = null
                 for (String id : datagrams) {
                     DtnPduMetadata metadata = storage.getDatagramMetadata(id)
                     if (metadata != null && metadata.expiryTime < minExpiryTime) {
@@ -235,7 +235,6 @@ class DtnLink extends UnetAgent {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
-                int x = currentTimeSeconds()
                 return new Message(msg, Performative.AGREE)
             }
         }
@@ -307,7 +306,6 @@ class DtnLink extends UnetAgent {
             } else {
                 // it can happen that the DDN comes just after a TTL
                 if (originalMessageID != null) {
-                    int deliveryTime = currentTimeSeconds() - storage.getArrivalTime(originalMessageID)
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
                     storage.setDelivered(originalMessageID)
@@ -376,7 +374,7 @@ class DtnLink extends UnetAgent {
                             } else {
                                 int startPtr = metadata.bytesSent
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
-                                boolean tbc = (endPtr == pduData.length) ? true : false
+                                boolean tbc = (endPtr == pduData.length)
                                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
                                 int payloadID = storage.getPayloadID(messageID)
                                 byte[] pduBytes = storage.encodePdu(data,
@@ -387,13 +385,14 @@ class DtnLink extends UnetAgent {
                                                     startPtr)
                                                     .toByteArray()
                                 // separator should not conflict with a regular DReq
-                                String dreqID = Integer.toString(payloadID) + "_" + endPtr
+                                String datagramID = Integer.toString(payloadID) + "_" + endPtr
                                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                 data: pduBytes,
                                                 to: node,
                                                 reliability: true,
-                                                messageID: dreqID)
+                                                messageID: datagramID)
                             }
+                            // Even if the link refuses, we are not in an inconsistent state
                             Message rsp = nodeLink.request(datagramReq, 1000)
                             if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                 if (!datagramReq.messageID.contains("_")) { // then it's a regular
@@ -417,8 +416,8 @@ class DtnLink extends UnetAgent {
             void onTick() {
                 int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
                 for (Map.Entry entry : utility.getLinkInfo()) {
-                    AgentID linkID = entry.getKey()
-                    DtnLinkInfo.LinkMetadata metadata = entry.getValue()
+                    AgentID linkID = (AgentID)entry.getKey()
+                    DtnLinkInfo.LinkMetadata metadata = (DtnLinkInfo.LinkMetadata)entry.getValue()
                     int lastTransmission = metadata.lastTransmission
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))

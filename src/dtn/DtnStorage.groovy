@@ -148,7 +148,6 @@ class DtnStorage {
         int ttl = (Math.round(req.getTtl()) & LOWER_24_BITMASK)
         String messageID = req.getMessageID()
         byte[] data = req.getData()
-        int mtu = dtnLink.getMTU()
         if (data != null && dtnLink.getMTU() < data.length) {
             return false
         }
@@ -196,8 +195,8 @@ class DtnStorage {
         Iterator it = metadataMap.entrySet().iterator()
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry)it.next()
-            String messageID = entry.getKey()
-            DtnPduMetadata metadata = entry.getValue()
+            String messageID = (String)entry.getKey()
+            DtnPduMetadata metadata = (DtnPduMetadata)entry.getValue()
             if (metadata.delivered || dtnLink.currentTimeSeconds() > metadata.expiryTime) { // put the deletion logic here!
                 deleteFile(messageID, metadata)
                 it.remove()
@@ -205,7 +204,7 @@ class DtnStorage {
         }
     }
 
-    OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
+    static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + DtnLink.HEADER_SIZE)
         pdu.write24(ttl)
@@ -234,21 +233,21 @@ class DtnStorage {
         return randomID
     }
 
-    HashMap decodePdu(byte[] pduBytes) {
+    static HashMap decodePdu(byte[] pduBytes) {
         if (pduBytes.length < DtnLink.HEADER_SIZE) {
             return null
         }
         InputPDU pdu = new InputPDU(pduBytes)
         HashMap<String, Integer> map = new HashMap<>()
-        map.put(DtnStorage.TTL_MAP, (int)pdu.read24())
-        map.put(DtnStorage.PROTOCOL_MAP, (int)pdu.read8())
+        map.put(TTL_MAP, (int)pdu.read24())
+        map.put(PROTOCOL_MAP, (int)pdu.read8())
         int payloadFields = (int)pdu.read32()
         int tbc = ((payloadFields & 0x80000000).toInteger() >>> 31)
         int payloadID = ((payloadFields & 0x7F800000) >>> 23)
         int startPtr = (payloadFields & 0x007FFFFF)
-        map.put(DtnStorage.TBC_BIT_MAP, tbc)
-        map.put(DtnStorage.PAYLOAD_ID_MAP, payloadID)
-        map.put(DtnStorage.START_PTR_MAP, startPtr)
+        map.put(TBC_BIT_MAP, tbc)
+        map.put(PAYLOAD_ID_MAP, payloadID)
+        map.put(START_PTR_MAP, startPtr)
         return map
     }
 
@@ -261,6 +260,7 @@ class DtnStorage {
         if (pduBytes != null) {
             return getDataFromPDU(pduBytes)
         }
+        return null
     }
 
     HashMap getParsedPDU(String messageID) {

@@ -198,6 +198,8 @@ class TestApp extends UnetAgent {
                 sendDatagram(req)
             case DtnTest.Tests.PAYLOAD_REASSEMBLY:
                 break
+            default:
+                println("Unhandled case!")
         }
     }
 
