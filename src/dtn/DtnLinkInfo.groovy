@@ -1,11 +1,10 @@
 package dtn
 
 import groovy.transform.CompileStatic
-import org.arl.fjage.*
-import org.arl.fjage.Agent
+import org.arl.fjage.AgentID
+import org.arl.unet.DatagramParam
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
-import org.arl.unet.*
 
 @CompileStatic
 class DtnLinkInfo {
