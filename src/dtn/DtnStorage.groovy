@@ -64,7 +64,8 @@ class DtnStorage {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime
-                || metadata.delivered) {
+                || metadata.delivered
+                || metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next DtnLink sweep
                 continue
@@ -110,7 +111,6 @@ class DtnStorage {
             // FIXME: this isn't really the best structure for files, but it does what we need
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
-            // FIXME: we might have to add to payload tracking map here
             // Only thing the tracking map is doing here is maintaining TTL and delivered status
             metadataMap.put(filename, new DtnPduMetadata(-1, ttl + dtnLink.currentTimeSeconds()))
             try {

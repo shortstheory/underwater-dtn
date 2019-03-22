@@ -12,9 +12,9 @@ class DtnStats {
     int datagramsReceived = 0
 
     void printStats() {
-        println("Stats: ")
-        println(datagramsSent + " (" + datagramsSuccess + "/" + datagramsFailure + ") " + datagramsReceived)
-        println(payloadsSent + " (" + payloadsSuccess + "/" + payloadsFailure + ") " + payloadsReceived)
+        println("\nStats: ")
+        println("Datagrams: " + "TX: " + datagramsSent + " S: " + datagramsSuccess + " F: " + datagramsFailure + " RX: " + datagramsReceived)
+        println("Payloads:  " + "TX: " + payloadsSent + " S: " + payloadsSuccess + " F: " + payloadsFailure + " RX: " + payloadsReceived)
         println()
     }
 }

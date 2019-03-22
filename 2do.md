@@ -3,7 +3,6 @@ issues:
 
 
 pending:
-* fragmentation
 * datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
 * check for amount of coupling in DtnLink/Storage and remove the useless methods
 
@@ -12,6 +11,8 @@ later:
 in progress:
 
 done:
+* added check for rsp when sending on sendDatagram
+* fragmentation
 * lots of duplications may be needed in tests
     * can be circumvented by using the same cases and just sending a BAM and checking that it behaves well
 * replace it with the generator and the testApp for collecting stats which can be displayed
