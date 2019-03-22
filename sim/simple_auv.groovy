@@ -15,7 +15,11 @@ import test.DtnApp
 import java.nio.file.Files
 
 platform = DiscreteEventSimulator
-channel.model = BasicAcousticChannel
+//channel.model = BasicAcousticChannel
+channel.model = ProtocolChannelModel
+channel.pDetection = 1                  // pd
+channel.pDecoding = 1                   // pc
+
 
 println "Starting Simple AUV simulation!"
 

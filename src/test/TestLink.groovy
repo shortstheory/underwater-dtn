@@ -110,7 +110,7 @@ class TestLink extends UnetAgent {
                                                                      inReplyTo: messageID))
                             }
                         })
-                        HashMap<String, Integer> pduInfo = decodePdu(msg.getData())
+                        HashMap<String, Integer> pduInfo = DtnStorage.decodePdu(msg.getData())
                         if (pduInfo.get(DtnStorage.TTL_MAP) > 0
                             && pduInfo.get(DtnStorage.TTL_MAP) < DtnTest.MESSAGE_TTL
                             && pduInfo.get(DtnStorage.PROTOCOL_MAP) == Protocol.ROUTING
@@ -290,23 +290,5 @@ class TestLink extends UnetAgent {
 
     public byte[] readFile(String messageID) {
         byte[] pduBytes = Files.readAllBytes(new File(DtnTest.storagePath, messageID).toPath())
-    }
-
-    HashMap decodePdu(byte[] pduBytes) {
-        if (pduBytes.length < DtnLink.HEADER_SIZE) {
-            return null
-        }
-        InputPDU pdu = new InputPDU(pduBytes)
-        HashMap<String, Integer> map = new HashMap<>()
-        map.put(DtnStorage.TTL_MAP, (int)pdu.read24())
-        map.put(DtnStorage.PROTOCOL_MAP, (int)pdu.read8())
-        int payloadFields = (int)pdu.read32()
-        int tbc = ((payloadFields & 0x80000000).toInteger() >> 31)
-        int payloadID = ((payloadFields & 0x7F800000) >> 19)
-        int startPtr = (payloadFields & 0xFFFFFF)
-        map.put(DtnStorage.TBC_BIT_MAP, tbc)
-        map.put(DtnStorage.PAYLOAD_ID_MAP, payloadID)
-        map.put(DtnStorage.START_PTR_MAP, startPtr)
-        return map
     }
 }

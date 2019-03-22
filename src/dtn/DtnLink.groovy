@@ -257,7 +257,7 @@ class DtnLink extends UnetAgent {
 
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
-                HashMap<String, Integer> map = storage.decodePdu(pduBytes)
+                HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
                 byte[] data = storage.getDataFromPDU(pduBytes)
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
@@ -352,7 +352,7 @@ class DtnLink extends UnetAgent {
                             if (pduData.length + HEADER_SIZE <= linkMTU) {
                                 // this is for short-circuiting PDUs
                                 if (pduProtocol == Protocol.ROUTING) {
-                                    byte[] pduBytes = storage.encodePdu(pduData,
+                                    byte[] pduBytes = DtnStorage.encodePdu(pduData,
                                             expiryTime,
                                             pduProtocol,
                                             true,
@@ -377,7 +377,7 @@ class DtnLink extends UnetAgent {
                                 boolean tbc = (endPtr == pduData.length)
                                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
                                 int payloadID = storage.getPayloadID(messageID)
-                                byte[] pduBytes = storage.encodePdu(data,
+                                byte[] pduBytes = DtnStorage.encodePdu(data,
                                                     expiryTime,
                                                     parsedPdu.get(DtnStorage.PROTOCOL_MAP),
                                                     tbc,
