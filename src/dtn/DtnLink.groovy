@@ -469,7 +469,9 @@ class DtnLink extends UnetAgent {
     }
 
     void setLinkPriority(ArrayList<AgentID> links) {
-        linkPriority = links
+        if (links != null && links.size()) {
+            linkPriority = links
+        }
     }
 
     Set<Integer> getDiscoveredNodes() {

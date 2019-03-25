@@ -136,7 +136,7 @@ class TestApp extends UnetAgent {
                     })
                 }
                 break
-            case DtnTest.Tests.TIMEOUT:
+            case DtnTest.Tests.LINK_TIMEOUT:
                 ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, 10*60)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
 
@@ -262,7 +262,7 @@ class TestApp extends UnetAgent {
                     }
                 }
                 break
-            case DtnTest.Tests.TIMEOUT:
+            case DtnTest.Tests.LINK_TIMEOUT:
                 if (msg instanceof DatagramDeliveryNtf) {
                     if (msg.getInReplyTo() == "1") {
                         timeoutD1Success = true

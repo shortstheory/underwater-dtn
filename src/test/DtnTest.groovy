@@ -20,7 +20,7 @@ class DtnTest {
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
-        TIMEOUT, // i.e., is our link still active? - add link, delay
+        LINK_TIMEOUT, // i.e., is our link still active? - add link, delay
         MULTI_LINK
     }
 
@@ -176,8 +176,8 @@ class DtnTest {
     public void testTimeout() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.TIMEOUT)
-        TestLink link = new TestLink(DtnTest.Tests.TIMEOUT)
+        TestApp app = new TestApp(DtnTest.Tests.LINK_TIMEOUT)
+        TestLink link = new TestLink(DtnTest.Tests.LINK_TIMEOUT)
         c.add("dtnlink", new DtnLink(path))
         c.add("testapp", app)
         c.add("testlink", link)

@@ -190,7 +190,7 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
-            case DtnTest.Tests.TIMEOUT:
+            case DtnTest.Tests.LINK_TIMEOUT:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         if (msg.getData()[0] == 1) {
