@@ -268,15 +268,17 @@ class DtnLink extends UnetAgent {
             // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
-            String[] split = msg.getInReplyTo().split("_")
-            String messageID = split[0]
-            String originalMessageID = storage.getOriginalMessageID(messageID)
+            String newMessageID = msg.getInReplyTo()
+            String originalMessageID = storage.getOriginalMessageID(newMessageID)
+            String[] split = originalMessageID.split("_")
             // for payloads
             if (split.size() == 2) {
+                String payloadID = split[0]
                 int endPtr = Integer.valueOf(split[1])
-                DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
+                String datagramID = storage.getOriginalMessageID(payloadID)
+                DtnPduMetadata metadata = storage.getMetadata(datagramID)
                 metadata.bytesSent = endPtr
-                println("Datagram: " + messageID + " Bytes Sent " + storage.getMetadata(originalMessageID).bytesSent)
+                println("Datagram: " + datagramID + " Bytes Sent " + metadata.bytesSent)
                 if (metadata.bytesSent == metadata.size) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
@@ -294,18 +296,22 @@ class DtnLink extends UnetAgent {
             linkState = LinkState.READY
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
-            String[] split = msg.getInReplyTo().split("_")
-            String messageID = split[0]
-            String originalMessageID = storage.getOriginalMessageID(messageID)
+            // FIXME: this is only for debugging, we don't really need this anymore
+            String newMessageID = msg.getInReplyTo()
+            String originalMessageID = storage.getOriginalMessageID(newMessageID)
+            String[] split = originalMessageID.split("_")
 
-            println("Datagram: " + messageID + " Failed w/ " + storage.getMetadata(originalMessageID).attempts + " Bytes: " + storage.getMetadata(originalMessageID).bytesSent)
+            println("Datagram: " + split[0] + "DFN")
 
             if (split.length == 2) {
                 // This means it's a payload ID
-                storage.getMetadata(originalMessageID).attempts++
+                String payloadID = split[0]
+                String datagramID = storage.getOriginalMessageID(payloadID)
+                storage.getMetadata(datagramID).attempts++
             } else {
+                String messageID = split[0]
                 storage.removeTracking(messageID)
-                storage.getMetadata(originalMessageID).attempts++
+                storage.getMetadata(messageID).attempts++
             }
             linkState = LinkState.READY
         }
@@ -349,8 +355,12 @@ class DtnLink extends UnetAgent {
                                             to: node,
                                             reliability: true)
                                 }
-                                // FIXME: use send or request here?
-                                // if link refuses it, we are in irrecoverable state!!
+                                Message rsp = nodeLink.request(datagramReq, 1000)
+                                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                    storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                } else {
+                                    linkState = LinkState.READY
+                                }
                             } else {
                                 int startPtr = metadata.bytesSent
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
@@ -365,21 +375,17 @@ class DtnLink extends UnetAgent {
                                                     startPtr)
                                                     .toByteArray()
                                 // separator should not conflict with a regular DReq
-                                String datagramID = Integer.toString(payloadID) + "_" + endPtr
+                                String trackerID = Integer.toString(payloadID) + "_" + endPtr
                                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                                 data: pduBytes,
                                                 to: node,
-                                                reliability: true,
-                                                messageID: datagramID)
-                            }
-                            // Even if the link refuses, we are not in an inconsistent state
-                            Message rsp = nodeLink.request(datagramReq, 1000)
-                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                if (!datagramReq.messageID.contains("_")) { // then it's a regular
-                                    storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                                reliability: true)
+                                Message rsp = nodeLink.request(datagramReq, 1000)
+                                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                    storage.trackDatagram(datagramReq.getMessageID(), trackerID)
+                                } else {
+                                    linkState = LinkState.READY
                                 }
-                            } else {
-                                linkState = LinkState.READY
                             }
                         }
                     } else {
