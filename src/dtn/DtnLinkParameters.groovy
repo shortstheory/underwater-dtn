@@ -5,8 +5,8 @@ import org.arl.unet.Parameter
 
 @CompileStatic
 enum DtnLinkParameters implements Parameter {
-    beaconPeriod,
-    sweepPeriod,
+    beaconTimeout,
+    GCPeriod,
     datagramPeriod,
     linkExpiryTime,
     datagramPriority,

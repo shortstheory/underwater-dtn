@@ -29,6 +29,8 @@ class DtnLink extends UnetAgent {
 
     private CyclicBehavior datagramCycle
     private PoissonBehavior beaconBehavior
+    private PoissonBehavior datagramResetBehavior
+    private TickerBehavior GCBehavior
 
     private DtnLinkInfo utility
     private LinkState linkState
@@ -36,10 +38,11 @@ class DtnLink extends UnetAgent {
     public Random random
 
     // all units are in milliseconds below
-    int beaconPeriod = 10*1000
-    int sweepPeriod = 100*1000
-    int datagramPeriod = 10*1000
-    int RANDOM_DELAY = 5*1000
+    int beaconTimeout = 10*1000
+
+    int GCPeriod = 100*1000
+    int datagramResetPeriod = 10*1000
+    int randomDelay = 5*1000
 
     // uses seconds
     int linkExpiryTime = 10*6000
@@ -115,6 +118,8 @@ class DtnLink extends UnetAgent {
         }
 
         beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
+        GCBehavior = (TickerBehavior)add(createGCBehavior())
+        datagramResetBehavior = (PoissonBehavior)add(createDatagramBehavior())
 
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
@@ -133,20 +138,6 @@ class DtnLink extends UnetAgent {
                     }
                 }
                 block()
-            }
-        })
-
-        add(new TickerBehavior(sweepPeriod) {
-            @Override
-            void onTick() {
-                storage.deleteFiles()
-            }
-        })
-
-        add(new PoissonBehavior(datagramPeriod) {
-            @Override
-            void onTick() {
-                datagramCycle.restart()
             }
         })
     }
@@ -320,7 +311,7 @@ class DtnLink extends UnetAgent {
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
             linkState = LinkState.WAITING
-            add(new WakerBehavior(random.nextInt(RANDOM_DELAY)) {
+            add(new WakerBehavior(random.nextInt(randomDelay)) {
                 @Override
                 void onWake() {
                     int linkMTU = utility.getLinkMetadata(nodeLink).linkMTU
@@ -397,10 +388,10 @@ class DtnLink extends UnetAgent {
     }
 
     PoissonBehavior createBeaconBehavior() {
-        return new PoissonBehavior(beaconPeriod) {
+        return new PoissonBehavior(beaconTimeout) {
             @Override
             void onTick() {
-                int beaconPeriod = (beaconPeriod / 1000).intValue()
+                int beaconPeriod = (beaconTimeout / 1000).intValue()
                 for (Map.Entry entry : utility.getLinkInfo()) {
                     AgentID linkID = (AgentID)entry.getKey()
                     DtnLinkInfo.LinkMetadata metadata = (DtnLinkInfo.LinkMetadata)entry.getValue()
@@ -409,6 +400,24 @@ class DtnLink extends UnetAgent {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
                     }
                 }
+            }
+        }
+    }
+
+    TickerBehavior createGCBehavior() {
+        return new TickerBehavior(GCPeriod) {
+            @Override
+            void onTick() {
+                storage.deleteFiles()
+            }
+        }
+    }
+
+    PoissonBehavior createDatagramBehavior() {
+        return new PoissonBehavior(datagramResetPeriod) {
+            @Override
+            void onTick() {
+                datagramCycle.restart()
             }
         }
     }
@@ -422,14 +431,36 @@ class DtnLink extends UnetAgent {
         return 0x7FFFFF - HEADER_SIZE
     }
 
-    void setBeaconPeriod(int period) {
-        beaconPeriod = period
+    void setBeaconTimeout(int period) {
+        beaconTimeout = period
         beaconBehavior.stop()
-        if (beaconPeriod == 0) {
-            println "Stopped beacon"
+        if (beaconTimeout == 0) {
+            println("Stopped beacon")
         } else {
-            println "Changed beacon interval"
+            println("Changed beacon interval")
             beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
+        }
+    }
+
+    void setGCPeriod(int period) {
+        GCPeriod = period
+        GCBehavior.stop()
+        if (GCPeriod == 0) {
+            println("Stopped GC")
+        } else {
+            println("Changed GC interval")
+            GCBehavior = (TickerBehavior)add(createGCBehavior())
+        }
+    }
+
+    void setDatagramResetPeriod(int period) {
+        datagramResetPeriod = period
+        datagramResetBehavior.stop()
+        if (datagramResetPeriod == 0) {
+            println("Stopped Datagram Reset Period")
+        } else {
+            println("Changed Reset Interval")
+            datagramResetBehavior = (PoissonBehavior)add(createDatagramBehavior())
         }
     }
 
