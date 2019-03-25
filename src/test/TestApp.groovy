@@ -10,6 +10,7 @@ class TestApp extends UnetAgent {
     AgentID dtnlink
 
     public boolean trivialMessageResult = false
+    public boolean badMessageResult = false
     public boolean successfulDeliveryResult = false
     public boolean routerMessageResult = false
     public boolean ttlMessageResult = false
@@ -46,6 +47,12 @@ class TestApp extends UnetAgent {
                             ttl: DtnTest.MESSAGE_TTL,
                             msgID: DtnTest.MESSAGE_ID,
                             protocol: DtnTest.MESSAGE_PROTOCOL)
+                sendDatagram(req)
+                break
+            case DtnTest.Tests.BAD_MESSAGE:
+                DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                        msgID: DtnTest.MESSAGE_ID,
+                        protocol: DtnTest.MESSAGE_PROTOCOL)
                 sendDatagram(req)
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:
@@ -198,8 +205,13 @@ class TestApp extends UnetAgent {
     void processMessage(Message msg) {
         switch(test) {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
-                if (msg.getPerformative() == Performative.AGREE) {
+                if (msg.getPerformative() == Performative.AGREE && msg.getInReplyTo() == DtnTest.MESSAGE_ID) {
                     trivialMessageResult = true
+                }
+                break
+            case DtnTest.Tests.BAD_MESSAGE:
+                if (msg.getPerformative() == Performative.REFUSE && msg.getInReplyTo() == DtnTest.MESSAGE_ID) {
+                    badMessageResult = true
                 }
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:

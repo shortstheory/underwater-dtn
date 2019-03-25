@@ -14,7 +14,7 @@ class TestLink extends UnetAgent {
 
     public boolean successfulDeliveryResult = false
     public boolean routerMessageResult = false
-    public boolean maxRetryResult = false
+    public boolean badMessageResult = true
     public boolean arrivalPriorityResult = false // set to false if OoO
     public boolean expiryPriorityResult = false
     public boolean randomPriorityResult = false
@@ -61,6 +61,12 @@ class TestLink extends UnetAgent {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
                 if (msg instanceof DatagramReq) {
                     return new Message(msg, Performative.AGREE)
+                }
+                break
+            case DtnTest.Tests.BAD_MESSAGE:
+                if (msg instanceof DatagramReq && msg.getMessageID() == DtnTest.MESSAGE_ID) {
+                    badMessageResult = false
+                    return new Message(msg, Performative.REFUSE)
                 }
                 break
             case DtnTest.Tests.SUCCESSFUL_DELIVERY:

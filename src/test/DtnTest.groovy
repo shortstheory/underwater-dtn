@@ -16,6 +16,7 @@ class DtnTest {
         TRIVIAL_MESSAGE,
         SUCCESSFUL_DELIVERY,
         ROUTER_MESSAGE,
+        BAD_MESSAGE,
         TTL_MESSAGE,
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
@@ -63,6 +64,24 @@ class DtnTest {
         println("Done")
         p.shutdown()
         assert(app.trivialMessageResult)
+    }
+
+    @Test
+    public void testBadMessage() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app = new TestApp(DtnTest.Tests.BAD_MESSAGE)
+        TestLink link = new TestLink(DtnTest.Tests.BAD_MESSAGE)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME)
+        println("Done")
+        p.shutdown()
+        assert(app.badMessageResult)
+        assert(link.badMessageResult)
     }
 
     @Test

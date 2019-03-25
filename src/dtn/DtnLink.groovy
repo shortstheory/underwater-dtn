@@ -77,9 +77,9 @@ class DtnLink extends UnetAgent {
         directory = dir
     }
 
-    DtnLink(String dir, DatagramPriority datagramPriority) {
+    DtnLink(String dir, DatagramPriority priority) {
         this()
-        this.datagramPriority = datagramPriority
+        datagramPriority = priority
         directory = dir
     }
 
