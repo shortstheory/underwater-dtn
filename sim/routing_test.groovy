@@ -34,20 +34,20 @@ simulate {
         container.add 'link', new ReliableLink()
 //        container.add 'linkX', new UdpLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
-        container.add 'router', new Router()
-        container.add 'swt', new SWTransport()
+//        container.add 'router', new Router()
+//        container.add 'swt', new SWTransport()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     node '2', address: 2, location: [200.m, 0, -50.m], shell: 5001, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
-        container.add 'router', new Router()
+//        container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     node '3', address: 3, location: [400.m, 0, -50.m], shell: 5002, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
-        container.add 'router', new Router()
+//        container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
 }

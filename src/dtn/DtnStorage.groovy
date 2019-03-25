@@ -69,10 +69,6 @@ class DtnStorage {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next DtnLink sweep
                 continue
-            } else if (metadata.attempts > dtnLink.MAX_RETRIES) {
-                // one hack for cleaning MAX_RETRIES being exceeded
-                metadata.expiryTime = 0
-                continue
             }
             if (metadata.nextHop == nextHop) {
                 data.add(messageID)

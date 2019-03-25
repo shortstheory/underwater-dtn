@@ -38,8 +38,8 @@ class DtnLinkInfo {
         AgentID bestLink = null
         Set<AgentID> nodeLinks = getLinksForNode(node)
         for (AgentID aid : nodeLinks) {
-            for (int i = 0; i < dtnLink.LINK_PRIORITY.size(); i++) {
-                if (aid == dtnLink.LINK_PRIORITY[i] && i < bestLinkPriority) {
+            for (int i = 0; i < dtnLink.linkPriority.size(); i++) {
+                if (aid == dtnLink.linkPriority[i] && i < bestLinkPriority) {
                     bestLinkPriority = i
                     bestLink = aid
                 }
@@ -76,7 +76,7 @@ class DtnLinkInfo {
                 LinkMetadata metadata = getLinkMetadata(link)
                 if (metadata != null) {
                     int currentTime = dtnLink.currentTimeSeconds()
-                    if (metadata.lastTransmission + dtnLink.LINK_EXPIRY_TIME > currentTime) {
+                    if (metadata.lastTransmission + dtnLink.linkExpiryTime > currentTime) {
                         liveLinks.add(link)
                     }
                 }

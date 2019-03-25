@@ -16,7 +16,7 @@ class DtnTest {
         TRIVIAL_MESSAGE,
         SUCCESSFUL_DELIVERY,
         ROUTER_MESSAGE,
-        MAX_RETRIES,
+        TTL_MESSAGE,
         EXPIRY_PRIORITY, // just check order @DtnLink
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
@@ -36,7 +36,6 @@ class DtnTest {
     public static final int PRIORITY_MESSAGES = 100
     public static final int DELAY_TIME = 3600*1000
 
-    public static final int DTN_MAX_RETRIES = 5
     public static final int DTN_LINK_EXPIRY = 600
     public static final int PAYLOAD_SIZE = 10000
     public String payloadText
@@ -106,18 +105,17 @@ class DtnTest {
     public void testMaxRetries() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.MAX_RETRIES)
-        TestLink link = new TestLink(DtnTest.Tests.MAX_RETRIES)
+        TestApp app = new TestApp(DtnTest.Tests.TTL_MESSAGE)
+        TestLink link = new TestLink(DtnTest.Tests.TTL_MESSAGE)
         c.add("dtnlink", new DtnLink(path))
         c.add("testapp", app)
         c.add("testlink", link)
         p.start()
         println("Running")
-        p.delay(DELAY_TIME)
+        p.delay(DELAY_TIME*3)
         println("Done")
         p.shutdown()
-        assert(app.maxRetryResult)
-        assert(link.maxRetryResult)
+        assert(app.ttlMessageResult)
     }
 
     @Test

@@ -36,17 +36,16 @@ class DtnLink extends UnetAgent {
     public Random random
 
     // all units are in milliseconds below
-    int BEACON_PERIOD = 10*1000
-    int SWEEP_PERIOD = 100*1000
-    int DATAGRAM_PERIOD = 10*1000
+    int beaconPeriod = 10*1000
+    int sweepPeriod = 100*1000
+    int datagramPeriod = 10*1000
     int RANDOM_DELAY = 5*1000
-    int MAX_RETRIES = 5
 
     // uses seconds
-    int LINK_EXPIRY_TIME = 10*6000
+    int linkExpiryTime = 10*6000
 
-    DatagramPriority DATAGRAM_PRIORITY
-    ArrayList<AgentID> LINK_PRIORITY
+    DatagramPriority datagramPriority
+    ArrayList<AgentID> linkPriority
 
     List<Parameter> getParameterList() {
         Class[] paramClasses = new Class[2]
@@ -65,19 +64,19 @@ class DtnLink extends UnetAgent {
 
     private DtnLink() {
         random = new Random()
-        LINK_PRIORITY = new ArrayList<>()
+        linkPriority = new ArrayList<>()
         linkState = LinkState.READY
     }
 
     DtnLink(String dir) {
         this()
-        DATAGRAM_PRIORITY = DatagramPriority.EXPIRY
+        datagramPriority = DatagramPriority.EXPIRY
         directory = dir
     }
 
     DtnLink(String dir, DatagramPriority datagramPriority) {
         this()
-        DATAGRAM_PRIORITY = datagramPriority
+        this.datagramPriority = datagramPriority
         directory = dir
     }
 
@@ -111,7 +110,7 @@ class DtnLink extends UnetAgent {
         }
 
         for (AgentID link : linksWithReliability) {
-            LINK_PRIORITY.add(link)
+            linkPriority.add(link)
             utility.addLink(link)
         }
 
@@ -137,14 +136,14 @@ class DtnLink extends UnetAgent {
             }
         })
 
-        add(new TickerBehavior(SWEEP_PERIOD) {
+        add(new TickerBehavior(sweepPeriod) {
             @Override
             void onTick() {
                 storage.deleteFiles()
             }
         })
 
-        add(new PoissonBehavior(DATAGRAM_PERIOD) {
+        add(new PoissonBehavior(datagramPeriod) {
             @Override
             void onTick() {
                 datagramCycle.restart()
@@ -161,7 +160,7 @@ class DtnLink extends UnetAgent {
     // If we're sending a payload, ARRIVAL & EXPIRY will always choose it again
     // But RANDOM could be well, random
     String selectNextDatagram(ArrayList<String> datagrams) {
-        switch (DATAGRAM_PRIORITY) {
+        switch (datagramPriority) {
             case DatagramPriority.ARRIVAL:
                 int minArrivalTime = Integer.MAX_VALUE
                 String messageID = null
@@ -392,10 +391,10 @@ class DtnLink extends UnetAgent {
     }
 
     PoissonBehavior createBeaconBehavior() {
-        return new PoissonBehavior(BEACON_PERIOD) {
+        return new PoissonBehavior(beaconPeriod) {
             @Override
             void onTick() {
-                int beaconPeriod = (BEACON_PERIOD / 1000).intValue()
+                int beaconPeriod = (beaconPeriod / 1000).intValue()
                 for (Map.Entry entry : utility.getLinkInfo()) {
                     AgentID linkID = (AgentID)entry.getKey()
                     DtnLinkInfo.LinkMetadata metadata = (DtnLinkInfo.LinkMetadata)entry.getValue()
@@ -417,10 +416,10 @@ class DtnLink extends UnetAgent {
         return 0x7FFFFF - HEADER_SIZE
     }
 
-    void setBEACON_PERIOD(int period) {
-        BEACON_PERIOD = period
+    void setBeaconPeriod(int period) {
+        beaconPeriod = period
         beaconBehavior.stop()
-        if (BEACON_PERIOD == 0) {
+        if (beaconPeriod == 0) {
             println "Stopped beacon"
         } else {
             println "Changed beacon interval"
@@ -428,15 +427,15 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    ArrayList<AgentID> getLINK_PRIORITY() {
-        return LINK_PRIORITY
+    ArrayList<AgentID> getLinkPriority() {
+        return linkPriority
     }
 
-    void setLINK_PRIORITY(ArrayList<AgentID> links) {
-        LINK_PRIORITY = links
+    void setLinkPriority(ArrayList<AgentID> links) {
+        linkPriority = links
     }
 
-    Set<Integer> getDISCOVERED_NODES() {
+    Set<Integer> getDiscoveredNodes() {
         return utility.getDestinationNodes()
     }
 }

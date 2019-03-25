@@ -12,7 +12,7 @@ class TestApp extends UnetAgent {
     public boolean trivialMessageResult = false
     public boolean successfulDeliveryResult = false
     public boolean routerMessageResult = false
-    public boolean maxRetryResult = false
+    public boolean ttlMessageResult = false
     public boolean arrivalPriorityResult = false
     public boolean expiryPriorityResult = false
     public boolean randomPriorityResult = false
@@ -64,22 +64,19 @@ class TestApp extends UnetAgent {
                             data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
-            case DtnTest.Tests.MAX_RETRIES:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.MAX_RETRIES, DtnTest.DTN_MAX_RETRIES)
-                ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
-
+            case DtnTest.Tests.TTL_MESSAGE:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                            ttl: DtnTest.MESSAGE_TTL*DtnTest.DTN_MAX_RETRIES, // we are going to refuse the message 5 times
+                            ttl: Math.round(DtnTest.MESSAGE_TTL),
                             msgID: DtnTest.MESSAGE_ID,
                             protocol: DtnTest.MESSAGE_PROTOCOL,
                             data: DtnTest.MESSAGE_DATA.getBytes())
                 sendDatagram(req)
                 break
             case DtnTest.Tests.ARRIVAL_PRIORITY:
-                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.datagramPriority,
                         dtn.DtnLink.DatagramPriority.ARRIVAL)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
-                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
                 rsp = (ParameterRsp)dtnlink.request(p, 1000)
 
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
@@ -99,10 +96,10 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.EXPIRY_PRIORITY:
-                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.datagramPriority,
                         dtn.DtnLink.DatagramPriority.EXPIRY)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
-                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
                 rsp = (ParameterRsp)dtnlink.request(p, 1000)
 
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
@@ -117,10 +114,10 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.RANDOM_PRIORITY:
-                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.DATAGRAM_PRIORITY,
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.datagramPriority,
                         dtn.DtnLink.DatagramPriority.RANDOM)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
-                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, DtnTest.DELAY_TIME/1000*DtnTest.PRIORITY_MESSAGES)
                 rsp = (ParameterRsp)dtnlink.request(p, 1000)
 
                 for (int i = 0; i < DtnTest.PRIORITY_MESSAGES; i++) {
@@ -140,7 +137,7 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.TIMEOUT:
-                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, 10*60)
+                ParameterReq parameterReq = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, 10*60)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(parameterReq, 1000)
 
                 byte[] d1_data = new byte[1]
@@ -168,9 +165,9 @@ class TestApp extends UnetAgent {
                 })
                 break
             case DtnTest.Tests.MULTI_LINK:
-                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_EXPIRY_TIME, DtnTest.DELAY_TIME)
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.linkExpiryTime, DtnTest.DELAY_TIME)
                 ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
-                p = new ParameterReq().set(dtn.DtnLinkParameters.LINK_PRIORITY, DtnTest.LINK_ORDER)
+                p = new ParameterReq().set(dtn.DtnLinkParameters.linkPriority, DtnTest.LINK_ORDER)
                 rsp = (ParameterRsp)dtnlink.request(p, 1000)
 
                 add(new WakerBehavior(2000*1000) {
@@ -219,10 +216,10 @@ class TestApp extends UnetAgent {
                     }
                 }
                 break
-            case DtnTest.Tests.MAX_RETRIES:
-                if (msg instanceof DatagramDeliveryNtf) {
+            case DtnTest.Tests.TTL_MESSAGE:
+                if (msg instanceof DatagramFailureNtf) {
                     if (msg.getInReplyTo() == DtnTest.MESSAGE_ID && msg.getTo() == DtnTest.DEST_ADDRESS) {
-                        maxRetryResult = true
+                        ttlMessageResult = true
                     }
                 }
                 break

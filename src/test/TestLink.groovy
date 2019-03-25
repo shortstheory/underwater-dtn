@@ -27,9 +27,8 @@ class TestLink extends UnetAgent {
 
     int fragmentsReceived = 0
 
-    int DATAGRAM_ATTEMPTS = 0
-    int NEXT_EXPECTED_DATAGRAM = 0
-    int DATAGRAMS_RECEIVED = 0
+    int nextExpectedDatagram = 0
+    int datagramsReceived = 0
 
     AgentID dtnlink
 
@@ -104,32 +103,17 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
-            case DtnTest.Tests.MAX_RETRIES:
+            case DtnTest.Tests.TTL_MESSAGE:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
-                        DATAGRAM_ATTEMPTS++
                         String messageID = msg.getMessageID()
-
-                        if (DATAGRAM_ATTEMPTS < DtnTest.DTN_MAX_RETRIES) {
-                            add(new WakerBehavior(10 * 1000) {
-                                @Override
-                                void onWake() {
-                                    dtnlink.send(new DatagramFailureNtf(to: DtnTest.DEST_ADDRESS,
-                                                                        inReplyTo: messageID))
-                                }
-                            })
-                        } else if (DATAGRAM_ATTEMPTS == DtnTest.DTN_MAX_RETRIES) {
-                            maxRetryResult = true
-                            add(new WakerBehavior(10 * 1000) {
-                                @Override
-                                void onWake() {
-                                    dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
-                                                                        inReplyTo: messageID))
-                                }
-                            })
-                        } else {
-                            maxRetryResult = false
-                        }
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramFailureNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: messageID))
+                            }
+                        })
                     }
                     return new Message(msg, Performative.AGREE)
                 }
@@ -139,10 +123,10 @@ class TestLink extends UnetAgent {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         String messageID = msg.getMessageID()
                         int msgCount = (int)msg.getData()[0]
-                        if (msgCount == NEXT_EXPECTED_DATAGRAM) {
-                            NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
+                        if (msgCount == nextExpectedDatagram) {
+                            nextExpectedDatagram++ // if a datagram is OoO it will never pass
                         }
-                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
+                        if (nextExpectedDatagram == DtnTest.PRIORITY_MESSAGES) {
                             arrivalPriorityResult = true
                         } else {
                             arrivalPriorityResult = false
@@ -163,10 +147,10 @@ class TestLink extends UnetAgent {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         String messageID = msg.getMessageID()
                         int msgCount = (int)msg.getData()[0]
-                        if (msgCount == NEXT_EXPECTED_DATAGRAM) {
-                            NEXT_EXPECTED_DATAGRAM++ // if a datagram is OoO it will never pass
+                        if (msgCount == nextExpectedDatagram) {
+                            nextExpectedDatagram++ // if a datagram is OoO it will never pass
                         }
-                        if (NEXT_EXPECTED_DATAGRAM == DtnTest.PRIORITY_MESSAGES) {
+                        if (nextExpectedDatagram == DtnTest.PRIORITY_MESSAGES) {
                             expiryPriorityResult = true
                         } else {
                             expiryPriorityResult = false
@@ -188,9 +172,9 @@ class TestLink extends UnetAgent {
                         String messageID = msg.getMessageID()
                         int msgCount = (int)msg.getData()[0]
                         if (msgCount >= 0 && msgCount < DtnTest.PRIORITY_MESSAGES) {
-                            DATAGRAMS_RECEIVED++
+                            datagramsReceived++
                         }
-                        if (DATAGRAMS_RECEIVED == DtnTest.PRIORITY_MESSAGES) {
+                        if (datagramsReceived == DtnTest.PRIORITY_MESSAGES) {
                             randomPriorityResult = true
                         } else {
                             randomPriorityResult = false
