@@ -11,6 +11,8 @@ import dtn.*
 class DtnTest {
     // FIXME: add multilink tests once the DataRate parameter is added
     String path = "testNode"
+    String path0 = "1"
+    String path1 = "2"
 
     public enum Tests {
         TRIVIAL_MESSAGE,
@@ -22,7 +24,8 @@ class DtnTest {
         ARRIVAL_PRIORITY,
         RANDOM_PRIORITY, // count if all messages have been sent
         LINK_TIMEOUT, // i.e., is our link still active? - add link, delay
-        MULTI_LINK
+        MULTI_LINK,
+        PAYLOAD_MESSAGE
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -46,7 +49,8 @@ class DtnTest {
     public void beforeTesting() {
         println("Cleaning Dirs")
         FileUtils.deleteDirectory(new File(path))
-        payloadText = new File(payloadPath).text
+        FileUtils.deleteDirectory(new File(path0))
+        FileUtils.deleteDirectory(new File(path1))
     }
 
     @Test
@@ -243,6 +247,26 @@ class DtnTest {
         assert(link1.linkPriorityExpectMessage == link1.linkPriorityReceivedMessage)
         assert(link2.linkPriorityExpectMessage == link2.linkPriorityReceivedMessage)
         assert(link3.linkPriorityExpectMessage == link3.linkPriorityReceivedMessage)
+    }
+
+    @Test
+    public void testPayloadMessage() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+//        payloadText = new File(payloadPath).text
+
+        TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_MESSAGE)
+        TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_MESSAGE)
+        c.add("dtnlink0", new DtnLink(path0))
+        c.add("dtnlink1", new DtnLink(path1))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+
     }
 
     @After

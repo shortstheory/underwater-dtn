@@ -189,6 +189,8 @@ class TestApp extends UnetAgent {
                     }
                 })
                 break
+            case DtnTest.Tests.PAYLOAD_MESSAGE:
+                break
             default:
                 println("Unhandled case!")
         }
@@ -294,6 +296,8 @@ class TestApp extends UnetAgent {
                 if (msg instanceof  DatagramDeliveryNtf) {
                     multiLinkResult = true
                 }
+                break
+            case DtnTest.Tests.PAYLOAD_MESSAGE:
                 break
         }
     }

@@ -233,6 +233,8 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
+            case DtnTest.Tests.PAYLOAD_MESSAGE:
+                break
         }
         return null
     }
