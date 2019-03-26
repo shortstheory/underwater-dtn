@@ -167,7 +167,7 @@ class DtnLink extends UnetAgent {
                 int minExpiryTime = Integer.MAX_VALUE
                 String messageID = null
                 for (String id : datagrams) {
-                    DtnPduMetadata metadata = storage.getDatagramMetadata(id)
+                    DtnPduMetadata metadata = storage.getMetadata(id)
                     if (metadata != null && metadata.expiryTime < minExpiryTime) {
                         messageID = id
                         minExpiryTime = metadata.expiryTime
@@ -228,7 +228,7 @@ class DtnLink extends UnetAgent {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
-                byte[] data = storage.getDataFromPDU(pduBytes)
+                byte[] data = storage.getPDUData(pduBytes)
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
@@ -240,7 +240,7 @@ class DtnLink extends UnetAgent {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
                             // FIXME: ntf.setTtl(ttl)
-                            byte[] msgBytes = storage.getDataFromPDU(storage.readPayload(src, payloadID))
+                            byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
                             String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
                             storage.setDelivered(messageID)
@@ -315,14 +315,14 @@ class DtnLink extends UnetAgent {
                 @Override
                 void onWake() {
                     int linkMTU = utility.getLinkMetadata(nodeLink).linkMTU
-                    HashMap<String, Integer> parsedPdu = storage.getParsedPDU(messageID)
+                    HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
                     if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
                         if (metadata != null && !metadata.delivered) {
                             // check for protocol number here?
                             // we are decoding the PDU twice, not good!
                             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
-                            byte[] pduData = storage.getPDUData(messageID)
+                            byte[] pduData = storage.getMessageData(messageID)
                             int expiryTime = metadata.expiryTime - currentTimeSeconds()
                             metadata.size = pduData.length
                             DatagramReq datagramReq

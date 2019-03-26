@@ -1,11 +1,11 @@
-Reply structure
-Use req instead of send
 
 issues:
-
+* publish progress use ProgressNtfs?
 
 
 pending:
+* improve the RFC, make it more neutral and stick with RFC style guide
+* add a payload test
 * datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
 * check for amount of coupling in DtnLink/Storage and remove the useless methods
 
@@ -14,6 +14,8 @@ later:
 in progress:
 
 done:
+Reply structure
+Use req instead of send
 * added check for rsp when sending on sendDatagram
 * fragmentation
 * lots of duplications may be needed in tests

@@ -46,16 +46,54 @@ class DtnStorage {
         datagramMap = new HashMap<>()
     }
 
-    void trackDatagram(String newMessageID, String oldMessageID) {
-        datagramMap.put(newMessageID, oldMessageID)
+    String getOriginalMessageID(String newMessageID) {
+        return datagramMap.get(newMessageID)
     }
 
-    DtnPduMetadata getDatagramMetadata(String messageID) {
+    void setDelivered(String messageID) {
+        metadataMap.get(messageID).delivered = true
+    }
+
+    DtnPduMetadata getMetadata(String messageID) {
         return metadataMap.get(messageID)
     }
 
-    String getOriginalMessageID(String newMessageID) {
-        return datagramMap.get(newMessageID)
+    void trackDatagram(String newMessageID, String originalMessageID) {
+        datagramMap.put(newMessageID, originalMessageID)
+    }
+
+    void removeTracking(String newMessageID) {
+        datagramMap.remove(newMessageID)
+    }
+
+    byte[] readPayload(int src, int payloadID) {
+        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
+        return Files.readAllBytes(new File(directory, filename).toPath())
+    }
+
+    byte[] getPDUData(byte[] pdu) {
+        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
+    }
+
+    byte[] getMessageData(String messageID) {
+        byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
+        if (pduBytes != null) {
+            return getPDUData(pduBytes)
+        }
+        return null
+    }
+
+    HashMap getPDUInfo(String messageID) {
+        try {
+            byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
+            if (pduBytes != null) {
+                return decodePdu(pduBytes)
+            }
+            return null
+        } catch(Exception e) {
+            println "Message ID " + messageID + " not found"
+            return null
+        }
     }
 
     ArrayList<String> getNextHopDatagrams(int nextHop) {
@@ -118,22 +156,6 @@ class DtnStorage {
                 fos.close()
             }
         }
-
-
-    }
-
-    byte[] readPayload(int src, int payloadID) {
-        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
-        return Files.readAllBytes(new File(directory, filename).toPath())
-    }
-
-    void deletePayload(int src, int payloadID) {
-        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
-        File file = new File(directory, filename)
-        file.delete()
-        // FIXME: on TTL expiry we have to make sure that this method is called
-        // No DDN/DFN required if this is deleted
-        // so behave the same as regular message delivery as well
     }
 
     // dumb mistake for sure
@@ -161,10 +183,6 @@ class DtnStorage {
         } finally {
             fos.close()
         }
-    }
-
-    void setDelivered(String messageID) {
-        metadataMap.get(messageID).delivered = true
     }
 
     void deleteFile(String messageID, DtnPduMetadata metadata) {
@@ -249,41 +267,8 @@ class DtnStorage {
         return map
     }
 
-    byte[] getDataFromPDU(byte[] pdu) {
-        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
-    }
-
-    byte[] getPDUData(String messageID) {
-        byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
-        if (pduBytes != null) {
-            return getDataFromPDU(pduBytes)
-        }
-        return null
-    }
-
-    HashMap getParsedPDU(String messageID) {
-        try {
-            byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
-            if (pduBytes != null) {
-                return decodePdu(pduBytes)
-            }
-            return null
-        } catch(Exception e) {
-            println "Message ID " + messageID + " not found"
-            return null
-        }
-    }
-
-    DtnPduMetadata getMetadata(String messageID) {
-        return metadataMap.get(messageID)
-    }
-
-    void removeTracking(String newMessageID) {
-        datagramMap.remove(newMessageID)
-    }
-
     int getArrivalTime(String messageID) {
-        HashMap<String, Integer> map = getParsedPDU(messageID)
+        HashMap<String, Integer> map = getPDUInfo(messageID)
         if (map != null) {
             int ttl = map.get(TTL_MAP)
             int expiryTime = getMetadata(messageID).expiryTime
