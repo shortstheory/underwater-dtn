@@ -429,6 +429,7 @@ class DtnLink extends UnetAgent {
 
     int getMTU() {
         // FIXME: check if this MTU value is correct
+        // (8388607-8) = 8,388,599
         return 0x7FFFFF - HEADER_SIZE
     }
 

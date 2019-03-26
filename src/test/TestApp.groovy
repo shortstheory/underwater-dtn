@@ -200,7 +200,7 @@ class TestApp extends UnetAgent {
                     @Override
                     void onWake() {
                         DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-                                ttl: (DtnTest.DELAY_TIME*3/1000).floatValue(),
+                                ttl: (DtnTest.DELAY_TIME*30/1000).floatValue(),
                                 msgID: DtnTest.MESSAGE_ID,
                                 protocol: DtnTest.MESSAGE_PROTOCOL,
                                 data: DtnTest.payloadText.getBytes())

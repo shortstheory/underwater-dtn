@@ -5,7 +5,6 @@ issues:
 
 pending:
 * improve the RFC, make it more neutral and stick with RFC style guide
-* add a payload test
 * datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
 * check for amount of coupling in DtnLink/Storage and remove the useless methods
 
@@ -14,8 +13,11 @@ later:
 in progress:
 
 done:
-Reply structure
-Use req instead of send
+* removed more useless methods
+* Reply structure
+* Use req instead of send
+* add a payload test
+* wrote fragmentation test
 * added check for rsp when sending on sendDatagram
 * fragmentation
 * lots of duplications may be needed in tests
