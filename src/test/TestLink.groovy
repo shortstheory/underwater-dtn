@@ -31,6 +31,7 @@ class TestLink extends UnetAgent {
     int datagramsReceived = 0
 
     AgentID dtnlink
+    AgentID dtnlink1
 
     TestLink(DtnTest.Tests t) {
         test = t
@@ -54,6 +55,11 @@ class TestLink extends UnetAgent {
                 dtnlink.send(new DatagramNtf(from: DtnTest.DEST_ADDRESS))
             }
         })
+        switch (test) {
+            case DtnTest.Tests.PAYLOAD_MESSAGE:
+                dtnlink1 = agent("dtnlink1")
+                break
+        }
     }
 
     Message processRequest(Message msg) {
@@ -234,6 +240,22 @@ class TestLink extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.PAYLOAD_MESSAGE:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
+                        add(new WakerBehavior(1 * 1000) {
+                            @Override
+                            void onWake() {
+                                DatagramReq r = (DatagramReq)msg
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: msg.getMessageID()))
+                                dtnlink1.send(new DatagramNtf(protocol: r.getProtocol(),
+                                                                to: r.getTo(),
+                                                                data: r.getData()))
+                            }
+                        })
+                    }
+                    return new Message(msg, Performative.AGREE)
+                }
                 break
         }
         return null

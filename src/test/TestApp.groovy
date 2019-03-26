@@ -1,6 +1,6 @@
 package test
 
-
+import dtn.DtnLink
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
@@ -8,6 +8,7 @@ import org.arl.unet.*
 @CompileStatic
 class TestApp extends UnetAgent {
     AgentID dtnlink
+    AgentID dtnlink1
 
     public boolean trivialMessageResult = false
     public boolean badMessageResult = false
@@ -20,8 +21,8 @@ class TestApp extends UnetAgent {
     public boolean timeoutD1Success = false
     public boolean timeoutD2Failed = false
     public boolean multiLinkResult = false
-    public boolean fragementationResult = false
-    public boolean reassemblyResult = false
+    public boolean payloadResult = false
+    public boolean payloadDeletionResult = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -190,6 +191,22 @@ class TestApp extends UnetAgent {
                 })
                 break
             case DtnTest.Tests.PAYLOAD_MESSAGE:
+                dtnlink1 = agent("dtnlink1")
+                subscribe(topic(dtnlink1))
+                ParameterReq p = new ParameterReq().set(dtn.DtnLinkParameters.datagramPriority,
+                            dtn.DtnLink.DatagramPriority.ARRIVAL)
+                ParameterRsp rsp = (ParameterRsp)dtnlink.request(p, 1000)
+                add(new WakerBehavior(10*1000) {
+                    @Override
+                    void onWake() {
+                        DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                                ttl: (DtnTest.DELAY_TIME*3/1000).floatValue(),
+                                msgID: DtnTest.MESSAGE_ID,
+                                protocol: DtnTest.MESSAGE_PROTOCOL,
+                                data: DtnTest.payloadText.getBytes())
+                        sendDatagram(req)
+                    }
+                })
                 break
             default:
                 println("Unhandled case!")
@@ -293,11 +310,26 @@ class TestApp extends UnetAgent {
                 }
                 break
             case DtnTest.Tests.MULTI_LINK:
-                if (msg instanceof  DatagramDeliveryNtf) {
+                if (msg instanceof DatagramDeliveryNtf) {
                     multiLinkResult = true
                 }
                 break
             case DtnTest.Tests.PAYLOAD_MESSAGE:
+                if (msg instanceof DatagramNtf) {
+                    if (DtnTest.payloadText == new String(msg.getData())
+                        && msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        payloadResult = true
+                    }
+                    add(new WakerBehavior(600*1000){
+                        @Override
+                        void onWake() {
+                            println("Checking Dirs")
+                            if (!(new File(DtnTest.path1).listFiles()) && !(new File(DtnTest.path0).listFiles())) {
+                                payloadDeletionResult = true
+                            }
+                        }
+                    })
+                }
                 break
         }
     }

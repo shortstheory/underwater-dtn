@@ -10,9 +10,9 @@ import dtn.*
 @CompileStatic
 class DtnTest {
     // FIXME: add multilink tests once the DataRate parameter is added
-    String path = "testNode"
-    String path0 = "1"
-    String path1 = "2"
+    public static final String path = "testNode"
+    public static final String path0 = "1"
+    public static final String path1 = "2"
 
     public enum Tests {
         TRIVIAL_MESSAGE,
@@ -34,6 +34,7 @@ class DtnTest {
     public static final String storagePath = "testStorage"
     public static final String payloadPath = "testPayload"
 
+    public static final int NODE_ADDRESS = 1
     public static final int DEST_ADDRESS = 2
     public static final int MESSAGE_TTL = 3600
     public static final int MESSAGE_PROTOCOL = Protocol.USER
@@ -42,7 +43,7 @@ class DtnTest {
 
     public static final int DTN_LINK_EXPIRY = 600
     public static final int PAYLOAD_SIZE = 10000
-    public String payloadText
+    public static String payloadText
     public static ArrayList<AgentID> LINK_ORDER = new ArrayList<>()
 
     @Before
@@ -253,11 +254,11 @@ class DtnTest {
     public void testPayloadMessage() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
-//        payloadText = new File(payloadPath).text
+        payloadText = new File(payloadPath).text
 
         TestApp app = new TestApp(DtnTest.Tests.PAYLOAD_MESSAGE)
         TestLink link = new TestLink(DtnTest.Tests.PAYLOAD_MESSAGE)
-        c.add("dtnlink0", new DtnLink(path0))
+        c.add("dtnlink", new DtnLink(path0))
         c.add("dtnlink1", new DtnLink(path1))
         c.add("testapp", app)
         c.add("testlink", link)
@@ -266,7 +267,8 @@ class DtnTest {
         p.delay(DELAY_TIME*PRIORITY_MESSAGES) // extra long, but that's OK
         println("Done")
         p.shutdown()
-
+        assert(app.payloadResult)
+        assert(app.payloadDeletionResult)
     }
 
     @After
