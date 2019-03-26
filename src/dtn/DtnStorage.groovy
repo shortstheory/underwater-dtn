@@ -23,9 +23,7 @@ class DtnStorage {
     private HashMap<String, String> datagramMap
 
     private static final int LOWER_8_BITMASK  = (int)0x000000FF
-    private static final int LOWER_16_BITMASK = (int)0x0000FFFF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
-    private static final int UPPER_16_BITMASK = (int)0xFFFF0000
 
     public static final String TTL_MAP            = "ttl"
     public static final String PROTOCOL_MAP       = "protocol"
