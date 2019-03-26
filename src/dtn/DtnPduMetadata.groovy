@@ -27,7 +27,11 @@ class DtnPduMetadata {
         }
     }
 
-        // FIXME: Change the names of these message types
+    void setDelivered() {
+        delivered = true
+    }
+
+    // FIXME: Change the names of these message types
     enum MessageType {
         INBOUND,
         OUTBOUND

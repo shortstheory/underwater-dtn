@@ -243,7 +243,7 @@ class DtnLink extends UnetAgent {
                             byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
                             String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
-                            storage.setDelivered(messageID)
+                            storage.getMetadata(messageID).setDelivered()
 //                            storage.deletePayload(src, payloadID)
                         }
                     } else {
@@ -273,7 +273,7 @@ class DtnLink extends UnetAgent {
                 if (metadata.bytesSent == metadata.size) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
-                    storage.setDelivered(originalMessageID)
+                    metadata.setDelivered()
                 }
                 // for non-payloads
             } else {
@@ -281,7 +281,8 @@ class DtnLink extends UnetAgent {
                 if (originalMessageID != null) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
                     notify.send(deliveryNtf)
-                    storage.setDelivered(originalMessageID)
+                    DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
+                    metadata.setDelivered()
                 }
             }
             linkState = LinkState.READY

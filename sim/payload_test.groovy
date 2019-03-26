@@ -40,7 +40,7 @@ DtnApp dg2 = new DtnApp(stat2)
 simulate T, {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(1), DtnLink.DatagramPriority.RANDOM)
+        container.add 'dtnlink', new DtnLink(Integer.toString(1), DtnLink.DatagramPriority.ARRIVAL)
         container.add 'testagent', dg1
     }
     node 'b', address: 2, location: [dist, 0, 0], shell: 5000, stack: { container ->

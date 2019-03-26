@@ -48,10 +48,6 @@ class DtnStorage {
         return datagramMap.get(newMessageID)
     }
 
-    void setDelivered(String messageID) {
-        metadataMap.get(messageID).delivered = true
-    }
-
     DtnPduMetadata getMetadata(String messageID) {
         return metadataMap.get(messageID)
     }
