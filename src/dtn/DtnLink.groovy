@@ -32,7 +32,7 @@ class DtnLink extends UnetAgent {
     private PoissonBehavior datagramResetBehavior
     private TickerBehavior GCBehavior
 
-    private DtnLinkInfo utility
+    private DtnLinkManager linkManager
     private LinkState linkState
 
     public Random random
@@ -103,7 +103,7 @@ class DtnLink extends UnetAgent {
         notify = topic()
 
         storage = new DtnStorage(this, directory)
-        utility = new DtnLinkInfo(this)
+        linkManager = new DtnLinkManager(this)
 
         linksWithReliability = getLinksWithReliability()
 
@@ -114,7 +114,7 @@ class DtnLink extends UnetAgent {
 
         for (AgentID link : linksWithReliability) {
             linkPriority.add(link)
-            utility.addLink(link)
+            linkManager.addLink(link)
         }
 
         beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
@@ -124,9 +124,9 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                for (Integer node : utility.getDestinationNodes()) {
+                for (Integer node : linkManager.getDestinationNodes()) {
                     if (node) {
-                        AgentID nodeLink = utility.getBestLink(node)
+                        AgentID nodeLink = linkManager.getBestLink(node)
                         if (nodeLink != null) {
                             // FIXME: later choose links based on bitrate
                             ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
@@ -215,15 +215,15 @@ class DtnLink extends UnetAgent {
     protected void processMessage(Message msg) {
         if (msg instanceof RxFrameNtf) {
             AgentID phy = msg.getRecipient().getOwner().getAgentID()
-            AgentID link = utility.getLinkForPhy(phy)
+            AgentID link = linkManager.getLinkForPhy(phy)
             if (link != null) {
-                utility.addLinkForNode(msg.getFrom(), link)
+                linkManager.addLinkForNode(msg.getFrom(), link)
             }
         } else if (msg instanceof DatagramNtf) {
             // we will do this for every message? Can't hurt much
-            AgentID link = utility.getLink(msg.getSender())
-            utility.addLinkForNode(msg.getFrom(), link)
-            utility.updateLastTransmission(link)
+            AgentID link = linkManager.getLink(msg.getSender())
+            linkManager.addLinkForNode(msg.getFrom(), link)
+            linkManager.updateLastTransmission(link)
 
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
@@ -315,7 +315,7 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(randomDelay)) {
                 @Override
                 void onWake() {
-                    int linkMTU = utility.getLinkMetadata(nodeLink).linkMTU
+                    int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
                     HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
                     if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
                         DtnPduMetadata metadata = storage.getMetadata(messageID)
@@ -393,9 +393,9 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 int beaconPeriod = (beaconTimeout / 1000).intValue()
-                for (Map.Entry entry : utility.getLinkInfo()) {
+                for (Map.Entry entry : linkManager.getLinkInfo()) {
                     AgentID linkID = (AgentID)entry.getKey()
-                    DtnLinkInfo.LinkMetadata metadata = (DtnLinkInfo.LinkMetadata)entry.getValue()
+                    DtnLinkManager.LinkMetadata metadata = (DtnLinkManager.LinkMetadata)entry.getValue()
                     int lastTransmission = metadata.lastTransmission
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
@@ -471,12 +471,18 @@ class DtnLink extends UnetAgent {
     }
 
     void setLinkPriority(ArrayList<AgentID> links) {
+        // FIXME: what if a Link doesn't exist here?
         if (links != null && links.size()) {
+            for (AgentID link : links) {
+                if (!linkManager.linkExists(link)) {
+                    return
+                }
+            }
             linkPriority = links
         }
     }
 
     Set<Integer> getDiscoveredNodes() {
-        return utility.getDestinationNodes()
+        return linkManager.getDestinationNodes()
     }
 }

@@ -85,7 +85,13 @@ class DtnApp extends UnetAgent{
                         String data = createDataSize(random.nextInt(msgSize))
                         int ttl = 200 + random.nextInt(msgTtl)
                         byte[] bytes = data.getBytes()
-                        DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: protocolNumber)
+                        DatagramReq req
+//                        req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: protocolNumber)
+                        if (data.length() > 1992) {
+                            req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: payloadProtocolNumber)
+                        } else {
+                            req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: protocolNumber)
+                        }
                         dtnLink.send(req)
                         stats.datagramsSent++
                         sentDatagrams.add(req.getMessageID())
@@ -136,13 +142,6 @@ class DtnApp extends UnetAgent{
             if (msg.getProtocol() == protocolNumber) {
                 stats.datagramsReceived++
             } else if (msg.getProtocol() == payloadProtocolNumber) {
-                def x = msg
-                String s = new String(msg.getData())
-                if (s == payloadText) {
-                    println "Successful Tx!"
-                } else {
-                    println "Fail"
-                }
                 stats.payloadsReceived++
             }
         } else if (msg instanceof DatagramDeliveryNtf) {

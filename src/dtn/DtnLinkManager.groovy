@@ -7,7 +7,7 @@ import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
 
 @CompileStatic
-class DtnLinkInfo {
+class DtnLinkManager {
     private DtnLink dtnLink
 
     class LinkMetadata {
@@ -19,7 +19,7 @@ class DtnLinkInfo {
     private HashMap<AgentID, LinkMetadata> linkInfo
     private HashMap<Integer, HashSet<AgentID>> nodeLinks
 
-    DtnLinkInfo(DtnLink dtnLink) {
+    DtnLinkManager(DtnLink dtnLink) {
         this.dtnLink = dtnLink
         linkInfo = new HashMap<>()
         nodeLinks = new HashMap<>()
@@ -115,5 +115,9 @@ class DtnLinkInfo {
         if (linkInfo.get(linkID) != null) {
             linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
         }
+    }
+
+    boolean linkExists(AgentID link) {
+        return (linkInfo.get(link) != null) ? true : false
     }
 }
