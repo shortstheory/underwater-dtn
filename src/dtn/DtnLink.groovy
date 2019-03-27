@@ -30,6 +30,7 @@ class DtnLink extends UnetAgent {
     private CyclicBehavior datagramCycle
     private PoissonBehavior beaconBehavior
     private PoissonBehavior datagramResetBehavior
+    private WakerBehavior resetState
     private TickerBehavior GCBehavior
 
     private DtnLinkManager linkManager
@@ -39,7 +40,7 @@ class DtnLink extends UnetAgent {
 
     // all units are in milliseconds below
     int beaconTimeout = 10*1000
-
+    int resetStateTime = 300*1000
     int GCPeriod = 100*1000
     int datagramResetPeriod = 10*1000
     int randomDelay = 5*1000
@@ -285,6 +286,7 @@ class DtnLink extends UnetAgent {
                     metadata.setDelivered()
                 }
             }
+            resetState.stop()
             linkState = LinkState.READY
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
@@ -305,6 +307,7 @@ class DtnLink extends UnetAgent {
                 storage.removeTracking(messageID)
                 storage.getMetadata(messageID).attempts++
             }
+            resetState.stop()
             linkState = LinkState.READY
         }
     }
@@ -350,6 +353,7 @@ class DtnLink extends UnetAgent {
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                     storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                    resetState = (WakerBehavior)add(createResetStateBehavior())
                                 } else {
                                     linkState = LinkState.READY
                                 }
@@ -375,6 +379,7 @@ class DtnLink extends UnetAgent {
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                     storage.trackDatagram(datagramReq.getMessageID(), trackerID)
+                                    resetState = (WakerBehavior)add(createResetStateBehavior())
                                 } else {
                                     linkState = LinkState.READY
                                 }
@@ -419,6 +424,15 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 datagramCycle.restart()
+            }
+        }
+    }
+
+    WakerBehavior createResetStateBehavior() {
+        return new WakerBehavior(resetStateTime) {
+            @Override
+            void onWake() {
+                linkState = LinkState.READY
             }
         }
     }
@@ -471,7 +485,7 @@ class DtnLink extends UnetAgent {
     }
 
     void setLinkPriority(ArrayList<AgentID> links) {
-        // FIXME: what if a Link doesn't exist here?
+        // FIXME: what if a Link doesn't exist here? Should it be best-effort, or ignore entirely?
         if (links != null && links.size()) {
             for (AgentID link : links) {
                 if (!linkManager.linkExists(link)) {
