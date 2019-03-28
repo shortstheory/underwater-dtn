@@ -36,6 +36,13 @@ class DtnLink extends UnetAgent {
     private DtnLinkManager linkManager
     private LinkState linkState
 
+    private String outboundDatagramID
+    private String originalDatagramID
+
+    private String outboundPayloadFragmentID
+    private String originalPayloadID
+    private int outboundPayloadBytesSent
+
     public Random random
 
     // all units are in milliseconds below
@@ -261,30 +268,22 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
-            String originalMessageID = storage.getOriginalMessageID(newMessageID)
-            String[] split = originalMessageID.split("_")
-            // for payloads
-            if (split.size() == 2) {
-                String payloadID = split[0]
-                int endPtr = Integer.valueOf(split[1])
-                String datagramID = storage.getOriginalMessageID(payloadID)
-                DtnPduMetadata metadata = storage.getMetadata(datagramID)
-                metadata.bytesSent = endPtr
-                println("Datagram: " + datagramID + " Bytes Sent " + metadata.bytesSent)
+            if (newMessageID == outboundDatagramID) {
+                DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
+                notify.send(deliveryNtf)
+                DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
+                metadata.setDelivered()
+            } else if (newMessageID == outboundPayloadFragmentID) {
+                DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
+                metadata.bytesSent = outboundPayloadBytesSent
+                println("Datagram: " + originalPayloadID + " Bytes Sent " + metadata.bytesSent)
                 if (metadata.bytesSent == metadata.size) {
-                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
+                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalPayloadID, to: node)
                     notify.send(deliveryNtf)
                     metadata.setDelivered()
                 }
-                // for non-payloads
             } else {
-                // it can happen that the DDN comes just after a TTL
-                if (originalMessageID != null) {
-                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalMessageID, to: node)
-                    notify.send(deliveryNtf)
-                    DtnPduMetadata metadata = storage.getMetadata(originalMessageID)
-                    metadata.setDelivered()
-                }
+                println("This should never happen! " + newMessageID)
             }
             resetState.stop()
             linkState = LinkState.READY
@@ -292,24 +291,32 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             // FIXME: this is only for debugging, we don't really need this anymore
             String newMessageID = msg.getInReplyTo()
-            String originalMessageID = storage.getOriginalMessageID(newMessageID)
-            String[] split = originalMessageID.split("_")
-
-            println("Datagram: " + originalMessageID + "DFN")
-
-            if (split.length == 2) {
-                // This means it's a payload ID
-                String payloadID = split[0]
-                String datagramID = storage.getOriginalMessageID(payloadID)
-                storage.getMetadata(datagramID).attempts++
+            if (newMessageID == outboundDatagramID) {
+                println("Datagram: " + originalDatagramID + "DFN")
+                DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
+                if (metadata != null) {
+                    metadata.attempts++
+                }
+            } else if (newMessageID == outboundPayloadFragmentID) {
+                println("Payload: " + originalPayloadID + "DFN")
+                DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
+                if (metadata != null) {
+                    metadata.attempts++
+                }
             } else {
-                String messageID = split[0]
-                storage.removeTracking(newMessageID)
-                storage.getMetadata(messageID).attempts++
+                println("This should never happen! " + newMessageID)
             }
             resetState.stop()
             linkState = LinkState.READY
         }
+    }
+
+    int getPayloadID(String messageID) {
+        int res = 0
+        for (byte c : messageID.toCharArray()) {
+            res = (Character.isLetter(c)) ? res^(c<<1) : res^c
+        }
+        return res
     }
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
@@ -352,7 +359,8 @@ class DtnLink extends UnetAgent {
                                 }
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                    storage.trackDatagram(datagramReq.getMessageID(), messageID)
+                                    originalDatagramID = messageID
+                                    outboundDatagramID = datagramReq.getMessageID()
                                     resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
                                     println("Launched WB for " + messageID)
                                 } else {
@@ -363,7 +371,7 @@ class DtnLink extends UnetAgent {
                                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
                                 boolean tbc = (endPtr == pduData.length)
                                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-                                int payloadID = storage.getPayloadID(messageID)
+                                int payloadID = getPayloadID(messageID)
                                 byte[] pduBytes = DtnStorage.encodePdu(data,
                                                     expiryTime,
                                                     parsedPdu.get(DtnStorage.PROTOCOL_MAP),
@@ -379,7 +387,10 @@ class DtnLink extends UnetAgent {
                                                 reliability: true)
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                    storage.trackDatagram(datagramReq.getMessageID(), trackerID)
+                                    // FIXME: HERHERH
+                                    originalPayloadID = messageID
+                                    outboundPayloadFragmentID = datagramReq.getMessageID()
+                                    outboundPayloadBytesSent = endPtr
                                     resetState = (WakerBehavior)add(createResetStateBehavior(trackerID))
                                 } else {
                                     linkState = LinkState.READY

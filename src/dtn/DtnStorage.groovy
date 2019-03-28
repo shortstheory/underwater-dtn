@@ -20,8 +20,6 @@ class DtnStorage {
     /**
      * Pair of the new MessageID and old MessageID
      */
-    private HashMap<String, String> datagramMap
-
     private static final int LOWER_8_BITMASK  = (int)0x000000FF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
 
@@ -41,23 +39,10 @@ class DtnStorage {
         }
 
         metadataMap = new HashMap<>()
-        datagramMap = new HashMap<>()
-    }
-
-    String getOriginalMessageID(String newMessageID) {
-        return datagramMap.get(newMessageID)
     }
 
     DtnPduMetadata getMetadata(String messageID) {
         return metadataMap.get(messageID)
-    }
-
-    void trackDatagram(String newMessageID, String originalMessageID) {
-        datagramMap.put(newMessageID, originalMessageID)
-    }
-
-    void removeTracking(String newMessageID) {
-        datagramMap.remove(newMessageID)
     }
 
     byte[] readPayload(int src, int payloadID) {
@@ -156,7 +141,7 @@ class DtnStorage {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
         // FIXME: only for testing with Router
-        int ttl = (Math.round(req.getTtl()) & LOWER_24_BITMASK)
+        int ttl = (Math.round(req.getTtl()))
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         if (data != null && dtnLink.getMTU() < data.length) {
@@ -183,14 +168,6 @@ class DtnStorage {
         file.delete()
         // remove from tracking map
         if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-            Iterator it = datagramMap.entrySet().iterator()
-            while (it.hasNext()) {
-                Map.Entry entry = (Map.Entry) it.next()
-                if (entry.getValue() == messageID) {
-                    it.remove()
-                    break
-                }
-            }
             // If TTL'ed send the appropriate ntf
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
@@ -216,30 +193,17 @@ class DtnStorage {
     static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + DtnLink.HEADER_SIZE)
-        pdu.write24(ttl)
+        pdu.write24(ttl & LOWER_24_BITMASK)
         pdu.write8(protocol)
         int payloadFields
         payloadFields = (tbc) ? (1 << 31) : 0
-        payloadFields |= (payloadID << 23)
+        payloadFields |= ((payloadID & LOWER_8_BITMASK) << 23)
         payloadFields |= startPtr
         pdu.write32(payloadFields)
         if (data != null) {
             pdu.write(data)
         }
         return pdu
-    }
-
-    int getPayloadID(String messageID) {
-        Iterator it = datagramMap.entrySet().iterator()
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next()
-            if (pair.getValue() == messageID) {
-                return Integer.valueOf((String)pair.getKey())
-            }
-        }
-        int randomID = dtnLink.random.nextInt() & LOWER_8_BITMASK
-        datagramMap.put(Integer.toString(randomID), messageID)
-        return randomID
     }
 
     static HashMap decodePdu(byte[] pduBytes) {
