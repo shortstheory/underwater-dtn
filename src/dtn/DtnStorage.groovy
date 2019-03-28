@@ -152,7 +152,6 @@ class DtnStorage {
         }
     }
 
-    // dumb mistake for sure
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()

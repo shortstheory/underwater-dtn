@@ -304,7 +304,7 @@ class DtnLink extends UnetAgent {
                 storage.getMetadata(datagramID).attempts++
             } else {
                 String messageID = split[0]
-                storage.removeTracking(messageID)
+                storage.removeTracking(newMessageID)
                 storage.getMetadata(messageID).attempts++
             }
             resetState.stop()

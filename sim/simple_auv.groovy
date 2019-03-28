@@ -17,8 +17,8 @@ import java.nio.file.Files
 platform = DiscreteEventSimulator
 //channel.model = BasicAcousticChannel
 channel.model = ProtocolChannelModel
-channel.pDetection = 1                  // pd
-channel.pDecoding = 1                   // pc
+channel.pDetection = 0.3                  // pd
+channel.pDecoding = 0.8                   // pc
 
 
 println "Starting Simple AUV simulation!"
@@ -27,7 +27,7 @@ def T = 10400.second
 int nodeCount = 2
 
 def msgSize = 300
-def msgFreq = 100*1000
+def msgFreq = 10*1000
 def dist = 2500.m
 def msgTtl = 5200
 
