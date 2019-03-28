@@ -295,7 +295,7 @@ class DtnLink extends UnetAgent {
             String originalMessageID = storage.getOriginalMessageID(newMessageID)
             String[] split = originalMessageID.split("_")
 
-            println("Datagram: " + split[0] + "DFN")
+            println("Datagram: " + originalMessageID + "DFN")
 
             if (split.length == 2) {
                 // This means it's a payload ID
@@ -353,7 +353,8 @@ class DtnLink extends UnetAgent {
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                     storage.trackDatagram(datagramReq.getMessageID(), messageID)
-                                    resetState = (WakerBehavior)add(createResetStateBehavior())
+                                    resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
+                                    println("Launched WB for " + messageID)
                                 } else {
                                     linkState = LinkState.READY
                                 }
@@ -379,7 +380,7 @@ class DtnLink extends UnetAgent {
                                 Message rsp = nodeLink.request(datagramReq, 1000)
                                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                     storage.trackDatagram(datagramReq.getMessageID(), trackerID)
-                                    resetState = (WakerBehavior)add(createResetStateBehavior())
+                                    resetState = (WakerBehavior)add(createResetStateBehavior(trackerID))
                                 } else {
                                     linkState = LinkState.READY
                                 }
@@ -428,10 +429,11 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    WakerBehavior createResetStateBehavior() {
+    WakerBehavior createResetStateBehavior(String ID) {
         return new WakerBehavior(resetStateTime) {
             @Override
             void onWake() {
+                println("No DDN/DFN received, resetting DtnLink for " + ID)
                 linkState = LinkState.READY
             }
         }

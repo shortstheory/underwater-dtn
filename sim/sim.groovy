@@ -40,18 +40,23 @@ def T = 1.hour
 //int[] dest2 = [3,1]
 //int[] dest3 = [1,2]
 
-int[] dest1 = [2]
-int[] dest2 = [3]
-int[] dest3 = [1]
+int[] dest1 = [2,3]
+int[] dest2 = [3,1]
+int[] dest3 = [1,2]
 
 int nodeCount = 3
 
 def msgSize = 100
 def msgFreq = 100*1000
 def dist = 200.m
-def msgTtl = 100000
+def msgTtl = 10000
 
-for (def i = 0; i < 10; i++) {
+test.DtnStats stat1 = new test.DtnStats()
+test.DtnStats stat2 = new test.DtnStats()
+test.DtnStats stat3 = new test.DtnStats()
+
+
+for (def i = 0; i < 1; i++) {
     // add housekeeping here
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)
     msgSize = (i+1)*100
@@ -64,18 +69,21 @@ for (def i = 0; i < 10; i++) {
         node 'a', address: 1, location: [0, 0, 0], shell: 5000, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
         }
         node 'b', address: 2, location: [dist, 0, 0], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'testagent', new DtnApp(dest2, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest2, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat2)
         }
         node 'c', address: 3, location: [0, dist, 0], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, false)
+            container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat3)
         }
     }
 }
 
+stat1.printStats()
+stat2.printStats()
+stat3.printStats()
