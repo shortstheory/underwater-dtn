@@ -15,11 +15,7 @@ class DtnStorage {
 
     // PDU Structure
     // **NEW** - |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (23)|
-    // no payload ID for messages which fit in the MTU
 
-    /**
-     * Pair of the new MessageID and old MessageID
-     */
     private static final int LOWER_8_BITMASK  = (int)0x000000FF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
 

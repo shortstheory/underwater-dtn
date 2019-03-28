@@ -19,22 +19,20 @@ class DtnPduMetadata {
         expiryTime = expiry
     }
 
+    enum MessageType {
+        INBOUND,
+        OUTBOUND
+    }
+
     MessageType getMessageType() {
-        if (nextHop != -1) {
-            return MessageType.OUTBOUND
-        } else {
+        if (nextHop == -1) {
             return MessageType.INBOUND
         }
+        return MessageType.OUTBOUND
     }
 
     void setDelivered() {
         delivered = true
-    }
-
-    // FIXME: Change the names of these message types
-    enum MessageType {
-        INBOUND,
-        OUTBOUND
     }
 }
 

@@ -5,17 +5,17 @@ issues:
 
 pending:
 * check if you can replace the datagramMap with a queue or other DS
-* try deleting datagra-ms immediately - not much point
 
 * improve the RFC, make it more neutral and stick with RFC style guide
-* datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
-* check for amount of coupling in DtnLink/Storage and remove the useless methods
 
 later:
 
 in progress:
 
 done:
+* datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages
+* try deleting datagra-ms immediately - not much point
+* check for amount of coupling in DtnLink/Storage and remove the useless methods
 * removed more useless methods
 * Reply structure
 * Use req instead of send
