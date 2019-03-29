@@ -294,7 +294,6 @@ class DtnLink extends UnetAgent {
             linkState = LinkState.READY
             datagramCycle.restart()
         } else if (msg instanceof DatagramFailureNtf) {
-            // FIXME: this is only for debugging, we don't really need this anymore
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 println("Datagram: " + originalDatagramID + "DFN")
@@ -330,76 +329,79 @@ class DtnLink extends UnetAgent {
             add(new WakerBehavior(random.nextInt(randomDelay)) {
                 @Override
                 void onWake() {
-                    int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
                     HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
-                    if (parsedPdu != null && parsedPdu.get(DtnStorage.TTL_MAP) > 0) {
-                        DtnPduMetadata metadata = storage.getMetadata(messageID)
-                        if (metadata != null && !metadata.delivered) {
-                            // check for protocol number here?
-                            // we are decoding the PDU twice, not good!
-                            int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
-                            byte[] pduData = storage.getMessageData(messageID)
-                            int expiryTime = metadata.expiryTime - currentTimeSeconds()
-                            metadata.size = pduData.length
-                            DatagramReq datagramReq
-                            if (pduData.length + HEADER_SIZE <= linkMTU) {
-                                // this is for short-circuiting PDUs
-                                if (pduProtocol == Protocol.ROUTING) {
-                                    byte[] pduBytes = DtnStorage.encodePdu(pduData,
-                                            expiryTime,
-                                            pduProtocol,
-                                            true,
-                                            0,
-                                            0)
-                                            .toByteArray()
-                                    datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                            data: pduBytes,
-                                            to: node,
-                                            reliability: true)
-                                } else {
-                                    datagramReq = new DatagramReq(protocol: pduProtocol,
-                                            data: pduData,
-                                            to: node,
-                                            reliability: true)
-                                }
-                                Message rsp = nodeLink.request(datagramReq, 1000)
-                                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                    originalDatagramID = messageID
-                                    outboundDatagramID = datagramReq.getMessageID()
-                                    resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
-                                    println("Launched WB for " + messageID)
-                                } else {
-                                    linkState = LinkState.READY
-                                }
-                            } else {
-                                int startPtr = metadata.bytesSent
-                                int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
-                                boolean tbc = (endPtr == pduData.length)
-                                byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-                                int payloadID = getPayloadID(messageID)
-                                byte[] pduBytes = DtnStorage.encodePdu(data,
-                                                    expiryTime,
-                                                    parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                                                    tbc,
-                                                    payloadID,
-                                                    startPtr)
-                                                    .toByteArray()
-                                // separator should not conflict with a regular DReq
-                                String trackerID = Integer.toString(payloadID) + "_" + endPtr
+                    DtnPduMetadata metadata
+                    int ttl
+                    if (parsedPdu != null
+                        && ((metadata = storage.getMetadata(messageID)) != null)
+                        && !metadata.delivered
+                        && (ttl = metadata.expiryTime - currentTimeSeconds()) > 0) {
+
+                        // we are decoding the PDU twice, not good!
+                        int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
+                        int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
+                        byte[] pduData = storage.getMessageData(messageID)
+
+                        println("Time Left: " + messageID + " " + (ttl))
+
+                        metadata.size = pduData.length
+                        DatagramReq datagramReq
+
+                        if (pduData.length + HEADER_SIZE <= linkMTU) {
+                            // this is for short-circuiting PDUs
+                            if (pduProtocol == Protocol.ROUTING) {
+                                byte[] pduBytes = DtnStorage.encodePdu(pduData,
+                                        ttl,
+                                        pduProtocol,
+                                        true,
+                                        0,
+                                        0)
+                                        .toByteArray()
                                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                                data: pduBytes,
-                                                to: node,
-                                                reliability: true)
-                                Message rsp = nodeLink.request(datagramReq, 1000)
-                                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                    // FIXME: HERHERH
-                                    originalPayloadID = messageID
-                                    outboundPayloadFragmentID = datagramReq.getMessageID()
-                                    outboundPayloadBytesSent = endPtr
-                                    resetState = (WakerBehavior)add(createResetStateBehavior(trackerID))
-                                } else {
-                                    linkState = LinkState.READY
-                                }
+                                        data: pduBytes,
+                                        to: node,
+                                        reliability: true)
+                            } else {
+                                datagramReq = new DatagramReq(protocol: pduProtocol,
+                                        data: pduData,
+                                        to: node,
+                                        reliability: true)
+                            }
+                            Message rsp = nodeLink.request(datagramReq, 1000)
+                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                originalDatagramID = messageID
+                                outboundDatagramID = datagramReq.getMessageID()
+                                resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
+                            } else {
+                                linkState = LinkState.READY
+                            }
+                        } else {
+                            int startPtr = metadata.bytesSent
+                            int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
+                            boolean tbc = (endPtr == pduData.length)
+                            byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
+                            int payloadID = getPayloadID(messageID)
+                            byte[] pduBytes = DtnStorage.encodePdu(data,
+                                    ttl,
+                                    parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                                    tbc,
+                                    payloadID,
+                                    startPtr)
+                                    .toByteArray()
+                            // separator should not conflict with a regular DReq
+                            String trackerID = Integer.toString(payloadID) + "_" + endPtr
+                            datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                                    data: pduBytes,
+                                    to: node,
+                                    reliability: true)
+                            Message rsp = nodeLink.request(datagramReq, 1000)
+                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                originalPayloadID = messageID
+                                outboundPayloadFragmentID = datagramReq.getMessageID()
+                                outboundPayloadBytesSent = endPtr
+                                resetState = (WakerBehavior) add(createResetStateBehavior(trackerID))
+                            } else {
+                                linkState = LinkState.READY
                             }
                         }
                     } else {
@@ -460,7 +462,6 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-        // FIXME: check if this MTU value is correct
         // (8388607-8) = 8,388,599
         return 0x7FFFFF - HEADER_SIZE
     }
