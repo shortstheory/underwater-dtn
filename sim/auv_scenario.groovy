@@ -19,7 +19,7 @@ channel.model = BasicAcousticChannel
 
 println "Starting AUV simulation!"
 
-def T = 5200.second
+def T = 1000.second
 int nodeCount = 3
 
 def msgSize = 600

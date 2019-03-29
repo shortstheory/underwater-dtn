@@ -269,18 +269,23 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
-                notify.send(deliveryNtf)
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
-                metadata.setDelivered()
+                // happens when the message has been sent before TTL
+                if (metadata != null) {
+                    metadata.setDelivered()
+                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
+                    notify.send(deliveryNtf)
+                }
             } else if (newMessageID == outboundPayloadFragmentID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
-                metadata.bytesSent = outboundPayloadBytesSent
-                println("Datagram: " + originalPayloadID + " Bytes Sent " + metadata.bytesSent)
-                if (metadata.bytesSent == metadata.size) {
-                    DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalPayloadID, to: node)
-                    notify.send(deliveryNtf)
-                    metadata.setDelivered()
+                if (metadata != null) {
+                    metadata.bytesSent = outboundPayloadBytesSent
+                    println("Datagram: " + originalPayloadID + " Bytes Sent " + metadata.bytesSent)
+                    if (metadata.bytesSent == metadata.size) {
+                        DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalPayloadID, to: node)
+                        notify.send(deliveryNtf)
+                        metadata.setDelivered()
+                    }
                 }
             } else {
                 println("This should never happen! " + newMessageID)

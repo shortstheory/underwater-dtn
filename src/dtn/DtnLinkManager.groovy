@@ -1,5 +1,6 @@
 package dtn
 
+import com.sun.istack.internal.Nullable
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.unet.DatagramParam
@@ -101,7 +102,7 @@ class DtnLinkManager {
         return null
     }
 
-    AgentID getLink(AgentID l) {
+    @Nullable AgentID getLink(AgentID l) {
         AgentID link = (l.isTopic()) ? l.getOwner().getAgentID() : l
         for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
             if (entry.getKey().getName() == link.getName()) {

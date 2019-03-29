@@ -1,5 +1,6 @@
 package dtn
 
+import com.sun.istack.internal.Nullable
 import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
@@ -37,7 +38,7 @@ class DtnStorage {
         metadataMap = new HashMap<>()
     }
 
-    DtnPduMetadata getMetadata(String messageID) {
+    @Nullable DtnPduMetadata getMetadata(String messageID) {
         return metadataMap.get(messageID)
     }
 
@@ -50,7 +51,7 @@ class DtnStorage {
         return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
     }
 
-    byte[] getMessageData(String messageID) {
+    @Nullable byte[] getMessageData(String messageID) {
         byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
         if (pduBytes != null) {
             return getPDUData(pduBytes)
@@ -58,7 +59,7 @@ class DtnStorage {
         return null
     }
 
-    HashMap getPDUInfo(String messageID) {
+    @Nullable HashMap getPDUInfo(String messageID) {
         try {
             byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
             if (pduBytes != null) {
@@ -66,7 +67,7 @@ class DtnStorage {
             }
             return null
         } catch(Exception e) {
-            println "Message ID " + messageID + " not found"
+            println "Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds()
             return null
         }
     }
@@ -162,9 +163,7 @@ class DtnStorage {
     void deleteFile(String messageID, DtnPduMetadata metadata) {
         File file = new File(directory, messageID)
         file.delete()
-        // remove from tracking map
         if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-            // If TTL'ed send the appropriate ntf
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
                     dtnLink.sendFailureNtf(messageID, metadata.nextHop)
