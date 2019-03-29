@@ -252,7 +252,6 @@ class DtnLink extends UnetAgent {
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
                             String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
                             storage.getMetadata(messageID).setDelivered()
-//                            storage.deletePayload(src, payloadID)
                         }
                     } else {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
@@ -419,8 +418,8 @@ class DtnLink extends UnetAgent {
                 int beaconPeriod = (beaconTimeout / 1000).intValue()
                 for (Map.Entry entry : linkManager.getLinkInfo()) {
                     AgentID linkID = (AgentID)entry.getKey()
-                    DtnLinkManager.LinkMetadata metadata = (DtnLinkManager.LinkMetadata)entry.getValue()
-                    int lastTransmission = metadata.lastTransmission
+                    DtnLinkManager.LinkMetadata linkMetadata = (DtnLinkManager.LinkMetadata)entry.getValue()
+                    int lastTransmission = linkMetadata.lastTransmission
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
                     }

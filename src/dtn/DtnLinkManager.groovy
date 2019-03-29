@@ -119,6 +119,6 @@ class DtnLinkManager {
     }
 
     boolean linkExists(AgentID link) {
-        return (linkInfo.get(link) != null) ? true : false
+        return (linkInfo.get(link) != null)
     }
 }
