@@ -45,25 +45,22 @@ class DtnLink extends UnetAgent {
 
     public Random random
 
-    // all units are in milliseconds below
-    int beaconTimeout = 10*1000
-    int resetStateTime = 300*1000
-    int GCPeriod = 100*1000
-    int datagramResetPeriod = 10*1000
-    int randomDelay = 5*1000
+    /*
+     * Parameters with units in milliseconds
+     */
+    int beaconTimeout = 10*1000         // timeout before sending a Beacon on an idle link
+    int resetStateTime = 300*1000       // timeout for waiting for the DDN/DFN on a link
+    int GCPeriod = 100*1000             // time period for deleting expired messages on non-volatile storage
+    int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
+    int randomDelay = 5*1000            // delays sending a datagram from [0, randomDelay] ms to avoid collisions
 
-    // uses seconds
+    /*
+     * Parameter with unit in seconds
+     */
     int linkExpiryTime = 10*6000
 
     DatagramPriority datagramPriority
     ArrayList<AgentID> linkPriority
-
-    List<Parameter> getParameterList() {
-        Class[] paramClasses = new Class[2]
-        paramClasses[0] = DtnLinkParameters.class
-        paramClasses[1] = DatagramParam.class
-        return allOf(paramClasses)
-    }
 
     enum DatagramPriority {
         ARRIVAL, EXPIRY, RANDOM
@@ -516,5 +513,12 @@ class DtnLink extends UnetAgent {
 
     Set<Integer> getDiscoveredNodes() {
         return linkManager.getDestinationNodes()
+    }
+
+    List<Parameter> getParameterList() {
+        Class[] paramClasses = new Class[2]
+        paramClasses[0] = DtnLinkParameters.class
+        paramClasses[1] = DatagramParam.class
+        return allOf(paramClasses)
     }
 }
