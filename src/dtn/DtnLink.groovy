@@ -57,14 +57,14 @@ class DtnLink extends UnetAgent {
     /*
      * Parameter with unit in seconds
      */
-    int linkExpiryTime = 10*6000
-
-    DatagramPriority datagramPriority
-    ArrayList<AgentID> linkPriority
+    int linkExpiryTime = 10*6000        // timeout before a link expires
 
     enum DatagramPriority {
         ARRIVAL, EXPIRY, RANDOM
     }
+
+    DatagramPriority datagramPriority
+    ArrayList<AgentID> linkPriority
 
     enum LinkState {
         READY, WAITING
@@ -153,8 +153,9 @@ class DtnLink extends UnetAgent {
         println "Datagram - " + messageID + " has expired"
     }
 
-    // If we're sending a payload, ARRIVAL & EXPIRY will always choose it again
-    // But RANDOM could be well, random
+    /*
+     * Chooses the next datagram to send based on the strategy set in datagramPriority
+     */
     String selectNextDatagram(ArrayList<String> datagrams) {
         switch (datagramPriority) {
             case DatagramPriority.ARRIVAL:
@@ -225,11 +226,12 @@ class DtnLink extends UnetAgent {
                 linkManager.addLinkForNode(msg.getFrom(), link)
             }
         } else if (msg instanceof DatagramNtf) {
-            // we will do this for every message? Can't hurt much
+            // Update the time of last message transmission when we receive a new DatagramNtf
             AgentID link = linkManager.getLink(msg.getSender())
             linkManager.addLinkForNode(msg.getFrom(), link)
             linkManager.updateLastTransmission(link)
 
+            // Receiving a DTN_PROTOCOL DatagramNtf could either be for the Router or a fragment
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
@@ -241,6 +243,7 @@ class DtnLink extends UnetAgent {
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
                     int src = msg.getFrom()
+                    // Only fragments have non-zero payloadIDs
                     if (payloadID) {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
@@ -253,14 +256,13 @@ class DtnLink extends UnetAgent {
                     } else {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
                         // broadcast it on our topic for anyone who's listening (read: ROUTER)
-
                         // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
                         // FIXME: ntf.setTtl(ttl)
                         notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data))
                     }
                 }
             }
-            // once we have received a DDN/DFN, we can send another one
+        // once we have received a DDN/DFN, we can send another one
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
