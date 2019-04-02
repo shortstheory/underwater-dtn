@@ -3,7 +3,7 @@ package dtn
 import groovy.transform.CompileStatic
 
 /**
- * Used for storing some properties of each datagram in the node's memory
+ * Used for storing the TTL, bytes sent, next hop, and delivery status of each datagram in the node's volatile memory
  */
 @CompileStatic
 class DtnPduMetadata {
