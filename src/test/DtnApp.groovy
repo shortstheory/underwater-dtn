@@ -38,7 +38,7 @@ class DtnApp extends UnetAgent{
     int PAYLOAD_RETRIES = 1000
     boolean randomGeneration
     Random random = new Random()
-    String payloadPath = "testPayload"
+    String payloadPath = "src/test/testPayload"
     String payloadText = new File(payloadPath).text
 
     ArrayList<String> sentDatagrams = new ArrayList<>()

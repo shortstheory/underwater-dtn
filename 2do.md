@@ -1,7 +1,7 @@
 
 issues:
 * publish progress use ProgressNtfs?
-
+* is my PDU ID random enough? - maybe use pearson hashing?
 
 pending:
 
@@ -268,3 +268,98 @@ for 4:
 2: to 1 via link/3 [reliable, hops: 3, metric: 2.4]
 
 
+++++++++++++++++++++++++++++++++++++++++++++++++DtnTransport+++++++++++++++++++++++++++++++++++++++++++
+# Ideas for DTNTransport
+
+* Main idea: use DtnLink as much as possible, make as few changes as possible
+    * Consult ROUTING for the tables, let's not redo that work
+    * But send the payload by DtnT
+    * support fragmentation,datagram,transport
+
+* multicopy routing looks wasteful, lots of msg duplication, stresses the MAC
+    * choose LCP instead via DV?
+
+* PDU:
+    * TTL
+    * protocol number
+    * final destination
+    * PayloadID
+    * PayloadSeqNo
+    * TotalSeqNo // can we remove this somehow?
+    * Data (upto MTU of DtnLink, which is min of connected Links)
+
+* most of these are same as DtnPdu, so we could probably just reuse it with extensions, just keeping the first bytes constant for compatibility
+
+* How should rreqs be initiated - takes some time to update during which we will have to wait a bit
+    * no path means we can just go to next hop
+
+* each payload gets segmented with unique ID, each segment gets a seq number
+    * total number of segments saved in PDU
+    * Q: Should the entire payload be transferred before moving it onto the next hop?
+* Failed messages not needed, let it just TTL on all the nodes
+* But we need ACKs to go back to the destination - send it like a DDN
+    * simple format, just need the payload ID and result
+    * maybe we can throw in arrivalTime/TTL remaining for stats though that won't really be relevant because multiple segments
+    * send it through least cost path?
+* How to track segments?
+    * new data structure & listen to dtnlink for the ACKs
+    * fail only on TTL, so all the segments will fail at the same time
+    * Look at SWTransport RxStatus/TxStatus
+
+* How does routing metric work? What does it mean?
+* What routing algo should I use? - AODV?
+
+++++++++++++++++++++++++++++++++++++TEST_Cases+++++++++++++++++++++++++
+Check for:
+* DatagramReqs are correct for short-circuit
+* PDUs are correctly created for Routing Headers
+* TTL reduction is correct
+* PDUs who are expired are deleted with DFNs
+* messages are received correctly to the dest
+* multi-link test works
+* beacon discovery works
+* use platform send
+
+
+Create new agents
+* TestSender
+    * subscribes to the dtnlink for DDNs/DFNs
+* TestReceiver
+    * subscribes to dtnlink for messages
+    * checks if all is OK
+    * how does the testagent know that the result is OK?
+        * i have no idea?!
+        
+* TestLink aka FarziLink
+    * does reliability and Link
+    * on sending a messsage it should send it using platformSend
+
++++++++++++++++++++++++++++++++++++++CHANGE_LOG++++++++++++++++++++++++++++++++++++++++===
+Week 10:
+* added tests
+* fixed owner bug for Link
+
+Week 9:
+* thinking about tests
+* writing TS
+* saved 3 bytes in the PDU
+* added multi-link support
+* fixed broken pdu logic with output/inputstreams
+
+Week 8:
+* running simulations and collecting stats
+* added random generation of Datagrams
+* added new sims
+* added short-circuit
+
+Week 7:
+* made the beacon behavior execute regardless
+* stability
+* auv simulation
+* changed behaviors to poisson
+* added different examples
+* added stats
+* switched to basicchannelmodel
+* added a LinkState variable
+* added a sent field to DtnPduMetadata
+* moved all deletion logic to a single place in the code

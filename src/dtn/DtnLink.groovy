@@ -6,7 +6,16 @@ import org.arl.unet.*
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.RxFrameNtf
 
-//@TypeChecked
+/**
+ * A UnetAgent for single-copy Disruption Tolerant Networking in UnetStack
+ * Stores datagrams and chooses the best Link for sending a datagram to the next hop
+ * Supports FRAGMENTATION of large datagrams and RELIABILITY
+ *
+ * Please see: https://github.com/shortstheory/underwater-dtn/ for more information
+ *
+ * @author: Arnav Dhamija
+ */
+
 @CompileStatic
 class DtnLink extends UnetAgent {
     /////////////////////// Constants
@@ -45,7 +54,7 @@ class DtnLink extends UnetAgent {
 
     public Random random
 
-    /*
+    /**
      * Parameters with units in milliseconds
      */
     int beaconTimeout = 10*1000         // timeout before sending a Beacon on an idle link
@@ -54,7 +63,7 @@ class DtnLink extends UnetAgent {
     int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
     int randomDelay = 5*1000            // delays sending a datagram from [0, randomDelay] ms to avoid collisions
 
-    /*
+    /**
      * Parameter with unit in seconds
      */
     int linkExpiryTime = 10*6000        // timeout before a link expires
@@ -153,7 +162,7 @@ class DtnLink extends UnetAgent {
         println "Datagram - " + messageID + " has expired"
     }
 
-    /*
+    /**
      * Chooses the next datagram to send based on the strategy set in datagramPriority
      */
     String selectNextDatagram(ArrayList<String> datagrams) {
@@ -313,6 +322,7 @@ class DtnLink extends UnetAgent {
         }
     }
 
+    // FIXME: not sure how much this guarantees randomness
     int getPayloadID(String messageID) {
         int res = 0
         for (byte c : messageID.toCharArray()) {

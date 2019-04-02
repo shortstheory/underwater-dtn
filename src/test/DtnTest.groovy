@@ -32,7 +32,7 @@ class DtnTest {
     public static final String BIG_MESSAGE_ID = "bigmessage"
     public static final String MESSAGE_DATA = "testdata"
     public static final String storagePath = "testStorage"
-    public static final String payloadPath = "testPayload"
+    public static final String payloadPath = "src/test/testPayload"
 
     public static final int NODE_ADDRESS = 1
     public static final int DEST_ADDRESS = 2
