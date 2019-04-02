@@ -251,9 +251,8 @@ class DtnLink extends UnetAgent {
                     if (payloadID) {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
-                            // FIXME: ntf.setTtl(ttl)
                             byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
-                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes))
+                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
                             String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
                             storage.getMetadata(messageID).setDelivered()
                         }
@@ -261,8 +260,7 @@ class DtnLink extends UnetAgent {
                         // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
                         // broadcast it on our topic for anyone who's listening (read: ROUTER)
                         // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
-                        // FIXME: ntf.setTtl(ttl)
-                        notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data))
+                        notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                     }
                 }
             }

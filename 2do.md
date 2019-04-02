@@ -1,9 +1,27 @@
 
 issues:
-* publish progress use ProgressNtfs?
-* is my PDU ID random enough? - maybe use pearson hashing?
-* does @Nullable do anything?
+assert linkState == LinkState.ACK_WAIT
+       |                      |
+       IDLE                   ACK_WAIT
 
+Stack trace: ...
+   org.arl.unet.link.ReliableLink$7.onWake(ReliableLink.groovy:362)
+   org.arl.fjage.WakerBehavior.action(WakerBehavior.java:86)
+   org.arl.fjage.Agent.run(Agent.java:782) ...
+
+1554207380013|SEVERE|org.arl.unet.link.ReliableLink@25:die|Agent link died: Assertion failed: 
+	
+	assert linkState == LinkState.ACK_WAIT
+	       |                      |
+	       IDLE                   ACK_WAIT
+==========================================	
+Stack trace: ...
+   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy:355)
+   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy)
+   org.arl.unet.link.ReliableLink.processMessage(ReliableLink.groovy:205)
+   org.arl.unet.UnetAgent$2.onReceive(UnetAgent.java:74)
+   org.arl.fjage.MessageBehavior.action(MessageBehavior.java:82)
+   org.arl.fjage.Agent.run(Agent.java:782) ...
 pending:
 
 
@@ -12,6 +30,9 @@ later:
 in progress:
 
 done:
+* does @Nullable do anything?
+* publish progress use ProgressNtfs?
+* is my PDU ID random enough? - maybe use pearson hashing?
 * improve the RFC, make it more neutral and stick with RFC style guide
 * check if you can replace the datagramMap with a queue or other DS
 * datagramMap can be avoided entirely if we use the same msgID for reTx-ing messages

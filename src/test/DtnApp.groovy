@@ -16,7 +16,7 @@ import org.arl.unet.ParameterReq
 import org.arl.unet.ParameterRsp
 import org.arl.unet.UnetAgent
 
-class DtnApp extends UnetAgent{
+class DtnApp extends UnetAgent {
     enum Mode {
         REGULAR,
         RANDOM_TTL,
