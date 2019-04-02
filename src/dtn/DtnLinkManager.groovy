@@ -7,6 +7,10 @@ import org.arl.unet.DatagramParam
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
 
+/**
+ * Helper class for managing the underlying links used by DtnLink
+ * Sets priorities for links and records the time of last transmission of a particular link
+ */
 @CompileStatic
 class DtnLinkManager {
     private DtnLink dtnLink
@@ -51,10 +55,8 @@ class DtnLinkManager {
 
     void addLink(AgentID link) {
         dtnLink.subscribe(dtnLink.topic(link))
+        // If phy for a link doesn't exist, we can't SNOOP to listen for other transmissions
         AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
-        // it's OK if phy is null, we just won't have SNOOP
-
-
         int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
         linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu))
         if (phy != null) {

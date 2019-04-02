@@ -131,10 +131,10 @@ class DtnLink extends UnetAgent {
             linkManager.addLink(link)
         }
 
+        // Initialise behaviors
         beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
         GCBehavior = (TickerBehavior)add(createGCBehavior())
         datagramResetBehavior = (PoissonBehavior)add(createDatagramBehavior())
-
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {

@@ -2,6 +2,9 @@ package dtn
 
 import groovy.transform.CompileStatic
 
+/**
+ * Used for storing some properties of each datagram in the node's memory
+ */
 @CompileStatic
 class DtnPduMetadata {
     int nextHop

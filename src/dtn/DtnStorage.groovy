@@ -8,6 +8,10 @@ import org.arl.unet.OutputPDU
 
 import java.nio.file.Files
 
+/**
+ * Helper class for managing the datagrams saved to the node's non-volatile storage
+ * Manages the deletion of expired datagrams and encoding datagrams with PDU headers
+ */
 @CompileStatic
 class DtnStorage {
     private final String directory

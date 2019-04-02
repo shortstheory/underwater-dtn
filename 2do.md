@@ -2,6 +2,7 @@
 issues:
 * publish progress use ProgressNtfs?
 * is my PDU ID random enough? - maybe use pearson hashing?
+* does @Nullable do anything?
 
 pending:
 
