@@ -16,11 +16,14 @@ import java.nio.file.Files
 class DtnStorage {
     private final String directory
     private DtnLink dtnLink
+    private List<String> payloadList
+    private int payloadCounter
     private HashMap<String, DtnPduMetadata> metadataMap
 
-    // PDU Structure
-    // **NEW** - |TTL (24)| PROTOCOL (8)|TBC (1) PID (8) STARTPTR (23)|
-
+    /**
+     * PDU Structure
+     * |TTL (24)| Protocol (8)| To-Be-Continued Bit (1) Payload ID (8) Start Pointer (23)|
+     */
     private static final int LOWER_8_BITMASK  = (int)0x000000FF
     private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
 
@@ -38,7 +41,8 @@ class DtnStorage {
         if (!file.exists()) {
             file.mkdir()
         }
-
+        payloadCounter = 0
+        payloadList = Arrays.asList(new String[LOWER_8_BITMASK])
         metadataMap = new HashMap<>()
     }
 
@@ -93,6 +97,19 @@ class DtnStorage {
             }
         }
         return data
+    }
+
+
+    // FIXME: not sure how much this guarantees randomness
+    int getPayloadID(String messageID) {
+        int id
+        // Yes, it's not O(1). But we will only have 256 strings to go through at most
+        if ((id = payloadList.indexOf(messageID)) != -1) {
+            return id + 1
+        }
+        id = payloadCounter++ % LOWER_8_BITMASK
+        payloadList[id] = messageID
+        return id + 1
     }
 
     boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {

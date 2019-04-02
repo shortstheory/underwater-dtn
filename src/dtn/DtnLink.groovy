@@ -18,11 +18,6 @@ import org.arl.unet.phy.RxFrameNtf
 
 @CompileStatic
 class DtnLink extends UnetAgent {
-    /////////////////////// Constants
-
-    /**
-     * DtnLink header comprises of the message TTL and protocol number
-     */
     public static final int HEADER_SIZE  = 8
     public static final int DTN_PROTOCOL = 50
 
@@ -322,15 +317,6 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    // FIXME: not sure how much this guarantees randomness
-    int getPayloadID(String messageID) {
-        int res = 0
-        for (byte c : messageID.toCharArray()) {
-            res = (Character.isLetter(c)) ? res^(c<<1) : res^c
-        }
-        return res
-    }
-
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
             linkState = LinkState.WAITING
@@ -388,7 +374,7 @@ class DtnLink extends UnetAgent {
                             int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
                             boolean tbc = (endPtr == pduData.length)
                             byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-                            int payloadID = getPayloadID(messageID)
+                            int payloadID = storage.getPayloadID(messageID)
                             byte[] pduBytes = DtnStorage.encodePdu(data,
                                     ttl,
                                     parsedPdu.get(DtnStorage.PROTOCOL_MAP),
