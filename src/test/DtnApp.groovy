@@ -14,8 +14,10 @@ import org.arl.unet.DatagramNtf
 import org.arl.unet.DatagramReq
 import org.arl.unet.ParameterReq
 import org.arl.unet.ParameterRsp
+import org.arl.unet.Services
 import org.arl.unet.UnetAgent
 
+@CompileStatic
 class DtnApp extends UnetAgent {
     enum Mode {
         REGULAR,
@@ -37,6 +39,7 @@ class DtnApp extends UnetAgent {
     int msgTtl
     int PAYLOAD_RETRIES = 1000
     boolean randomGeneration
+    boolean useRouter = false
     Random random = new Random()
     String payloadPath = "src/test/testPayload"
     String payloadText = new File(payloadPath).text
@@ -92,9 +95,7 @@ class DtnApp extends UnetAgent {
                         } else {
                             req = new DatagramReq(data: bytes, to: destNode, ttl: ttl, protocol: protocolNumber)
                         }
-                        dtnLink.send(req)
-                        stats.datagramsSent++
-                        sentDatagrams.add(req.getMessageID())
+                        sendDatagram(req, false)
                     }
                 }
             })
@@ -107,9 +108,7 @@ class DtnApp extends UnetAgent {
                 void onTick() {
                     for (int destNode : destNodes) {
                         DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: protocolNumber)
-                        dtnLink.send(req)
-                        stats.datagramsSent++
-                        sentDatagrams.add(req.getMessageID())
+                        sendDatagram(req, false)
                     }
                 }
             })
@@ -123,9 +122,7 @@ class DtnApp extends UnetAgent {
                 void onTick() {
                     for (int destNode : destNodes) {
                         DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: payloadProtocolNumber)
-                        dtnLink.send(req)
-                        stats.payloadsSent++
-                        sentPayloads.add(req.getMessageID())
+                        sendDatagram(req, true)
                     }
                 }
             })
@@ -133,6 +130,22 @@ class DtnApp extends UnetAgent {
         case Mode.RECEIVER:
             // Nothing to do lah!
             break
+        }
+    }
+
+    void sendDatagram(Message msg, boolean isPayload) {
+        if (useRouter) {
+            AgentID router = agentForService(Services.ROUTING)
+            router.send(msg)
+        } else {
+            dtnLink.send(msg)
+        }
+        if (isPayload) {
+            stats.payloadsSent++
+            sentPayloads.add(msg.getMessageID())
+        } else {
+            stats.datagramsSent++
+            sentDatagrams.add(msg.getMessageID())
         }
     }
 
