@@ -7,6 +7,7 @@ import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
+import org.arl.unet.sim.channels.ProtocolChannelModel
 import org.arl.unet.transport.SWTransport
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
@@ -16,17 +17,24 @@ import test.RouteInitialiser
 
 import java.nio.file.Files
 
-platform = RealTimePlatform
+platform = DiscreteEventSimulator
 
-channel.model = BasicAcousticChannel
+def range = 1000.m
+def nodeDistance = 900.m
 
-int nodeCount = 4
+channel.model = ProtocolChannelModel
+channel.pDetection = 1.0
+channel.pDecoding = 1.0
+channel.communicationRange = range
+channel.detectionRange = range
+channel.interferenceRange = range
+
+int nodeCount = 3
 
 println "Starting Routing simulation!"
 
 ArrayList<Tuple2> routes1 = new ArrayList<>()
 routes1.add(new Tuple2(3,2))
-routes1.add(new Tuple2(4,3))
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
@@ -36,28 +44,20 @@ for (int f = 1; f <= nodeCount; f++) {
 simulate {
     node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
-//        container.add 'linkX', new UdpLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
-//        container.add 'swt', new SWTransport()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
-    node '2', address: 2, location: [200.m, 0, -50.m], shell: 5001, stack: { container ->
+    node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
         container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
-    node '3', address: 3, location: [400.m, 0, -50.m], shell: 5002, stack: { container ->
+    node '3', address: 3, location: [nodeDistance*2, 0, -50.m], shell: 5002, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
-        container.add 'router', new Router()
-        container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
-    }
-    node '4', address: 4, location: [600.m, 0, -50.m], shell: 5003, stack: { container ->
-        container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(4))
         container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
