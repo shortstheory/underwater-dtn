@@ -8,7 +8,6 @@ import org.arl.unet.net.RouteDiscoveryNtf
 @CompileStatic
 class RouteInitialiser extends UnetAgent {
     Tuple2[] routes
-
     RouteInitialiser(Tuple2[] r) {
         routes = r
     }

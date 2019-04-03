@@ -36,42 +36,44 @@ int[] dest1 = [3]
 println "Starting Routing simulation!"
 
 ArrayList<Tuple2> routes1 = new ArrayList<>()
-ArrayList<Tuple2> routes2 = new ArrayList<>()
-
 routes1.add(new Tuple2(3,2))
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
-    Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
 test.DtnStats stat1 = new test.DtnStats()
 test.DtnStats stat2 = new test.DtnStats()
 
 def msgSize = 300
-def msgFreq = 10*1000
-def msgTtl = 3600
+def msgFreq = 100*1000
+def msgTtl = 10400
 
-def T = 1.hour
-
-DtnApp app = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
+def T = 10400.second
 
 simulate T, {
-    node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
+    def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
-        container.add 'testagent', app
+        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
-    node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
+    def auv = node '2', address: 2, location: [nodeDistance, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
         container.add 'router', new Router()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
-    node '3', address: 3, location: [nodeDistance*2, 0, -50.m], shell: 5002, stack: { container ->
+    def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+                      [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
+                      [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
+                      [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
+                      [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
+    auv.motionModel = trajectory
+    auv.motionModel += trajectory
+    def dest = node '3', address: 3, location: [nodeDistance*2, 0, -50.m], shell: 5002, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
         container.add 'router', new Router()

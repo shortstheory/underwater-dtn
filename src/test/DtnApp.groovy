@@ -28,6 +28,7 @@ class DtnApp extends UnetAgent {
 
     AgentID dtnLink
     AgentID link
+    AgentID router
     Mode mode
 
     int[] destNodes
@@ -76,8 +77,12 @@ class DtnApp extends UnetAgent {
     protected void startup() {
         dtnLink = agent("dtnlink")
         link = agent("link")
+        router = agentForService(Services.ROUTING)
         subscribe(dtnLink)
         subscribe(link)
+        if (router != null) {
+            subscribe(router)
+        }
 
         switch (mode) {
         case Mode.RANDOM_TTL:

@@ -26,7 +26,6 @@ println "Starting Routing simulation!"
 
 ArrayList<Tuple2> routes1 = new ArrayList<>()
 routes1.add(new Tuple2(3,2))
-routes1.add(new Tuple2(4,3))
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
@@ -36,11 +35,9 @@ for (int f = 1; f <= nodeCount; f++) {
 simulate {
     node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
-//        container.add 'linkX', new UdpLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
-//        container.add 'swt', new SWTransport()
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     node '2', address: 2, location: [200.m, 0, -50.m], shell: 5001, stack: { container ->
