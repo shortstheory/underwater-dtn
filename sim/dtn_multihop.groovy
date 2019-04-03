@@ -55,7 +55,7 @@ def msgTtl = 3600
 def T = 1.hour
 
 DtnApp app = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
-
+app.useRouter = true
 simulate T, {
     node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
