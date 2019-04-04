@@ -22,6 +22,10 @@ class DtnPduMetadata {
         expiryTime = expiry
     }
 
+    /**
+     * INBOUND messages are in-progress downloads of Payloads which are sent from other nodes
+     * OUTBOUND messages are datagrams other agents request the DtnLink to send
+     */
     enum MessageType {
         INBOUND,
         OUTBOUND

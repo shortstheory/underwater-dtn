@@ -74,7 +74,7 @@ class DtnStorage {
                 return decodePdu(pduBytes)
             }
             return null
-        } catch(Exception e) {
+        } catch (Exception e) {
             println "Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds()
             return null
         }
