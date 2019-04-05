@@ -52,7 +52,7 @@ class DtnLink extends UnetAgent {
     /**
      * Parameters with units in milliseconds
      */
-    int beaconTimeout = 100*1000         // timeout before sending a Beacon on an idle link
+    int beaconTimeout = 100*1000        // timeout before sending a Beacon on an idle link
     int resetStateTime = 300*1000       // timeout for waiting for the DDN/DFN on a link
     int GCPeriod = 100*1000             // time period for deleting expired messages on non-volatile storage
     int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
@@ -61,7 +61,7 @@ class DtnLink extends UnetAgent {
     /**
      * Parameter with unit in seconds
      */
-    int linkExpiryTime = 10*6000        // timeout before a link expires
+    int linkExpiryTime = 3*3600        // timeout before a link expires
 
     enum DatagramPriority {
         ARRIVAL, EXPIRY, RANDOM
