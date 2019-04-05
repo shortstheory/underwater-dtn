@@ -38,6 +38,7 @@ class DtnApp extends UnetAgent {
     int payloadProtocolNumber = 25
     int msgSize
     int msgTtl
+    int endTime
     int PAYLOAD_RETRIES = 1000
     boolean randomGeneration
     boolean useRouter = false
@@ -54,14 +55,20 @@ class DtnApp extends UnetAgent {
         stats = stat
     }
 
-    DtnApp(int[] destNodes, int period, int size, int ttl, Mode mode, DtnStats stat) {
+    DtnApp(int[] destNodes, int period, int size, int ttl, int t, boolean router, Mode m, DtnStats stat) {
         this.destNodes = destNodes
         messagePeriod = period
 
         msgSize = size
         msgTtl = ttl
-        this.mode = mode
+        endTime = (t) ? t : Integer.MAX_VALUE
+        useRouter = router
+        mode = m
         stats = stat
+    }
+
+    int currentTimeSeconds() {
+        return (currentTimeMillis()/1000).intValue()
     }
 
     private static String createDataSize(int msgSize) {
@@ -139,18 +146,21 @@ class DtnApp extends UnetAgent {
     }
 
     void sendDatagram(Message msg, boolean isPayload) {
-        if (useRouter) {
-            AgentID router = agentForService(Services.ROUTING)
-            router.send(msg)
-        } else {
-            dtnLink.send(msg)
-        }
-        if (isPayload) {
-            stats.payloadsSent++
-            sentPayloads.add(msg.getMessageID())
-        } else {
-            stats.datagramsSent++
-            sentDatagrams.add(msg.getMessageID())
+        if (currentTimeSeconds() < endTime) {
+            println("Sending DG @" + currentTimeSeconds() + "\n")
+            if (useRouter) {
+                AgentID router = agentForService(Services.ROUTING)
+                router.send(msg)
+            } else {
+                dtnLink.send(msg)
+            }
+            if (isPayload) {
+                stats.payloadsSent++
+                sentPayloads.add(msg.getMessageID())
+            } else {
+                stats.datagramsSent++
+                sentDatagrams.add(msg.getMessageID())
+            }
         }
     }
 

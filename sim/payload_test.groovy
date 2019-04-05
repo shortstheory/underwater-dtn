@@ -33,7 +33,7 @@ for (int f = 1; f <= nodeCount; f++) {
 test.DtnStats stat1 = new test.DtnStats()
 test.DtnStats stat2 = new test.DtnStats()
 
-DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.PAYLOAD, stat1)
+DtnApp dg1 = new DtnApp(dest1, msgFreq, msgSize, msgTtl, 0, false, DtnApp.Mode.PAYLOAD, stat1)
 DtnApp dg2 = new DtnApp(stat2)
 
 simulate T, {

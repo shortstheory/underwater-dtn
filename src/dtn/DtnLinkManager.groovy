@@ -68,7 +68,7 @@ class DtnLinkManager {
         int[] dataRateArray
         int dataRate = 0
         if (phy != null) {
-            // FIXME: how do I get the data rate directly?
+            // FIXME: how do I get ethe data rate directly?
             dataRateArray = (int[])dtnLink.getProperty(phy, PhysicalChannelParam.dataRate)
             dataRate = dataRateArray[Physical.DATA-1]
             dtnLink.subscribe(dtnLink.topic(phy))

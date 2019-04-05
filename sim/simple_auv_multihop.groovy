@@ -50,15 +50,13 @@ def msgFreq = 10*1000
 def msgTtl = 10400
 
 def T = 10400.second
-DtnApp app = new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
-app.useRouter = true
 simulate T, {
     def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
-        container.add 'testagent', app
+        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, 0, true, DtnApp.Mode.REGULAR, stat1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def auv = node '2', address: 2, location: [nodeDistance, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
