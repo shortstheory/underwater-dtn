@@ -6,7 +6,6 @@ import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.channels.ProtocolChannelModel
 import test.DtnApp
 import test.DtnApp
-import test.DummyApp
 
 import java.nio.file.Files
 platform = DiscreteEventSimulator

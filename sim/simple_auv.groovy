@@ -50,14 +50,12 @@ for (int i = 1; i <= 1; i++) {
         def sensor = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
             container.add 'link', new ReliableLink()
 //            container.add 'udp', new UdpLink()
-//            container.add 'link_r', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
             container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, DtnApp.Mode.REGULAR, stat1)
         }
         def auvR = node '2', address: 2, mobility: true, location: [dist.m, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
 //            container.add 'udp', new UdpLink()
-//            container.add 'link_r', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
             container.add 'testapp', new DtnApp(stat2)
         }
