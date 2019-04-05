@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 class DtnPduMetadata {
     int nextHop
     int expiryTime
-    int attempts
+    int attempts // only used for statistics
     boolean delivered
     int bytesSent
     int size
