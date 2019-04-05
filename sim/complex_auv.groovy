@@ -102,7 +102,8 @@ simulate T, {
                       [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
                       [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
                       [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                      [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
+                      [duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+                      [duration: 5200.seconds, heading: 0.deg, speed: 0.mps]]
     auv.motionModel = trajectory
     def sensor0 = node '4', address: s0, location: [nodeDistance + nodeDistance/2, nodeDistance/2, -50.m], shell: 5003, stack: { container ->
         container.add 'link', new ReliableLink()

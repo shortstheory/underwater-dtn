@@ -63,8 +63,7 @@ for (int i = 1; i <= 1; i++) {
                             [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
                             [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
                             [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps],
-                            [duration: 5200.seconds, heading: 0.deg, speed: 0.mps]]
+                            [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]
         auvR.motionModel = trajectory
         auvR.motionModel += trajectory
     }
