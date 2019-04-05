@@ -78,8 +78,7 @@ class DtnLinkManager {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
                 if (metadata != null) {
-                    int currentTime = dtnLink.currentTimeSeconds()
-                    if (metadata.lastTransmission + dtnLink.linkExpiryTime > currentTime) {
+                    if (metadata.lastTransmission + dtnLink.linkExpiryTime > dtnLink.currentTimeSeconds()) {
                         liveLinks.add(link)
                     }
                 }

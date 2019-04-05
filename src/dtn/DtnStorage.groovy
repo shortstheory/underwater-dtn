@@ -103,7 +103,7 @@ class DtnStorage {
     // FIXME: not sure how much this guarantees randomness
     int getPayloadID(String messageID) {
         int id
-        // Yes, it's not O(1). But we will only have 256 strings to go through at most
+        // Yes, it's not the most efficient. But we will only have 256 strings to go through at most
         if ((id = payloadList.indexOf(messageID)) != -1) {
             return id + 1
         }
@@ -143,7 +143,7 @@ class DtnStorage {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
             // Only thing the tracking map is doing here is maintaining TTL and delivered status
-            metadataMap.put(filename, new DtnPduMetadata(-1, ttl + dtnLink.currentTimeSeconds()))
+            metadataMap.put(filename, new DtnPduMetadata(DtnPduMetadata.INBOUND_HOP, ttl + dtnLink.currentTimeSeconds()))
             try {
                 pdu.writeTo(fos)
                 return true
