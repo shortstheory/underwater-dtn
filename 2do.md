@@ -22,8 +22,10 @@ Stack trace: ...
    org.arl.unet.UnetAgent$2.onReceive(UnetAgent.java:74)
    org.arl.fjage.MessageBehavior.action(MessageBehavior.java:82)
    org.arl.fjage.Agent.run(Agent.java:782) ...
-pending:
 
+pending:
+    * how about a TTL for position updates from a GPS node?
+    * multihop DTN complicated :P
 
 later:
 

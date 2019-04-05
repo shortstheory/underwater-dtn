@@ -147,7 +147,6 @@ class DtnApp extends UnetAgent {
 
     void sendDatagram(Message msg, boolean isPayload) {
         if (currentTimeSeconds() < endTime) {
-            println("Sending DG @" + currentTimeSeconds() + "\n")
             if (useRouter) {
                 AgentID router = agentForService(Services.ROUTING)
                 router.send(msg)
