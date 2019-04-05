@@ -57,7 +57,7 @@ class DtnApp extends UnetAgent {
 
     DtnApp(int[] destNodes, int period, int size, int ttl, int t, boolean router, Mode m, DtnStats stat) {
         this.destNodes = destNodes
-        messagePeriod = period
+        messagePeriod = period*1000
 
         msgSize = size
         msgTtl = ttl
