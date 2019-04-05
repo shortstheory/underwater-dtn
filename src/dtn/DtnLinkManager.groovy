@@ -4,8 +4,12 @@ import com.sun.istack.internal.Nullable
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.unet.DatagramParam
+import org.arl.unet.link.ReliableLink
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
+import org.arl.unet.phy.PhysicalChannelParam
+import org.arl.unet.phy.PhysicalParam
+import org.arl.unet.sim.HalfDuplexModem
 
 /**
  * Helper class for managing the underlying links used by DtnLink
@@ -19,6 +23,7 @@ class DtnLinkManager {
         AgentID phyID
         int lastTransmission
         int linkMTU
+        int dataRate
     }
 
     private HashMap<AgentID, LinkMetadata> linkInfo
@@ -56,15 +61,22 @@ class DtnLinkManager {
     void addLink(AgentID link) {
         dtnLink.subscribe(dtnLink.topic(link))
         // If phy for a link doesn't exist, we can't SNOOP to listen for other transmissions
-        AgentID phy = dtnLink.agent((String)dtnLink.getProperty(link, ReliableLinkParam.phy))
+        String phyName = dtnLink.getProperty(link, ReliableLinkParam.phy)
+        // FIXME: agent(null) returns "null" and not null!
+        AgentID phy = (phyName != null) ? dtnLink.agent(phyName) : null
         int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
-        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu))
+        int[] dataRateArray
+        int dataRate = 0
         if (phy != null) {
+            // FIXME: how do I get the data rate directly?
+            dataRateArray = (int[])dtnLink.getProperty(phy, PhysicalChannelParam.dataRate)
+            dataRate = dataRateArray[Physical.DATA-1]
             dtnLink.subscribe(dtnLink.topic(phy))
             dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))
         } else {
             println "PHY not provided for link"
         }
+        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
     }
 
     Set<Integer> getDestinationNodes() {

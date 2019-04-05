@@ -46,7 +46,7 @@ test.DtnStats stat1 = new test.DtnStats()
 test.DtnStats stat2 = new test.DtnStats()
 
 def msgSize = 300
-def msgFreq = 100*1000
+def msgFreq = 10*1000
 def msgTtl = 10400
 
 def T = 10400.second
