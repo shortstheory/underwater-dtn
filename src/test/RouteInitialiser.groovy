@@ -4,6 +4,8 @@ import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
 import org.arl.unet.net.RouteDiscoveryNtf
+import org.arl.unet.net.Router
+import org.arl.unet.net.RouterParam
 
 @CompileStatic
 class RouteInitialiser extends UnetAgent {
@@ -20,5 +22,6 @@ class RouteInitialiser extends UnetAgent {
         for (Tuple2 route : routes) {
             router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: dtnlink))
         }
+        router.request(new ParameterReq().set(RouterParam.defaultLink, dtnlink),1000)
     }
 }

@@ -57,6 +57,8 @@ routesM.add(new Tuple2(s1,s))
 routesS.add(new Tuple2(s0,a))
 routesS.add(new Tuple2(s1,a))
 routesA.add(new Tuple2(m,s))
+routesA.add(new Tuple2(s0,s0))
+routesA.add(new Tuple2(s1,s1))
 routesS0.add(new Tuple2(m,a))
 routesS1.add(new Tuple2(m,a))
 
@@ -120,7 +122,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(s1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesS1.toArray())
-        container.add 'testagent', new DtnApp(dests1, 60, 100, T, 3000, true, DtnApp.Mode.REGULAR, statS1)
+        container.add 'testagent', new DtnApp(dests1, 60, 100, T, 400, true, DtnApp.Mode.REGULAR, statS1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
 }

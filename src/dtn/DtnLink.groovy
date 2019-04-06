@@ -271,6 +271,9 @@ class DtnLink extends UnetAgent {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
+                if (nodeAddress == 2) {
+                    println("Sent - " + originalDatagramID)
+                }
                 // happens when the message has been sent before TTL
                 if (metadata != null) {
                     metadata.setDelivered()
@@ -297,7 +300,9 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-//                println("Datagram: " + originalDatagramID + "DFN")
+                if (nodeAddress == 2) {
+                    println("Datagram: " + originalDatagramID + "DFN")
+                }
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
                     metadata.attempts++
@@ -360,6 +365,9 @@ class DtnLink extends UnetAgent {
                             }
                             Message rsp = nodeLink.request(datagramReq, 1000)
                             if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                                if (nodeAddress == 3) {
+                                    println('as')
+                                }
                                 originalDatagramID = messageID
                                 outboundDatagramID = datagramReq.getMessageID()
                                 resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
