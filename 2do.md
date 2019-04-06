@@ -387,3 +387,52 @@ Week 7:
 * added a LinkState variable
 * added a sent field to DtnPduMetadata
 * moved all deletion logic to a single place in the code
+
+
+
+====++COMPLEXAUV+++++====
+
+/usr/lib/jvm/java-8-openjdk-amd64/bin/java -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:37035,suspend=y,server=n -javaagent:/snap/intellij-idea-community/138/plugins/Groovy/lib/agent/gragent.jar -javaagent:/snap/intellij-idea-community/138/lib/rt/debugger-agent.jar -Dfile.encoding=UTF-8 -classpath /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/charsets.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/java-atk-wrapper.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jsse.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management-agent.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/resources.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar:/home/nic/nus/dtn/out/production/dtn:/home/nic/nus/UnetStack3-prerelease-20190128/lib/cloning-1.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-fileupload-1.3.3.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-io-2.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-lang3-3.6.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/groovy-all-2.4.15.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/gson-2.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/javax.servlet-api-3.1.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jcommon-1.0.23.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-http-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-io-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-security-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-servlet-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-util-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-xml-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jfreechart-1.0.19.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jline-3.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jSerialComm-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jtransforms-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/junit-4.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/objenesis-1.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/openrq-3.3.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-framework-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-simulator-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-stack-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-api-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-common-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-servlet-9.4.12.v20180830.jar:/home/nic/nus/commons-math3-3.6.1/commons-math3-3.6.1.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/fjage-1.5.2-SNAPSHOT.jar:/snap/intellij-idea-community/138/lib/idea_rt.jar org.arl.fjage.shell.GroovyBoot cls://org.arl.unet.sim.initrc sim/complex_auv.groovy
+Connected to the target VM, address: '127.0.0.1:37035', transport: 'socket'
+Starting Complex AUV simulation!
+java.lang.reflect.InvocationTargetException
+> 
+Stats: 
+Datagrams: TX: 18 RX: 12 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->0
+2->12
+3->5
+4->1
+5->6
+
+Stats: 
+Datagrams: TX: 5 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->0
+2->40
+3->0
+4->2
+5->12
+
+Stats: 
+Datagrams: TX: 1 RX: 16 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->16
+2->0
+3->32
+4->0
+5->0
+
+Stats: 
+Datagrams: TX: 6 RX: 10 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->10
+2->0
+3->20
+4->0
+5->0

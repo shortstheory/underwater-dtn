@@ -11,10 +11,17 @@ class DtnStats {
     int datagramsFailure  = 0
     int datagramsReceived = 0
 
+    int[] msgRecv = new int[100]
+
     void printStats() {
         println("\nStats: ")
         println("Datagrams: " + "TX: " + datagramsSent + " RX: " + datagramsReceived + " S: " + datagramsSuccess + " F: " + datagramsFailure)
         println("Payloads:  " + "TX: " + payloadsSent + " RX: " + payloadsReceived + " S: " + payloadsSuccess + " F: " + payloadsFailure)
         println()
+        for (int i = 0; i < 100; i++) {
+            if (msgRecv[i]) {
+                println(i + "->" + msgRecv[i])
+            }
+        }
     }
 }
