@@ -22,6 +22,7 @@ class DtnLink extends UnetAgent {
     public static final int DTN_PROTOCOL = 50
 
     int MTU
+    int currentNode
 
     private DtnStorage storage
     public int nodeAddress
@@ -78,6 +79,7 @@ class DtnLink extends UnetAgent {
         random = new Random()
         linkPriority = new ArrayList<>()
         linkState = LinkState.READY
+        currentNode = 0
     }
 
     DtnLink(String dir) {
@@ -133,16 +135,17 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-                for (Integer node : linkManager.getDestinationNodes()) {
-                    if (node) {
-                        AgentID nodeLink = linkManager.getBestLink(node)
-                        if (nodeLink != null) {
-                            // FIXME: later choose links based on bitrate
-                            ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                            String messageID = selectNextDatagram(datagrams)
-                            if (messageID != null) {
-                                sendDatagram(messageID, node, nodeLink)
-                            }
+//                for (Integer node : linkManager.getDestinationNodes()) {
+                if (linkManager.getDestinationNodes().size()) {
+                    currentNode++
+                    int node = linkManager.getDestinationNodes().get(currentNode % linkManager.getDestinationNodes().size())
+                    AgentID nodeLink = linkManager.getBestLink(node)
+                    if (nodeLink != null) {
+                        // FIXME: later choose links based on bitrate
+                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+                        String messageID = selectNextDatagram(datagrams)
+                        if (messageID != null) {
+                            sendDatagram(messageID, node, nodeLink)
                         }
                     }
                 }
@@ -441,7 +444,9 @@ class DtnLink extends UnetAgent {
         return new PoissonBehavior(datagramResetPeriod) {
             @Override
             void onTick() {
-                datagramCycle.restart()
+                if (linkState == LinkState.READY) {
+                    datagramCycle.restart()
+                }
             }
         }
     }
@@ -514,7 +519,7 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    Set<Integer> getDiscoveredNodes() {
+    List<Integer> getDiscoveredNodes() {
         return linkManager.getDestinationNodes()
     }
 

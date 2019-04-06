@@ -79,8 +79,8 @@ class DtnLinkManager {
         linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
     }
 
-    Set<Integer> getDestinationNodes() {
-        return nodeLinks.keySet()
+    List<Integer> getDestinationNodes() {
+        return nodeLinks.keySet().asList()
     }
 
     Set<AgentID> getLinksForNode(int node) {
