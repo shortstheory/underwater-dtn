@@ -60,7 +60,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
-        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, 1000, true, DtnApp.Mode.REGULAR, stat1)
+        container.add 'testagent', new DtnApp(dest1, 10, 300, 3600, 3600, true, DtnApp.Mode.REGULAR, stat1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
@@ -73,7 +73,7 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
         container.add 'router', new Router()
-        container.add 'testagent', new DtnApp(stat2)
+        container.add 'testagent', new DtnApp(stat2, true)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
 }

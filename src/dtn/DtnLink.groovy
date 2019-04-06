@@ -230,6 +230,7 @@ class DtnLink extends UnetAgent {
                 linkManager.addLinkForNode(msg.getFrom(), link)
             }
         } else if (msg instanceof DatagramNtf) {
+            println(nodeAddress + " " + msg.getFrom())
             // Update the time of last message transmission when we receive a new DatagramNtf
             AgentID link = linkManager.getLink(msg.getSender())
             linkManager.addLinkForNode(msg.getFrom(), link)
@@ -296,13 +297,13 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                println("Datagram: " + originalDatagramID + "DFN")
+//                println("Datagram: " + originalDatagramID + "DFN")
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
                     metadata.attempts++
                 }
             } else if (newMessageID == outboundPayloadFragmentID) {
-                println("Payload: " + originalPayloadID + "DFN")
+//                println("Payload: " + originalPayloadID + "DFN")
                 DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
                 if (metadata != null) {
                     metadata.attempts++
@@ -333,8 +334,6 @@ class DtnLink extends UnetAgent {
                         int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
                         int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                         byte[] pduData = storage.getMessageData(messageID)
-
-                        println("Time Left: " + messageID + " " + (ttl))
 
                         metadata.size = pduData.length
                         DatagramReq datagramReq
@@ -415,6 +414,7 @@ class DtnLink extends UnetAgent {
                     int lastTransmission = linkMetadata.lastTransmission
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
+                        linkManager.updateLastTransmission(linkID)
                     }
                 }
             }
