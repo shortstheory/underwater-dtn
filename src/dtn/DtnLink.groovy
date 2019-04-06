@@ -366,7 +366,6 @@ class DtnLink extends UnetAgent {
                             Message rsp = nodeLink.request(datagramReq, 1000)
                             if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                 if (nodeAddress == 3) {
-                                    println('as')
                                 }
                                 originalDatagramID = messageID
                                 outboundDatagramID = datagramReq.getMessageID()

@@ -95,7 +95,7 @@ simulate T, {
     }
     def auv = node '3', address: a, location: [nodeDistance/2, 0, -50.m], mobility: true, shell: 5002, stack: { container ->
         container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(a))
+        container.add 'dtnlink', new DtnLink(Integer.toString(a), DtnLink.DatagramPriority.RANDOM)
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesA.toArray())
         container.add 'testagent', new DtnApp(destauv, 1800, 600, 3600.second, 0, true, DtnApp.Mode.REGULAR, statA)
