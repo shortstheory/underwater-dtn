@@ -274,9 +274,6 @@ class DtnLink extends UnetAgent {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
-                if (nodeAddress == 2) {
-                    println("Sent - " + originalDatagramID)
-                }
                 // happens when the message has been sent before TTL
                 if (metadata != null) {
                     metadata.setDelivered()
@@ -303,9 +300,6 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                if (nodeAddress == 2) {
-                    println("Datagram: " + originalDatagramID + "DFN")
-                }
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
                     metadata.attempts++

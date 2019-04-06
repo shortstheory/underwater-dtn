@@ -83,7 +83,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(m))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesM.toArray())
-        container.add 'testagent', new DtnApp(destm, 10, 200, T, 50, true, DtnApp.Mode.REGULAR, statM)
+        container.add 'testagent', new DtnApp(destm, 10, 200, T, 200, true, DtnApp.Mode.REGULAR, statM)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def slave = node '2', address: s, location: [0, 0, -50.m], shell: 5001, stack: { container ->
@@ -114,7 +114,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(s0))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesS0.toArray())
-        container.add 'testagent', new DtnApp(dests0, 60, 600, T, 400, true, DtnApp.Mode.REGULAR, statS0)
+        container.add 'testagent', new DtnApp(dests0, 60, 600, T, 400, true, DtnApp.Mode.PAYLOAD, statS0)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def sensor1 = node '5', address: s1, location: [nodeDistance*3+nodeDistance/2, 0, -50.m], shell: 5004, stack: { container ->
