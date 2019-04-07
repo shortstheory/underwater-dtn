@@ -23,13 +23,13 @@ platform = DiscreteEventSimulator
 def range = 1000.m
 def nodeDistance = 800.m
 //
-//channel.model = BasicAcousticChannel
-channel.model = ProtocolChannelModel
-channel.pDetection = 1.0
-channel.pDecoding = 1.0
-channel.communicationRange = range
-channel.detectionRange = range
-channel.interferenceRange = range
+channel.model = BasicAcousticChannel
+//channel.model = ProtocolChannelModel
+//channel.pDetection = 1.0
+//channel.pDecoding = 1.0
+//channel.communicationRange = range
+//channel.detectionRange = range
+//channel.interferenceRange = range
 
 int nodeCount = 5
 
@@ -100,7 +100,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(a))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesA.toArray())
-        container.add 'testagent', new DtnApp(destauv, 300, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statA)
+        container.add 'testagent', new DtnApp(destauv, 1800, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statA)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def trajectory = [[duration: 2600.seconds, heading: 0.deg, speed: 0.mps],
@@ -126,7 +126,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(s1))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesS1.toArray())
-        container.add 'testagent', new DtnApp(dests1, 60, 100, T, 1800, true, DtnApp.Mode.REGULAR, statS1)
+        container.add 'testagent', new DtnApp(dests1, 300, 600, T, 0, true, DtnApp.Mode.REGULAR, statS1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
 }

@@ -436,3 +436,71 @@ Payloads:  TX: 0 RX: 0 S: 0 F: 0
 3->20
 4->0
 5->0
+
+
+/usr/lib/jvm/java-8-openjdk-amd64/bin/java -javaagent:/snap/intellij-idea-community/138/lib/idea_rt.jar=35267:/snap/intellij-idea-community/138/bin -Dfile.encoding=UTF-8 -classpath /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/charsets.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/java-atk-wrapper.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jsse.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management-agent.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/resources.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar:/home/nic/nus/dtn/out/production/dtn:/home/nic/nus/UnetStack3-prerelease-20190128/lib/cloning-1.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-fileupload-1.3.3.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-io-2.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-lang3-3.6.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/groovy-all-2.4.15.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/gson-2.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/javax.servlet-api-3.1.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jcommon-1.0.23.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-http-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-io-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-security-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-servlet-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-util-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-xml-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jfreechart-1.0.19.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jline-3.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jSerialComm-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jtransforms-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/junit-4.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/objenesis-1.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/openrq-3.3.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-framework-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-simulator-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-stack-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-api-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-common-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-servlet-9.4.12.v20180830.jar:/home/nic/nus/commons-math3-3.6.1/commons-math3-3.6.1.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/fjage-1.5.2-SNAPSHOT.jar org.arl.fjage.shell.GroovyBoot cls://org.arl.unet.sim.initrc sim/complex_auv.groovy
+Starting Complex AUV simulation!
+java.lang.reflect.InvocationTargetException
+> 
+Stats: 
+Datagrams: TX: 38 RX: 61 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+3->5
+4->34
+5->22
+
+Stats: 
+Datagrams: TX: 5 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+
+Stats: 
+Datagrams: TX: 34 RX: 36 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->36
+
+Stats: 
+Datagrams: TX: 34 RX: 23 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->23
+
+1 simulation completed in 435.505 seconds
+
+
+Process finished with exit code 0
+
+/usr/lib/jvm/java-8-openjdk-amd64/bin/java -javaagent:/snap/intellij-idea-community/138/lib/idea_rt.jar=35371:/snap/intellij-idea-community/138/bin -Dfile.encoding=UTF-8 -classpath /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/charsets.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/java-atk-wrapper.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jce.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jsse.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management-agent.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/resources.jar:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar:/home/nic/nus/dtn/out/production/dtn:/home/nic/nus/UnetStack3-prerelease-20190128/lib/cloning-1.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-fileupload-1.3.3.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-io-2.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/commons-lang3-3.6.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/groovy-all-2.4.15.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/gson-2.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/javax.servlet-api-3.1.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jcommon-1.0.23.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-http-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-io-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-security-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-servlet-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-util-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jetty-xml-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jfreechart-1.0.19.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jline-3.9.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jSerialComm-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/jtransforms-2.4.0.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/junit-4.8.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/objenesis-1.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/openrq-3.3.2.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-framework-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-simulator-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/unet-stack-1.4.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-api-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-client-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-common-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-server-9.4.12.v20180830.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/websocket-servlet-9.4.12.v20180830.jar:/home/nic/nus/commons-math3-3.6.1/commons-math3-3.6.1.jar:/home/nic/nus/UnetStack3-prerelease-20190128/lib/fjage-1.5.2-SNAPSHOT.jar org.arl.fjage.shell.GroovyBoot cls://org.arl.unet.sim.initrc sim/complex_auv.groovy
+Starting Complex AUV simulation!
+java.lang.reflect.InvocationTargetException
+> Message ID 75cde4b5-2fe9-4b8c-9455-ceec44ad913b not found 6303
+
+Stats: 
+Datagrams: TX: 38 RX: 1 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+4->1
+
+Stats: 
+Datagrams: TX: 5 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+
+Stats: 
+Datagrams: TX: 34 RX: 13 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->13
+
+Stats: 
+Datagrams: TX: 34 RX: 4 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->4
+
+1 simulation completed in 10486.590 seconds
+
+
+Process finished with exit code 0
