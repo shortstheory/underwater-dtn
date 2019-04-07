@@ -22,7 +22,7 @@ class DtnLink extends UnetAgent {
     public static final int DTN_PROTOCOL = 50
 
     int MTU
-    int currentNode
+    int destinationNodeIndex
 
     private DtnStorage storage
     public int nodeAddress
@@ -79,7 +79,7 @@ class DtnLink extends UnetAgent {
         random = new Random()
         linkPriority = new ArrayList<>()
         linkState = LinkState.READY
-        currentNode = 0
+        destinationNodeIndex = 0
     }
 
     DtnLink(String dir) {
@@ -135,10 +135,9 @@ class DtnLink extends UnetAgent {
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
-//                for (Integer node : linkManager.getDestinationNodes()) {
                 if (linkManager.getDestinationNodes().size()) {
-                    currentNode++
-                    int node = linkManager.getDestinationNodes().get(currentNode % linkManager.getDestinationNodes().size())
+                    destinationNodeIndex = (destinationNodeIndex + 1)  % linkManager.getDestinationNodes().size()
+                    int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
                     AgentID nodeLink = linkManager.getBestLink(node)
                     if (nodeLink != null) {
                         // FIXME: later choose links based on bitrate
