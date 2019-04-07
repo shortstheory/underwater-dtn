@@ -11,8 +11,8 @@ import dtn.*
 class DtnTest {
     // FIXME: add multilink tests once the DataRate parameter is added
     public static final String path = "testNode"
-    public static final String path0 = "1"
-    public static final String path1 = "2"
+    public static final String path0 = "testDir0"
+    public static final String path1 = "testDir1"
 
     public enum Tests {
         TRIVIAL_MESSAGE,

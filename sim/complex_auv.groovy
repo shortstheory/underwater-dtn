@@ -23,13 +23,13 @@ platform = DiscreteEventSimulator
 def range = 1000.m
 def nodeDistance = 800.m
 //
-channel.model = BasicAcousticChannel
-//channel.model = ProtocolChannelModel
-//channel.pDetection = 1.0
-//channel.pDecoding = 1.0
-//channel.communicationRange = range
-//channel.detectionRange = range
-//channel.interferenceRange = range
+//channel.model = BasicAcousticChannel
+channel.model = ProtocolChannelModel
+channel.pDetection = 1.0
+channel.pDecoding = 1.0
+channel.communicationRange = range
+channel.detectionRange = range
+channel.interferenceRange = range
 
 int nodeCount = 5
 

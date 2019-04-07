@@ -5,6 +5,7 @@
 .idea/
 testNode/
 testStorage
+testDir*/
 out/
 logs/
 results/

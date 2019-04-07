@@ -99,8 +99,6 @@ class DtnStorage {
         return data
     }
 
-
-    // FIXME: not sure how much this guarantees randomness
     int getPayloadID(String messageID) {
         int id
         // Yes, it's not the most efficient. But we will only have 256 strings to go through at most
@@ -118,20 +116,11 @@ class DtnStorage {
 
         byte[] fileBytes
         if (file.exists()) {
-            byte[] payload = readPayload(src, payloadID)
-            fileBytes = new byte[Math.max(payload.length, startPtr + data.length + dtnLink.HEADER_SIZE)]
-            // copy the data
-            int i = 0
-            for (byte b : payload) {
-                fileBytes[i++] = b
-            }
-            i = startPtr + dtnLink.HEADER_SIZE
-            for (byte b : data) {
-                fileBytes[i++] = b
-            }
-            FileOutputStream fos = new FileOutputStream(file)
+            // Payloads are meant to be transferred sequentially, so we could just append to the file
+            // But if we get an out of order segment, things will fail
+            FileOutputStream fos = new FileOutputStream(file, true)
             try {
-                fos.write(fileBytes)
+                fos.write(data)
                 return true
             } catch (IOException e) {
                 return false
@@ -139,7 +128,6 @@ class DtnStorage {
                 fos.close()
             }
         } else {
-            // FIXME: this isn't really the best structure for files, but it does what we need
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
             // Only thing the tracking map is doing here is maintaining TTL and delivered status
