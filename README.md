@@ -111,7 +111,7 @@ additional capabilities for `FRAGMENTATION` and `RELIABILITY`
 `ROUTING` MAY be offered by `DtnLink` or handled by the Router
 agent.
 
-`$1` sent to `DtnLink` MUST have a non-zero TTL value,
+`DatagramReq` sent to `DtnLink` MUST have a non-zero TTL value,
 or they will be refused at the outset.
 
 Features
@@ -137,7 +137,7 @@ following features.
     if a datagram has failed or has been successfully delivered.
     `DtnLink` SHOULD forward a `DatagramDeliveryNtf` to the
     requesting application. On the other hand, if a datagram times out,
-    `DtnLink` SHOULD send a `$1` to the
+    `DtnLink` SHOULD send a `DatagramReq` to the
     application.
 
 -   **Beacons**: As explained previously, `DtnLink`
@@ -215,7 +215,7 @@ datagrams TTL information throughout.
 Changes Required in UnetStack
 =============================
 
-As shown in Figure \[mhd\], the `$1` on the intermediate
+As shown in the above figure, the `DatagramReq` on the intermediate
 node (Node 2) first passes through the `DtnLink` for decoding. Once
 decoded, the `DtnLink` emits a `DatagramNtf` for the Router
 which takes the datagram, consults its routing tables, and then passes
