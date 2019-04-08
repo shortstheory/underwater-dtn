@@ -1,6 +1,6 @@
 package test
 
-import groovy.transform.CompileStatic
+import  groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*
 import org.arl.unet.net.RouteDiscoveryNtf
@@ -22,6 +22,7 @@ class RouteInitialiser extends UnetAgent {
         for (Tuple2 route : routes) {
             router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: dtnlink))
         }
-        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
+        // Using DtnLink as default causes a lot of issues!
+//        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
     }
 }

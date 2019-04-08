@@ -1,6 +1,6 @@
 
 issues:
-* Router doesn't allow me to use dtnlink for default
+* When I use dtnlink as default, it gives the wrong results for the number of DGs which should have been received!!
 
 router.defaultLink = dtnlink
 router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnlink)
@@ -581,3 +581,30 @@ Payloads:  TX: 0 RX: 0 S: 0 F: 0
 1 simulation completed in 489.583 seconds
 
 OLD:::::
+Stats: 
+Datagrams: TX: 38 RX: 59 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+3->6
+4->32
+5->21
+
+Stats: 
+Datagrams: TX: 5 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+
+Stats: 
+Datagrams: TX: 34 RX: 35 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->35
+
+Stats: 
+Datagrams: TX: 34 RX: 24 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->24
+
+1 simulation completed in 472.615 seconds
+
