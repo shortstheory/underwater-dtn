@@ -13,6 +13,7 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
+import org.arl.unet.net.RouteDiscoveryProtocol
 import test.DtnApp
 import test.RouteInitialiser
 
@@ -57,8 +58,8 @@ routesM.add(new Tuple2(s1,s))
 routesS.add(new Tuple2(s0,a))
 routesS.add(new Tuple2(s1,a))
 routesA.add(new Tuple2(m,s))
-routesA.add(new Tuple2(s0,s0))
-routesA.add(new Tuple2(s1,s1))
+//routesA.add(new Tuple2(s0,s0))
+//routesA.add(new Tuple2(s1,s1))
 routesS0.add(new Tuple2(m,a))
 routesS1.add(new Tuple2(m,a))
 
@@ -84,7 +85,7 @@ simulate T, {
         container.add 'dtnlink', new DtnLink(Integer.toString(m))
         container.add 'router', new Router()
         container.add 'router_init', new RouteInitialiser((Tuple2[])routesM.toArray())
-        container.add 'testagent', new DtnApp(destm, 10, 200, T, 200, true, DtnApp.Mode.REGULAR, statM)
+        container.add 'testagent', new DtnApp(destm, 10, 200, 300, 200, true, DtnApp.Mode.REGULAR, statM)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def slave = node '2', address: s, location: [0, 0, -50.m], shell: 5001, stack: { container ->

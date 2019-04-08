@@ -1,31 +1,14 @@
 
 issues:
-assert linkState == LinkState.ACK_WAIT
-       |                      |
-       IDLE                   ACK_WAIT
+* Router doesn't allow me to use dtnlink for default
 
-Stack trace: ...
-   org.arl.unet.link.ReliableLink$7.onWake(ReliableLink.groovy:362)
-   org.arl.fjage.WakerBehavior.action(WakerBehavior.java:86)
-   org.arl.fjage.Agent.run(Agent.java:782) ...
-
-1554207380013|SEVERE|org.arl.unet.link.ReliableLink@25:die|Agent link died: Assertion failed: 
-	
-	assert linkState == LinkState.ACK_WAIT
-	       |                      |
-	       IDLE                   ACK_WAIT
-==========================================	
-Stack trace: ...
-   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy:355)
-   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy)
-   org.arl.unet.link.ReliableLink.processMessage(ReliableLink.groovy:205)
-   org.arl.unet.UnetAgent$2.onReceive(UnetAgent.java:74)
-   org.arl.fjage.MessageBehavior.action(MessageBehavior.java:82)
-   org.arl.fjage.Agent.run(Agent.java:782) ...
+router.defaultLink = dtnlink
+router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnlink)
 
 pending:
     * how about a TTL for position updates from a GPS node?
     * multihop DTN complicated :P
+    
 
 later:
 
@@ -502,5 +485,27 @@ Payloads:  TX: 0 RX: 0 S: 0 F: 0
 
 1 simulation completed in 10486.590 seconds
 
-
+BUG=======
 Process finished with exit code 0
+assert linkState == LinkState.ACK_WAIT
+       |                      |
+       IDLE                   ACK_WAIT
+
+Stack trace: ...
+   org.arl.unet.link.ReliableLink$7.onWake(ReliableLink.groovy:362)
+   org.arl.fjage.WakerBehavior.action(WakerBehavior.java:86)
+   org.arl.fjage.Agent.run(Agent.java:782) ...
+
+1554207380013|SEVERE|org.arl.unet.link.ReliableLink@25:die|Agent link died: Assertion failed: 
+	
+	assert linkState == LinkState.ACK_WAIT
+	       |                      |
+	       IDLE                   ACK_WAIT
+==========================================	
+Stack trace: ...
+   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy:355)
+   org.arl.unet.link.ReliableLink.endTxFrag(ReliableLink.groovy)
+   org.arl.unet.link.ReliableLink.processMessage(ReliableLink.groovy:205)
+   org.arl.unet.UnetAgent$2.onReceive(UnetAgent.java:74)
+   org.arl.fjage.MessageBehavior.action(MessageBehavior.java:82)
+   org.arl.fjage.Agent.run(Agent.java:782) ...
