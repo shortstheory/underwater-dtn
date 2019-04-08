@@ -22,6 +22,6 @@ class RouteInitialiser extends UnetAgent {
         for (Tuple2 route : routes) {
             router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: dtnlink))
         }
-//        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
+        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
     }
 }
