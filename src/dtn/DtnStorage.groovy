@@ -114,23 +114,22 @@ class DtnStorage {
         String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
         File file = new File(directory, filename)
 
-        byte[] fileBytes
         if (file.exists()) {
-            // Payloads are meant to be transferred sequentially, so we could just append to the file
-            // But if we get an out of order segment, things will fail
-            FileOutputStream fos = new FileOutputStream(file, true)
+            // Payloads are meant to be transferred sequentially, so we actually could just append to the file
+            RandomAccessFile raf = new RandomAccessFile(file, "rw")
+            raf.seek(DtnLink.HEADER_SIZE + startPtr)
             try {
-                fos.write(data)
+                raf.write(data)
                 return true
             } catch (IOException e) {
                 return false
             } finally {
-                fos.close()
+                raf.close()
             }
         } else {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
-            // Only thing the tracking map is doing here is maintaining TTL and delivered status
+            // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
             metadataMap.put(filename, new DtnPduMetadata(DtnPduMetadata.INBOUND_HOP, ttl + dtnLink.currentTimeSeconds()))
             try {
                 pdu.writeTo(fos)
@@ -146,14 +145,12 @@ class DtnStorage {
     boolean saveDatagram(DatagramReq req) {
         int protocol = req.getProtocol()
         int nextHop = req.getTo()
-        // FIXME: only for testing with Router
         int ttl = (Math.round(req.getTtl()))
         String messageID = req.getMessageID()
         byte[] data = req.getData()
         if (data != null && dtnLink.getMTU() < data.length) {
             return false
         }
-
         OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, 0, 0)
         File file = new File(directory, messageID)
         FileOutputStream fos = new FileOutputStream(file)
@@ -169,6 +166,7 @@ class DtnStorage {
         }
     }
 
+    // FIXME: can just be placed inside deleteFiles!
     void deleteFile(String messageID, DtnPduMetadata metadata) {
         File file = new File(directory, messageID)
         file.delete()
