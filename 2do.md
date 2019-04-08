@@ -509,3 +509,34 @@ Stack trace: ...
    org.arl.unet.UnetAgent$2.onReceive(UnetAgent.java:74)
    org.arl.fjage.MessageBehavior.action(MessageBehavior.java:82)
    org.arl.fjage.Agent.run(Agent.java:782) ...
+
+
+
+
+
+
+   Stats: 
+Datagrams: TX: 38 RX: 107 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+3->17
+4->60
+5->30
+
+Stats: 
+Datagrams: TX: 5 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+
+Stats: 
+Datagrams: TX: 34 RX: 3 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+1->3
+
+Stats: 
+Datagrams: TX: 34 RX: 0 S: 0 F: 0
+Payloads:  TX: 0 RX: 0 S: 0 F: 0
+
+
+1 simulation completed in 1289.365 seconds

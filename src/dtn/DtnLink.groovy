@@ -232,7 +232,6 @@ class DtnLink extends UnetAgent {
                 linkManager.addLinkForNode(msg.getFrom(), link)
             }
         } else if (msg instanceof DatagramNtf) {
-            println(nodeAddress + " " + msg.getFrom())
             // Update the time of last message transmission when we receive a new DatagramNtf
             AgentID link = linkManager.getLink(msg.getSender())
             linkManager.addLinkForNode(msg.getFrom(), link)
@@ -267,13 +266,12 @@ class DtnLink extends UnetAgent {
                     }
                 }
             }
-        // once we have received a DDN/DFN, we can send another one
+        // once we have received a DDN/DFN, we can send the next DatagramReq
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
-                // happens when the message has been sent before TTL
                 if (metadata != null) {
                     metadata.setDelivered()
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
@@ -304,7 +302,6 @@ class DtnLink extends UnetAgent {
                     metadata.attempts++
                 }
             } else if (newMessageID == outboundPayloadFragmentID) {
-//                println("Payload: " + originalPayloadID + "DFN")
                 DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
                 if (metadata != null) {
                     metadata.attempts++
@@ -319,6 +316,7 @@ class DtnLink extends UnetAgent {
 
     void sendDatagram(String messageID, int node, AgentID nodeLink) {
         if (linkState == LinkState.READY) {
+            // Set the state to WAITING so we don't send another Datagram until we get the result of the pending one
             linkState = LinkState.WAITING
             add(new WakerBehavior(random.nextInt(randomDelay)) {
                 @Override
@@ -331,7 +329,7 @@ class DtnLink extends UnetAgent {
                         && !metadata.delivered
                         && (ttl = metadata.expiryTime - currentTimeSeconds()) > 0) {
 
-                        // we are decoding the PDU twice, not good!
+                        // we are reading the file twice, not good!
                         int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
                         int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                         byte[] pduData = storage.getMessageData(messageID)
@@ -361,8 +359,6 @@ class DtnLink extends UnetAgent {
                             }
                             Message rsp = nodeLink.request(datagramReq, 1000)
                             if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                if (nodeAddress == 3) {
-                                }
                                 originalDatagramID = messageID
                                 outboundDatagramID = datagramReq.getMessageID()
                                 resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
@@ -382,7 +378,6 @@ class DtnLink extends UnetAgent {
                                     payloadID,
                                     startPtr)
                                     .toByteArray()
-                            // separator should not conflict with a regular DReq
                             String trackerID = Integer.toString(payloadID) + "_" + endPtr
                             datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                                     data: pduBytes,
