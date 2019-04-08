@@ -129,9 +129,9 @@ class DtnLink extends UnetAgent {
         }
 
         // Initialise behaviors
-        beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
-        GCBehavior = (TickerBehavior)add(createGCBehavior())
-        datagramResetBehavior = (PoissonBehavior)add(createDatagramBehavior())
+        beaconBehavior = addBeaconBehavior()
+        GCBehavior = addGCBehavior()
+        datagramResetBehavior = addDatagramBehavior()
         datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
             @Override
             void action() {
@@ -338,7 +338,6 @@ class DtnLink extends UnetAgent {
                         DatagramReq datagramReq
 
                         if (pduData.length + HEADER_SIZE <= linkMTU) {
-                            // this is for short-circuiting PDUs
                             if (pduProtocol == Protocol.ROUTING) {
                                 byte[] pduBytes = DtnStorage.encodePdu(pduData,
                                         ttl,
@@ -352,6 +351,7 @@ class DtnLink extends UnetAgent {
                                         to: node,
                                         reliability: true)
                             } else {
+                                // this will short-circuit Datagrams to the appropriate agent
                                 datagramReq = new DatagramReq(protocol: pduProtocol,
                                         data: pduData,
                                         to: node,
@@ -361,7 +361,7 @@ class DtnLink extends UnetAgent {
                             if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
                                 originalDatagramID = messageID
                                 outboundDatagramID = datagramReq.getMessageID()
-                                resetState = (WakerBehavior)add(createResetStateBehavior(messageID))
+                                resetState = addResetStateBehavior(messageID)
                             } else {
                                 linkState = LinkState.READY
                             }
@@ -388,7 +388,7 @@ class DtnLink extends UnetAgent {
                                 originalPayloadID = messageID
                                 outboundPayloadFragmentID = datagramReq.getMessageID()
                                 outboundPayloadBytesSent = endPtr
-                                resetState = (WakerBehavior) add(createResetStateBehavior(trackerID))
+                                resetState = addResetStateBehavior(trackerID)
                             } else {
                                 linkState = LinkState.READY
                             }
@@ -401,8 +401,8 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    PoissonBehavior createBeaconBehavior() {
-        return new PoissonBehavior(beaconTimeout) {
+    PoissonBehavior addBeaconBehavior() {
+        return (PoissonBehavior)add(new PoissonBehavior(beaconTimeout) {
             @Override
             void onTick() {
                 int beaconPeriod = (beaconTimeout / 1000).intValue()
@@ -416,37 +416,37 @@ class DtnLink extends UnetAgent {
                     }
                 }
             }
-        }
+        })
     }
 
-    TickerBehavior createGCBehavior() {
-        return new TickerBehavior(GCPeriod) {
+    TickerBehavior addGCBehavior() {
+        return (TickerBehavior)add(new TickerBehavior(GCPeriod) {
             @Override
             void onTick() {
                 storage.deleteFiles()
             }
-        }
+        })
     }
 
-    PoissonBehavior createDatagramBehavior() {
-        return new PoissonBehavior(datagramResetPeriod) {
+    PoissonBehavior addDatagramBehavior() {
+        return (PoissonBehavior)add(new PoissonBehavior(datagramResetPeriod) {
             @Override
             void onTick() {
                 if (linkState == LinkState.READY) {
                     datagramCycle.restart()
                 }
             }
-        }
+        })
     }
 
-    WakerBehavior createResetStateBehavior(String ID) {
-        return new WakerBehavior(resetStateTime) {
+    WakerBehavior addResetStateBehavior(String ID) {
+        return (WakerBehavior)add(new WakerBehavior(resetStateTime) {
             @Override
             void onWake() {
                 println("No DDN/DFN received, resetting DtnLink for " + ID)
                 linkState = LinkState.READY
             }
-        }
+        })
     }
 
     Object getProperty(AgentID aid, Parameter param) {
@@ -465,7 +465,7 @@ class DtnLink extends UnetAgent {
             println("Stopped beacon")
         } else {
             println("Changed beacon interval")
-            beaconBehavior = (PoissonBehavior)add(createBeaconBehavior())
+            beaconBehavior = addBeaconBehavior()
         }
     }
 
@@ -476,7 +476,7 @@ class DtnLink extends UnetAgent {
             println("Stopped GC")
         } else {
             println("Changed GC interval")
-            GCBehavior = (TickerBehavior)add(createGCBehavior())
+            GCBehavior = addGCBehavior()
         }
     }
 
@@ -487,7 +487,7 @@ class DtnLink extends UnetAgent {
             println("Stopped Datagram Reset Period")
         } else {
             println("Changed Reset Interval")
-            datagramResetBehavior = (PoissonBehavior)add(createDatagramBehavior())
+            datagramResetBehavior = addDatagramBehavior()
         }
     }
 
