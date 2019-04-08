@@ -207,7 +207,7 @@ send the datagrams to the final destination. A sequence diagram of what
 this looks like is shown below:
 
 ![Multi-Hop Message
-Sending[]{data-label="mhd"}](multi-hop-delivery.png){width="0.9\linewidth"}
+Sending](https://i.imgur.com/8KlWc2q.png)
 
 In such a case, `DtnLink` MUST encode data in a PDU to preserve the
 datagrams TTL information throughout.
@@ -260,7 +260,7 @@ rather than diving into the implementation of how each function
 performs. This is formally called “Black-box” testing.
 
 ![Black-box
-testing[]{data-label="bb"}](blackbox.png){width="0.9\linewidth"}
+testing](https://i.imgur.com/645EAMa.png)
 
 The above figure is a simple example of the key concept of the
 black-box. The internals can be totally abstracted for the tests as we
