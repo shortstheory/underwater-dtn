@@ -17,12 +17,12 @@ channel.model = BasicAcousticChannel
 
 int[] dest1 = [2]
 
+def T = 20.hour
 def dist = 200.m
 def msgSize = 5*1000
-def msgFreq = 100
-def msgTtl = 100000
+def msgFreq = 10.second
+def msgTtl = T
 
-def T = 20.hour
 int nodeCount = 2
 
 for (int f = 1; f <= nodeCount; f++) {
@@ -37,7 +37,7 @@ simulate T, {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1), DtnLink.DatagramPriority.ARRIVAL)
-        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, 0, false, DtnApp.Mode.PAYLOAD, stat1)
+        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgFreq*300, false, DtnApp.Mode.PAYLOAD, stat1)
     }
     node 'b', address: 2, location: [dist, 0, 0], shell: 5000, stack: { container ->
         container.add 'link', new ReliableLink()

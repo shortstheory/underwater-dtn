@@ -133,5 +133,4 @@ for (int i=0;i<5;i++) {
     statA.printStats()
     statS0.printStats()
     statS1.printStats()
-
 }
