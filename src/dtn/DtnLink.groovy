@@ -253,6 +253,7 @@ class DtnLink extends UnetAgent {
                     if (payloadID) {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                         if (tbc) {
+                            println("Received Payload " + payloadID)
                             byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
                             String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)

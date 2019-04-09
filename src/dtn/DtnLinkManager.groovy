@@ -26,8 +26,8 @@ class DtnLinkManager {
         int dataRate
     }
 
-    private HashMap<AgentID, LinkMetadata> linkInfo
-    private HashMap<Integer, HashSet<AgentID>> nodeLinks
+    private HashMap<AgentID, LinkMetadata> linkInfo       // Maintains the properties of each Link
+    private HashMap<Integer, HashSet<AgentID>> nodeLinks  // Maintains the available Links available for each node
 
     DtnLinkManager(DtnLink dtnLink) {
         this.dtnLink = dtnLink
@@ -43,6 +43,7 @@ class DtnLinkManager {
         return linkInfo
     }
 
+    // Returns the highest priority link which is available in the LinkPriority list
     AgentID getBestLink(int node) {
         int bestLinkPriority = Integer.MAX_VALUE
         AgentID bestLink = null
@@ -62,7 +63,7 @@ class DtnLinkManager {
         dtnLink.subscribe(dtnLink.topic(link))
         // If phy for a link doesn't exist, we can't SNOOP to listen for other transmissions
         String phyName = dtnLink.getProperty(link, ReliableLinkParam.phy)
-        // FIXME: agent(null) returns "null" and not null!
+        // FIXME: agent(null) returns String("null") and not null!
         AgentID phy = (phyName != null) ? dtnLink.agent(phyName) : null
         int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
         int[] dataRateArray
