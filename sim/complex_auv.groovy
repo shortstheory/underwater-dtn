@@ -58,8 +58,8 @@ routesM.add(new Tuple2(s1,s))
 routesS.add(new Tuple2(s0,a))
 routesS.add(new Tuple2(s1,a))
 routesA.add(new Tuple2(m,s))
-routesA.add(new Tuple2(s0,s0))
-routesA.add(new Tuple2(s1,s1))
+//routesA.add(new Tuple2(s0,s0))
+//routesA.add(new Tuple2(s1,s1))
 routesS0.add(new Tuple2(m,a))
 routesS1.add(new Tuple2(m,a))
 
@@ -69,7 +69,7 @@ for (int f = 1; f <= nodeCount; f++) {
 
 
 def T = 10400.second
-for (int i=0;i<5;i++) {
+//for (int i=0;i<5;i++) {
     test.DtnStats statM = new test.DtnStats()
 //test.DtnStats statS = new test.DtnStats()
     test.DtnStats statA = new test.DtnStats()
@@ -99,7 +99,8 @@ for (int i=0;i<5;i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(a))
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[])routesA.toArray())
-            container.add 'testagent', new DtnApp(destauv, 1800, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statA)
+//            container.add 'testagent', new DtnApp(destauv, 1800, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statA)
+            container.add 'testagent', new DtnApp(statA, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         def trajectory = [[duration: 2600.seconds, heading: 0.deg, speed: 0.mps],
@@ -116,7 +117,8 @@ for (int i=0;i<5;i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(s0))
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[])routesS0.toArray())
-            container.add 'testagent', new DtnApp(dests0, 300, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statS0)
+//            container.add 'testagent', new DtnApp(dests0, 300, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statS0)
+            container.add 'testagent', new DtnApp(statS0, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         // 6 to m
@@ -125,7 +127,8 @@ for (int i=0;i<5;i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(s1))
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[])routesS1.toArray())
-            container.add 'testagent', new DtnApp(dests1, 300, 600, T, 0, true, DtnApp.Mode.REGULAR, statS1)
+//            container.add 'testagent', new DtnApp(dests1, 300, 600, T, 0, true, DtnApp.Mode.REGULAR, statS1)
+            container.add 'testagent', new DtnApp(statS1, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
     }
@@ -133,4 +136,4 @@ for (int i=0;i<5;i++) {
     statA.printStats()
     statS0.printStats()
     statS1.printStats()
-}
+//}
