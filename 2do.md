@@ -1,7 +1,7 @@
 
 issues:
 * When I use dtnlink as default, it gives the wrong results for the number of DGs which should have been received!!
-
+* should DtnLink be allowed to do RReqs?
 router.defaultLink = dtnlink
 router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnlink)
 
