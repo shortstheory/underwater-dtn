@@ -335,7 +335,6 @@ class DtnLink extends UnetAgent {
                         int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
                         byte[] pduData = storage.getMessageData(messageID)
 
-                        metadata.size = pduData.length
                         DatagramReq datagramReq
 
                         if (pduData.length + HEADER_SIZE <= linkMTU) {

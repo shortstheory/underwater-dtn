@@ -1,7 +1,13 @@
 
 issues:
 * When I use dtnlink as default, it gives the wrong results for the number of DGs which should have been received!!
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 22, data: [1,2,3])
 * should DtnLink be allowed to do RReqs?
+* ALL NODES NEED RDP for it to work correctly!
+* Which link does RDP use by default? Won't be good for it to use DtnLink :P
+* Router will use DtnLink if auto1hop is == true
+* does default link have to be symmetric?
+* Router does short circuitign!!!
 router.defaultLink = dtnlink
 router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnlink)
 
@@ -9,7 +15,6 @@ pending:
     * how about a TTL for position updates from a GPS node?
     * multihop DTN complicated :P
     
-
 later:
 
 in progress:
