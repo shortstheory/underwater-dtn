@@ -22,7 +22,7 @@ def msgSize = 5*1000
 def msgFreq = 100
 def msgTtl = 100000
 
-def T = 1.hour
+def T = 20.hour
 int nodeCount = 2
 
 for (int f = 1; f <= nodeCount; f++) {

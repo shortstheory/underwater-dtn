@@ -36,7 +36,6 @@ class DtnStorage {
     DtnStorage(DtnLink link, String dir) {
         directory = dir
         dtnLink = link
-
         File file = new File(directory)
         if (!file.exists()) {
             file.mkdir()
@@ -103,11 +102,12 @@ class DtnStorage {
         int id
         // Yes, it's not the most efficient. But we will only have 256 strings to go through at most
         if ((id = payloadList.indexOf(messageID)) != -1) {
+            // We can't have payloadID = 0 as that will make the receiver think we're sending a regular Datagram
             return id + 1
         }
-        id = payloadCounter++ % LOWER_8_BITMASK
-        payloadList[id] = messageID
-        return id + 1
+        payloadCounter %= LOWER_8_BITMASK
+        payloadList[payloadCounter] = messageID
+        return ++payloadCounter
     }
 
     boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
@@ -115,7 +115,7 @@ class DtnStorage {
         File file = new File(directory, filename)
 
         if (file.exists()) {
-            // Payloads are meant to be transferred sequentially, so we actually could just append to the file
+            // FIXME: Payloads are meant to be transferred sequentially, so we actually could just append to the file
             RandomAccessFile raf = new RandomAccessFile(file, "rw")
             raf.seek(DtnLink.HEADER_SIZE + startPtr)
             try {
@@ -166,19 +166,6 @@ class DtnStorage {
         }
     }
 
-    // FIXME: can just be placed inside deleteFiles!
-    void deleteFile(String messageID, DtnPduMetadata metadata) {
-        File file = new File(directory, messageID)
-        file.delete()
-        if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
-                    dtnLink.sendFailureNtf(messageID, metadata.nextHop)
-                }
-            }
-        }
-    }
-
     void deleteFiles() {
         Iterator it = metadataMap.entrySet().iterator()
         while (it.hasNext()) {
@@ -186,10 +173,30 @@ class DtnStorage {
             String messageID = (String)entry.getKey()
             DtnPduMetadata metadata = (DtnPduMetadata)entry.getValue()
             if (metadata.delivered || dtnLink.currentTimeSeconds() > metadata.expiryTime) {
-                deleteFile(messageID, metadata)
+                // Delete the file
+                File file = new File(directory, messageID)
+                file.delete()
+                if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+                    if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+                        if (metadata.getMessageType() == DtnPduMetadata.MessageType.OUTBOUND) {
+                            dtnLink.sendFailureNtf(messageID, metadata.nextHop)
+                        }
+                    }
+                }
                 it.remove()
             }
         }
+    }
+
+
+    int getArrivalTime(String messageID) {
+        HashMap<String, Integer> map = getPDUInfo(messageID)
+        if (map != null) {
+            int ttl = map.get(TTL_MAP)
+            int expiryTime = getMetadata(messageID).expiryTime
+            return expiryTime - ttl
+        }
+        return -1
     }
 
     static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
@@ -224,15 +231,5 @@ class DtnStorage {
         map.put(PAYLOAD_ID_MAP, payloadID)
         map.put(START_PTR_MAP, startPtr)
         return map
-    }
-
-    int getArrivalTime(String messageID) {
-        HashMap<String, Integer> map = getPDUInfo(messageID)
-        if (map != null) {
-            int ttl = map.get(TTL_MAP)
-            int expiryTime = getMetadata(messageID).expiryTime
-            return expiryTime - ttl
-        }
-        return -1
     }
 }
