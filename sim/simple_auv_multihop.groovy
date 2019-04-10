@@ -13,6 +13,7 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
+import org.arl.fjage.AgentID
 import test.DtnApp
 import test.RouteInitialiser
 
@@ -44,21 +45,24 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
 }
 
-test.DtnStats stat1 = new test.DtnStats()
-test.DtnStats stat2 = new test.DtnStats()
-
 def T = 10400.second
 def msgSize = 50
 def msgFreq = 10
 def msgTtl = T
-def lastMsg = 3600
+def lastMsg = T
+
+test.DtnStats stat1
+test.DtnStats stat2
+
+stat1 = new test.DtnStats()
+stat2 = new test.DtnStats()
 
 simulate T, {
     def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
-        container.add 'router_init', new RouteInitialiser((Tuple2[])routesSrc.toArray())
+        container.add 'router_init', new RouteInitialiser((Tuple2[])routesSrc.toArray(), new AgentID("dtnlink"))
         container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
@@ -66,7 +70,7 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
         container.add 'router', new Router()
-        container.add 'router_init', new RouteInitialiser((Tuple2[])routesAUV.toArray())
+        container.add 'router_init', new RouteInitialiser((Tuple2[])routesAUV.toArray(), new AgentID("dtnlink"))
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
@@ -87,3 +91,4 @@ simulate T, {
 
 stat1.printStats()
 stat2.printStats()
+

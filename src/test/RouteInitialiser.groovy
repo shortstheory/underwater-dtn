@@ -10,8 +10,10 @@ import org.arl.unet.net.RouterParam
 @CompileStatic
 class RouteInitialiser extends UnetAgent {
     Tuple2[] routes
-    RouteInitialiser(Tuple2[] r) {
+    AgentID link
+    RouteInitialiser(Tuple2[] r, String name) {
         routes = r
+        link = agent(name)
     }
 
     @Override
@@ -20,9 +22,7 @@ class RouteInitialiser extends UnetAgent {
         AgentID router = agent("router")
         // why does hopcount matter?
         for (Tuple2 route : routes) {
-            router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: dtnlink))
+            router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: link))
         }
-        // Using DtnLink as default causes a lot of issues!
-//        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
     }
 }

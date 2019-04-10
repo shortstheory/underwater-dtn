@@ -119,13 +119,16 @@ class DtnApp extends UnetAgent {
             })
             break
         case Mode.REGULAR:
-            String data = createDataSize(msgSize)
-            byte[] bytes = data.getBytes()
             add(new TickerBehavior(messagePeriod) {
                 @Override
                 void onTick() {
                     for (int destNode : destNodes) {
-                        DatagramReq req = new DatagramReq(data: bytes, to: destNode, ttl: msgTtl, protocol: protocolNumber)
+
+                        DatagramReq req = new DatagramReq(to: destNode, ttl: msgTtl, protocol: protocolNumber)
+//                        String data = createDataSize(msgSize)
+                        String data = req.getMessageID()
+                        byte[] bytes = data.getBytes()
+                        req.setData(bytes)
                         sendDatagram(req, false)
                     }
                 }
@@ -174,6 +177,7 @@ class DtnApp extends UnetAgent {
         if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == protocolNumber) {
                 println(msg.toString() + " " + msg.getMessageID())
+                stats.uniqueDatagrams.add(new String(msg.getData()))
                 stats.msgRecv[msg.getFrom()]++
                 stats.datagramsReceived++
             } else if (msg.getProtocol() == payloadProtocolNumber) {
