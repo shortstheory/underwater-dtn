@@ -35,8 +35,10 @@ int[] dest1 = [3]
 
 println "Starting Routing simulation!"
 
-ArrayList<Tuple2> routes1 = new ArrayList<>()
-routes1.add(new Tuple2(3,2))
+ArrayList<Tuple2> routesSrc = new ArrayList<>()
+ArrayList<Tuple2> routesAUV = new ArrayList<>()
+routesSrc.add(new Tuple2(3,2))
+routesAUV.add(new Tuple2(3,3))
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
@@ -46,7 +48,7 @@ test.DtnStats stat1 = new test.DtnStats()
 test.DtnStats stat2 = new test.DtnStats()
 
 def T = 10400.second
-def msgSize = 300
+def msgSize = 50
 def msgFreq = 10
 def msgTtl = T
 def lastMsg = 3600
@@ -56,20 +58,21 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(1))
         container.add 'router', new Router()
-        container.add 'router_init', new RouteInitialiser((Tuple2[])routes1.toArray())
+        container.add 'router_init', new RouteInitialiser((Tuple2[])routesSrc.toArray())
         container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat1)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
-    def auv = node '2', address: 2, location: [nodeDistance, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
+    def auv = node '2', address: 2, location: [0, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(2))
         container.add 'router', new Router()
+        container.add 'router_init', new RouteInitialiser((Tuple2[])routesAUV.toArray())
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
     def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
-                      [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
-                      [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
                       [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
+                      [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
+                      [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
                       [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
     auv.motionModel = trajectory
     auv.motionModel += trajectory
@@ -77,7 +80,7 @@ simulate T, {
         container.add 'link', new ReliableLink()
         container.add 'dtnlink', new DtnLink(Integer.toString(3))
         container.add 'router', new Router()
-        container.add 'testagent', new DtnApp(stat2)
+        container.add 'testagent', new DtnApp(stat2, true)
         container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
     }
 }

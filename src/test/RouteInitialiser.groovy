@@ -23,6 +23,6 @@ class RouteInitialiser extends UnetAgent {
             router.send(new RouteDiscoveryNtf(to: (int)route.first, nextHop: (int)route.second, reliability: true, link: dtnlink))
         }
         // Using DtnLink as default causes a lot of issues!
-        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
+//        router.request(new ParameterReq().set(RouterParam.defaultLink, "dtnlink"),1000)
     }
 }
