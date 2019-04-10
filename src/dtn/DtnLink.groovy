@@ -32,7 +32,6 @@ class DtnLink extends UnetAgent {
     private AgentID notify
     private AgentID nodeInfo
 
-    private CyclicBehavior datagramCycle
     private PoissonBehavior beaconBehavior
     private PoissonBehavior datagramResetBehavior
     private WakerBehavior resetState
@@ -56,7 +55,7 @@ class DtnLink extends UnetAgent {
     int beaconTimeout = 100*1000        // timeout before sending a Beacon on an idle link
     int resetStateTime = 300*1000       // timeout for waiting for the DDN/DFN on a link
     int GCPeriod = 100*1000             // time period for deleting expired messages on non-volatile storage
-    int datagramResetPeriod = 30*1000   // time period for sending a pending datagram
+    int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
     int randomDelay = 5*1000            // delays sending a datagram from [0, randomDelay] ms to avoid collisions
 
     /**
@@ -132,37 +131,11 @@ class DtnLink extends UnetAgent {
         beaconBehavior = addBeaconBehavior()
         GCBehavior = addGCBehavior()
         datagramResetBehavior = addDatagramBehavior()
-//        datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
-//            @Override
-//            void action() {
-//                println("Entered Cycle!")
-//                if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
-//                    println("Executing Cycle!")
-//                    destinationNodeIndex = (destinationNodeIndex + 1)  % linkManager.getDestinationNodes().size()
-//                    int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
-//                    AgentID nodeLink = linkManager.getBestLink(node)
-//                    if (nodeLink != null) {
-//                        // FIXME: later choose links based on bitrate
-//                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-//                        String messageID = selectNextDatagram(datagrams)
-//                        if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
-//                            linkState = LinkState.WAITING
-//                        } else {
-//                            linkState = LinkState.READY
-//                        }
-//                    }
-//                }
-//                block()
-//            }
-//        })
     }
 
     void datagramCycle() {
         println("Entered Cycle!")
         if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
-            if (nodeAddress == 1) {
-                println("Executing Cycle!")
-            }
             destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
             int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
             AgentID nodeLink = linkManager.getBestLink(node)
