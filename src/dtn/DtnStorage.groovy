@@ -157,7 +157,7 @@ class DtnStorage {
         try {
             outputPDU.writeTo(fos)
             metadataMap.put(messageID, new DtnPduMetadata(nextHop, ttl + dtnLink.currentTimeSeconds()))
-            metadataMap.get(messageID).size = data.length
+            metadataMap.get(messageID).size = (data == null) ? 0 : data.length
             return true
         } catch (IOException e) {
             println "Could not save file for " + messageID

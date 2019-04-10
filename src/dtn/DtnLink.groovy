@@ -213,7 +213,7 @@ class DtnLink extends UnetAgent {
     @Override
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
-            if (msg.getTtl().isNaN() || !storage.saveDatagram(msg)) {
+            if (msg.getTtl().isNaN() || msg.getTo() <= 0 || !storage.saveDatagram(msg)) {
                 println("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {

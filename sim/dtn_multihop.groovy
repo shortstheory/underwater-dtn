@@ -52,7 +52,7 @@ def msgSize = 300
 def msgFreq = 10*1000
 def msgTtl = 3600
 
-def T = 30.minutes
+def T = 2.hour
 
 simulate T, {
     node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
