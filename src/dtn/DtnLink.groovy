@@ -56,7 +56,7 @@ class DtnLink extends UnetAgent {
     int beaconTimeout = 100*1000        // timeout before sending a Beacon on an idle link
     int resetStateTime = 300*1000       // timeout for waiting for the DDN/DFN on a link
     int GCPeriod = 100*1000             // time period for deleting expired messages on non-volatile storage
-    int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
+    int datagramResetPeriod = 30*1000   // time period for sending a pending datagram
     int randomDelay = 5*1000            // delays sending a datagram from [0, randomDelay] ms to avoid collisions
 
     /**
@@ -132,25 +132,51 @@ class DtnLink extends UnetAgent {
         beaconBehavior = addBeaconBehavior()
         GCBehavior = addGCBehavior()
         datagramResetBehavior = addDatagramBehavior()
-        datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
-            @Override
-            void action() {
-                if (linkManager.getDestinationNodes().size()) {
-                    destinationNodeIndex = (destinationNodeIndex + 1)  % linkManager.getDestinationNodes().size()
-                    int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
-                    AgentID nodeLink = linkManager.getBestLink(node)
-                    if (nodeLink != null) {
-                        // FIXME: later choose links based on bitrate
-                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                        String messageID = selectNextDatagram(datagrams)
-                        if (messageID != null) {
-                            sendDatagram(messageID, node, nodeLink)
-                        }
-                    }
-                }
-                block()
+//        datagramCycle = (CyclicBehavior)add(new CyclicBehavior() {
+//            @Override
+//            void action() {
+//                println("Entered Cycle!")
+//                if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
+//                    println("Executing Cycle!")
+//                    destinationNodeIndex = (destinationNodeIndex + 1)  % linkManager.getDestinationNodes().size()
+//                    int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
+//                    AgentID nodeLink = linkManager.getBestLink(node)
+//                    if (nodeLink != null) {
+//                        // FIXME: later choose links based on bitrate
+//                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+//                        String messageID = selectNextDatagram(datagrams)
+//                        if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
+//                            linkState = LinkState.WAITING
+//                        } else {
+//                            linkState = LinkState.READY
+//                        }
+//                    }
+//                }
+//                block()
+//            }
+//        })
+    }
+
+    void datagramCycle() {
+        println("Entered Cycle!")
+        if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
+            if (nodeAddress == 1) {
+                println("Executing Cycle!")
             }
-        })
+            destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
+            int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
+            AgentID nodeLink = linkManager.getBestLink(node)
+            if (nodeLink != null) {
+                // FIXME: later choose links based on bitrate
+                ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+                String messageID = selectNextDatagram(datagrams)
+                if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
+                    linkState = LinkState.WAITING
+                } else {
+                    linkState = LinkState.READY
+                }
+            }
+        }
     }
 
     void sendFailureNtf(String messageID, int nextHop) {
@@ -271,6 +297,7 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
+            println("DDN for " + originalDatagramID)
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
@@ -294,8 +321,9 @@ class DtnLink extends UnetAgent {
             }
             resetState.stop()
             linkState = LinkState.READY
-            datagramCycle.restart()
+            datagramCycle()
         } else if (msg instanceof DatagramFailureNtf) {
+            println("DFN for " + originalDatagramID)
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
@@ -311,94 +339,81 @@ class DtnLink extends UnetAgent {
                 println("This should never happen! " + newMessageID)
             }
             resetState.stop()
+            datagramCycle()
             linkState = LinkState.READY
         }
     }
 
-    void sendDatagram(String messageID, int node, AgentID nodeLink) {
-        if (linkState == LinkState.READY) {
-            // Set the state to WAITING so we don't send another Datagram until we get the result of the pending one
-            linkState = LinkState.WAITING
-            add(new WakerBehavior(random.nextInt(randomDelay)) {
-                @Override
-                void onWake() {
-                    HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
-                    DtnPduMetadata metadata
-                    int ttl
-                    if (parsedPdu != null
-                        && ((metadata = storage.getMetadata(messageID)) != null)
-                        && !metadata.delivered
-                        && (ttl = metadata.expiryTime - currentTimeSeconds()) > 0) {
-
-                        // we are reading the file twice, not good!
-                        int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
-                        int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
-                        byte[] pduData = storage.getMessageData(messageID)
-
-                        DatagramReq datagramReq
-
-                        if (pduData.length + HEADER_SIZE <= linkMTU) {
-                            if (pduProtocol == Protocol.ROUTING) {
-                                byte[] pduBytes = DtnStorage.encodePdu(pduData,
-                                        ttl,
-                                        pduProtocol,
-                                        true,
-                                        0,
-                                        0)
-                                        .toByteArray()
-                                datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                        data: pduBytes,
-                                        to: node,
-                                        reliability: true)
-                            } else {
-                                // this will short-circuit Datagrams to the appropriate agent
-                                datagramReq = new DatagramReq(protocol: pduProtocol,
-                                        data: pduData,
-                                        to: node,
-                                        reliability: true)
-                            }
-                            Message rsp = nodeLink.request(datagramReq, 1000)
-                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                originalDatagramID = messageID
-                                outboundDatagramID = datagramReq.getMessageID()
-                                resetState = addResetStateBehavior(messageID)
-                            } else {
-                                linkState = LinkState.READY
-                            }
-                        } else {
-                            int startPtr = metadata.bytesSent
-                            int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
-                            boolean tbc = (endPtr == pduData.length)
-                            byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-                            int payloadID = storage.getPayloadID(messageID)
-                            byte[] pduBytes = DtnStorage.encodePdu(data,
-                                    ttl,
-                                    parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                                    tbc,
-                                    payloadID,
-                                    startPtr)
-                                    .toByteArray()
-                            String trackerID = Integer.toString(payloadID) + "_" + endPtr
-                            datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
-                                    data: pduBytes,
-                                    to: node,
-                                    reliability: true)
-                            Message rsp = nodeLink.request(datagramReq, 1000)
-                            if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                                originalPayloadID = messageID
-                                outboundPayloadFragmentID = datagramReq.getMessageID()
-                                outboundPayloadBytesSent = endPtr
-                                resetState = addResetStateBehavior(trackerID)
-                            } else {
-                                linkState = LinkState.READY
-                            }
-                        }
-                    } else {
-                        linkState = LinkState.READY
-                    }
+    boolean sendDatagram(String messageID, int node, AgentID nodeLink) {
+        HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
+        DtnPduMetadata metadata
+        int ttl
+        if (parsedPdu != null
+                && ((metadata = storage.getMetadata(messageID)) != null)
+                && !metadata.delivered
+                && (ttl = metadata.expiryTime - currentTimeSeconds()) > 0) {
+            // we are reading the file twice, not good!
+            int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
+            int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
+            byte[] pduData = storage.getMessageData(messageID)
+            DatagramReq datagramReq
+            if (pduData.length + HEADER_SIZE <= linkMTU) {
+                if (pduProtocol == Protocol.ROUTING) {
+                    byte[] pduBytes = DtnStorage.encodePdu(pduData,
+                            ttl,
+                            pduProtocol,
+                            true,
+                            0,
+                            0)
+                            .toByteArray()
+                    datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                            data: pduBytes,
+                            to: node,
+                            reliability: true)
+                } else {
+                    // this will short-circuit Datagrams to the appropriate agent
+                    datagramReq = new DatagramReq(protocol: pduProtocol,
+                            data: pduData,
+                            to: node,
+                            reliability: true)
                 }
-            })
+                Message rsp = nodeLink.request(datagramReq, 1000)
+                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                    println("Sending " + new String(pduData) + " id " + messageID)
+                    originalDatagramID = messageID
+                    outboundDatagramID = datagramReq.getMessageID()
+                    resetState = addResetStateBehavior(messageID)
+                    return true
+                }
+            } else {
+                int startPtr = metadata.bytesSent
+                int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
+                boolean tbc = (endPtr == pduData.length)
+                byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
+                int payloadID = storage.getPayloadID(messageID)
+                byte[] pduBytes = DtnStorage.encodePdu(data,
+                        ttl,
+                        parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                        tbc,
+                        payloadID,
+                        startPtr)
+                        .toByteArray()
+                String trackerID = Integer.toString(payloadID) + "_" + endPtr
+                datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
+                        data: pduBytes,
+                        to: node,
+                        reliability: true)
+                Message rsp = nodeLink.request(datagramReq, 1000)
+                if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
+                    originalPayloadID = messageID
+                    outboundPayloadFragmentID = datagramReq.getMessageID()
+                    outboundPayloadBytesSent = endPtr
+                    resetState = addResetStateBehavior(trackerID)
+                    return true
+                }
+            }
         }
+        return false
     }
 
     PoissonBehavior addBeaconBehavior() {
@@ -433,7 +448,8 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 if (linkState == LinkState.READY) {
-                    datagramCycle.restart()
+                    println "Resetting!!!"
+                    datagramCycle()
                 }
             }
         })
