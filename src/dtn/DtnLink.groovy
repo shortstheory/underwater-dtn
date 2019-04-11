@@ -28,7 +28,8 @@ class DtnLink extends UnetAgent {
     public int nodeAddress
     private String directory
 
-    private ArrayList<AgentID> linksWithReliability
+    private HashMap<Integer, Boolean> alternatingBitMap
+
     private AgentID notify
     private AgentID nodeInfo
 
@@ -85,6 +86,7 @@ class DtnLink extends UnetAgent {
         this()
         datagramPriority = DatagramPriority.EXPIRY
         directory = dir
+        alternatingBitMap = new HashMap<>()
     }
 
     DtnLink(String dir, DatagramPriority priority) {
@@ -115,7 +117,7 @@ class DtnLink extends UnetAgent {
         storage = new DtnStorage(this, directory)
         linkManager = new DtnLinkManager(this)
 
-        linksWithReliability = getLinksWithReliability()
+        ArrayList<AgentID> linksWithReliability = getLinksWithReliability()
 
         if (!linksWithReliability.size()) {
             println("No reliable links available")
@@ -142,6 +144,9 @@ class DtnLink extends UnetAgent {
                 // FIXME: later choose links based on bitrate
                 ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                 String messageID = selectNextDatagram(datagrams)
+                if (alternatingBitMap.get(node) == null) {
+                    alternatingBitMap.put(node, false)
+                }
                 if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
                     linkState = LinkState.WAITING
                 } else {
@@ -270,6 +275,7 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
             println("DDN for " + originalDatagramID)
+            alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
@@ -291,9 +297,7 @@ class DtnLink extends UnetAgent {
             } else {
                 println("This should never happen! " + newMessageID)
             }
-            resetState.stop()
-            linkState = LinkState.READY
-            datagramCycle()
+            prepareLink()
         } else if (msg instanceof DatagramFailureNtf) {
             println("DFN for " + originalDatagramID)
             String newMessageID = msg.getInReplyTo()
@@ -310,10 +314,14 @@ class DtnLink extends UnetAgent {
             } else {
                 println("This should never happen! " + newMessageID)
             }
-            resetState.stop()
-            datagramCycle()
-            linkState = LinkState.READY
+            prepareLink()
         }
+    }
+
+    void prepareLink() {
+        resetState.stop()
+        linkState = LinkState.READY
+        datagramCycle()
     }
 
     boolean sendDatagram(String messageID, int node, AgentID nodeLink) {
@@ -327,6 +335,7 @@ class DtnLink extends UnetAgent {
             // we are reading the file twice, not good!
             int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
+            boolean alternatingBit = alternatingBitMap.get(node)
             byte[] pduData = storage.getMessageData(messageID)
             DatagramReq datagramReq
             if (pduData.length + HEADER_SIZE <= linkMTU) {
@@ -334,7 +343,7 @@ class DtnLink extends UnetAgent {
                     byte[] pduBytes = DtnStorage.encodePdu(pduData,
                             ttl,
                             pduProtocol,
-                            false,
+                            alternatingBit,
                             false,
                             0,
                             0)
@@ -367,7 +376,7 @@ class DtnLink extends UnetAgent {
                 byte[] pduBytes = DtnStorage.encodePdu(data,
                         ttl,
                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                        false,
+                        alternatingBit,
                         tbc,
                         payloadID,
                         startPtr)
