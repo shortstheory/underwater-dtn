@@ -5,6 +5,7 @@ import org.arl.fjage.*
 import org.arl.unet.*
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.RxFrameNtf
+import test.DtnStats
 
 /**
  * A UnetAgent for single-copy Disruption Tolerant Networking in UnetStack
@@ -249,20 +250,24 @@ class DtnLink extends UnetAgent {
 
             // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
             if (msg.getProtocol() == DTN_PROTOCOL) {
-                int hashCode = msg.getData().hashCode()
-                String dataCheck = new String(msg.getData())
-                if (hashCode != lastDatagramHash.get(src)) {
-                    byte[] pduBytes = msg.getData()
-                    lastDatagramHash.put(src, pduBytes.hashCode())
-                    HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
-                    byte[] data = storage.getPDUData(pduBytes)
-                    if (map != null) {
-                        int ttl = map.get(DtnStorage.TTL_MAP)
-                        int protocol = map.get(DtnStorage.PROTOCOL_MAP)
-                        boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
-                        int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
-                        int startPtr = map.get(DtnStorage.START_PTR_MAP)
+                byte[] pduBytes = msg.getData()
+                HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
+                byte[] data = storage.getPDUData(pduBytes)
+                if (map != null) {
+                    int ttl = map.get(DtnStorage.TTL_MAP)
+                    int protocol = map.get(DtnStorage.PROTOCOL_MAP)
+                    boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
+                    int altBit = map.get(DtnStorage.ALT_BIT_MAP)
+                    int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
+                    int startPtr = map.get(DtnStorage.START_PTR_MAP)
+
+                    byte[] hashBytes = new byte[data.length + 1]
+                    hashBytes[0] = (byte)altBit
+                    System.arraycopy(data, 0, hashBytes, 1, data.length)
+                    int hashCode = Arrays.hashCode(hashBytes)
+                    if (hashCode != lastDatagramHash.get(src)) {
                         // Only fragments have non-zero payloadIDs
+                        lastDatagramHash.put(src, hashCode)
                         if (payloadID) {
                             storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                             if (tbc) {
@@ -278,9 +283,9 @@ class DtnLink extends UnetAgent {
                             // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                         }
+                    } else {
+                        println("Seen hash#" + msg.getData().hashCode() + " before!")
                     }
-                } else {
-                    println("Seen hash#" + msg.getData().hashCode() + " before!")
                 }
             }
         // once we have received a DDN/DFN, we can send the next DatagramReq
