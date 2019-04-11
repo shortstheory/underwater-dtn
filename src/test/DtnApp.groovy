@@ -176,7 +176,7 @@ class DtnApp extends UnetAgent {
     protected void processMessage(Message msg) {
         if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == protocolNumber) {
-                println(msg.toString() + " " + msg.getMessageID())
+//                println(msg.toString() + " " + msg.getMessageID())
                 stats.uniqueDatagrams.add(new String(msg.getData()))
                 stats.msgRecv[msg.getFrom()]++
                 stats.datagramsReceived++

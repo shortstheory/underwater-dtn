@@ -290,6 +290,7 @@ class DtnLink extends UnetAgent {
             if (newMessageID == outboundDatagramID) {
                 alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
+                println("DDN for " + originalDatagramID)
                 if (metadata != null) {
                     metadata.setDelivered()
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
