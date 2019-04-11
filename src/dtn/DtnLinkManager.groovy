@@ -63,13 +63,12 @@ class DtnLinkManager {
         dtnLink.subscribe(dtnLink.topic(link))
         // If phy for a link doesn't exist, we can't SNOOP to listen for other transmissions
         String phyName = dtnLink.getProperty(link, ReliableLinkParam.phy)
-        // FIXME: agent(null) returns String("null") and not null!
         AgentID phy = (phyName != null) ? dtnLink.agent(phyName) : null
         int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
         int[] dataRateArray
         int dataRate = 0
         if (phy != null) {
-            // FIXME: how do I get ethe data rate directly?
+            // FIXME: how do I get the data rate directly?
             dataRateArray = (int[])dtnLink.getProperty(phy, PhysicalChannelParam.dataRate)
             dataRate = dataRateArray[Physical.DATA-1]
             dtnLink.subscribe(dtnLink.topic(phy))

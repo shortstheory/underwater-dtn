@@ -5,7 +5,6 @@ import org.arl.fjage.*
 import org.arl.unet.*
 import org.arl.unet.nodeinfo.NodeInfoParam
 import org.arl.unet.phy.RxFrameNtf
-import test.DtnStats
 
 /**
  * A UnetAgent for single-copy Disruption Tolerant Networking in UnetStack
@@ -153,7 +152,7 @@ class DtnLink extends UnetAgent {
         datagramResetBehavior = addDatagramBehavior()
     }
 
-    void datagramCycle() {
+    void restartSending() {
         if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
             destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
             int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
@@ -213,22 +212,6 @@ class DtnLink extends UnetAgent {
                 println("This should never happen!")
                 return null
         }
-    }
-
-    ArrayList<AgentID> getLinksWithReliability() {
-        AgentID[] links = agentsForService(Services.LINK)
-        ArrayList<AgentID> reliableLinks = new ArrayList<>()
-        for (AgentID link : links) {
-            CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
-            Message rsp = request(req, 2000)
-            if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
-                    (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
-                    link.getName() != getName()) { // we don't want to use the DtnLink!
-                println("Candidate Link " + link.getName())
-                reliableLinks.add(link)
-            }
-        }
-        return reliableLinks
     }
 
     @Override
@@ -349,7 +332,7 @@ class DtnLink extends UnetAgent {
     void prepareLink() {
         resetState.stop()
         linkState = LinkState.READY
-        datagramCycle()
+        restartSending()
     }
 
     boolean sendDatagram(String messageID, int dest, AgentID nodeLink) {
@@ -367,8 +350,8 @@ class DtnLink extends UnetAgent {
             byte[] pduData = storage.getMessageData(messageID)
             DatagramReq datagramReq
             if (pduData.length + HEADER_SIZE <= linkMTU) {
+                // Short circuit datagrams straight to the appropriate agent
                 if (shortCircuit && pduProtocol != Protocol.ROUTING) {
-                    // this will short-circuit Datagrams to the appropriate agent
                     datagramReq = new DatagramReq(protocol: pduProtocol,
                             data: pduData,
                             to: dest,
@@ -426,6 +409,22 @@ class DtnLink extends UnetAgent {
         return false
     }
 
+    ArrayList<AgentID> getLinksWithReliability() {
+        AgentID[] links = agentsForService(Services.LINK)
+        ArrayList<AgentID> reliableLinks = new ArrayList<>()
+        for (AgentID link : links) {
+            CapabilityReq req = new CapabilityReq(link, DatagramCapability.RELIABILITY)
+            Message rsp = request(req, 2000)
+            if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
+                    (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
+                    link.getName() != getName()) { // we don't want to use the DtnLink!
+                println("Candidate Link " + link.getName())
+                reliableLinks.add(link)
+            }
+        }
+        return reliableLinks
+    }
+
     PoissonBehavior addBeaconBehavior() {
         return (PoissonBehavior)add(new PoissonBehavior(beaconTimeout) {
             @Override
@@ -458,7 +457,7 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 if (linkState == LinkState.READY) {
-                    datagramCycle()
+                    restartSending()
                 }
             }
         })
@@ -516,10 +515,6 @@ class DtnLink extends UnetAgent {
         }
     }
 
-    ArrayList<AgentID> getLinkPriority() {
-        return linkPriority
-    }
-
     void setLinkPriority(ArrayList<AgentID> links) {
         // FIXME: what if a Link doesn't exist here? Should it be best-effort, or ignore entirely?
         if (links != null && links.size()) {
@@ -530,6 +525,11 @@ class DtnLink extends UnetAgent {
             }
             linkPriority = links
         }
+    }
+
+
+    ArrayList<AgentID> getLinkPriority() {
+        return linkPriority
     }
 
     List<Integer> getDiscoveredNodes() {
