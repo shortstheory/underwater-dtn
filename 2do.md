@@ -1,6 +1,6 @@
 issues:
 * changed datagramCycle -> datagramCycle()
-
+* should AltBit -> payload byte first
 
 router.defaultLink = dtnlink
 router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnlink)

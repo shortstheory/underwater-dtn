@@ -24,8 +24,6 @@ class DtnStorage {
      * PDU Structure
      * |TTL (24)| Protocol (8)| To-Be-Continued Bit (1) Payload ID (8) Start Pointer (23)|
      */
-    private static final int LOWER_8_BITMASK  = (int)0x000000FF
-    private static final int LOWER_24_BITMASK = (int)0x00FFFFFF
 
     public static final String TTL_MAP            = "ttl"
     public static final String PROTOCOL_MAP       = "protocol"
@@ -42,7 +40,7 @@ class DtnStorage {
             file.mkdir()
         }
         payloadCounter = 0
-        payloadList = Arrays.asList(new String[LOWER_8_BITMASK])
+        payloadList = Arrays.asList(new String[DtnLink.MAX_PAYLOADS])
         metadataMap = new HashMap<>()
     }
 
@@ -68,16 +66,18 @@ class DtnStorage {
     }
 
     @Nullable HashMap getPDUInfo(String messageID) {
+        FileInputStream fis = new FileInputStream(new File(directory, messageID))
         try {
-            // FIXME: optimise this to only read the first DTN_HEADER bytes!
-            byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
-            if (pduBytes != null) {
+            byte[] pduBytes = new byte[DtnLink.HEADER_SIZE]
+            if (fis.read(pduBytes, 0, DtnLink.HEADER_SIZE) == DtnLink.HEADER_SIZE) {
                 return decodePdu(pduBytes)
             }
             return null
         } catch (Exception e) {
             println "Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds()
             return null
+        } finally {
+            fis.close()
         }
     }
 
@@ -107,7 +107,7 @@ class DtnStorage {
             // We can't have payloadID = 0 as that will make the receiver think we're sending a regular Datagram
             return id + 1
         }
-        payloadCounter %= LOWER_8_BITMASK
+        payloadCounter %= DtnLink.MAX_PAYLOADS
         payloadList[payloadCounter] = messageID
         return ++payloadCounter
     }
@@ -205,12 +205,12 @@ class DtnStorage {
     static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean alternatingBit, boolean tbc, int payloadID, int startPtr) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + DtnLink.HEADER_SIZE)
-        pdu.write24(ttl & LOWER_24_BITMASK)
+        pdu.write24(ttl & 0x00FFFFFF)
         pdu.write8(protocol)
         int payloadFields
         payloadFields = (tbc) ? (1 << 31) : 0
         payloadFields |= (alternatingBit) ? (1 << 30) : 0
-        payloadFields |= ((payloadID & LOWER_8_BITMASK) << 22)
+        payloadFields |= ((payloadID & 0x000000FF) << 22)
         payloadFields |= startPtr
         pdu.write32(payloadFields)
         if (data != null) {

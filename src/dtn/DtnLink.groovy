@@ -21,6 +21,7 @@ import test.DtnStats
 class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE  = 8
     public static final int DTN_PROTOCOL = 50
+    public static final int MAX_PAYLOADS = 256
 
     enum DatagramPriority {
         ARRIVAL, EXPIRY, RANDOM
@@ -57,21 +58,25 @@ class DtnLink extends UnetAgent {
     /**
      * Parameters with units in milliseconds
      */
-    int beaconTimeout = 100*1000        // timeout before sending a Beacon on an idle link
-    int resetStateTime = 300*1000       // timeout for waiting for the DDN/DFN on a link
-    int GCPeriod = 100*1000             // time period for deleting expired messages on non-volatile storage
-    int datagramResetPeriod = 10*1000   // time period for sending a pending datagram
-    int randomDelay = 5*1000            // delays sending a datagram from [0, randomDelay] ms to avoid collisions
+    int beaconTimeout       // timeout before sending a Beacon on an idle link
+    int resetStateTime      // timeout for waiting for the DDN/DFN on a link
+    int GCPeriod            // time period for deleting expired messages on non-volatile storage
+    int datagramResetPeriod // time period for sending a pending datagram
+    int randomDelay         // delays sending a datagram from [0, randomDelay] ms to avoid collisions
+
 
     /**
      * Parameter with unit in seconds
      */
-    int linkExpiryTime = 3*3600        // timeout before a link expires
+    int linkExpiryTime
 
     DatagramPriority datagramPriority
     ArrayList<AgentID> linkPriority
 
-    int MTU
+    /**
+     *  This option makes DtnLink send messages without PDU headers to save header space
+     *  However, doing so might result in duplicates of datagrams reaching the destination
+     */
     boolean shortCircuit
 
     enum LinkState {
@@ -83,6 +88,13 @@ class DtnLink extends UnetAgent {
         linkPriority = new ArrayList<>()
         alternatingBitMap = new HashMap<>()
         lastDatagramHash = new HashMap<>()
+
+        beaconTimeout        = 100*1000
+        resetStateTime       = 300*1000
+        GCPeriod             = 100*1000
+        datagramResetPeriod  = 10*1000
+        randomDelay          = 5*1000
+        linkExpiryTime       = 3*3600
 
         linkState = LinkState.READY
         shortCircuit = false
