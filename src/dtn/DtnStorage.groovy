@@ -29,6 +29,7 @@ class DtnStorage {
 
     public static final String TTL_MAP            = "ttl"
     public static final String PROTOCOL_MAP       = "protocol"
+    public static final String ALT_BIT_MAP        = "alt"
     public static final String TBC_BIT_MAP        = "tbc"
     public static final String PAYLOAD_ID_MAP     = "pid"
     public static final String START_PTR_MAP      = "startptr"
@@ -68,6 +69,7 @@ class DtnStorage {
 
     @Nullable HashMap getPDUInfo(String messageID) {
         try {
+            // FIXME: optimise this to only read the first DTN_HEADER bytes!
             byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
             if (pduBytes != null) {
                 return decodePdu(pduBytes)
@@ -127,7 +129,7 @@ class DtnStorage {
                 raf.close()
             }
         } else {
-            OutputPDU pdu = encodePdu(data, ttl, protocol, false, payloadID, 0)
+            OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
             // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
             metadataMap.put(filename, new DtnPduMetadata(DtnPduMetadata.INBOUND_HOP, ttl + dtnLink.currentTimeSeconds()))
@@ -151,7 +153,7 @@ class DtnStorage {
         if (data != null && dtnLink.getMTU() < data.length) {
             return false
         }
-        OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, 0, 0)
+        OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, false, 0, 0)
         File file = new File(directory, messageID)
         FileOutputStream fos = new FileOutputStream(file)
         try {
@@ -200,14 +202,15 @@ class DtnStorage {
         return -1
     }
 
-    static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean tbc, int payloadID, int startPtr) {
+    static OutputPDU encodePdu(byte[] data, int ttl, int protocol, boolean alternatingBit, boolean tbc, int payloadID, int startPtr) {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + DtnLink.HEADER_SIZE)
         pdu.write24(ttl & LOWER_24_BITMASK)
         pdu.write8(protocol)
         int payloadFields
         payloadFields = (tbc) ? (1 << 31) : 0
-        payloadFields |= ((payloadID & LOWER_8_BITMASK) << 23)
+        payloadFields |= (alternatingBit) ? (1 << 30) : 0
+        payloadFields |= ((payloadID & LOWER_8_BITMASK) << 22)
         payloadFields |= startPtr
         pdu.write32(payloadFields)
         if (data != null) {
@@ -226,9 +229,11 @@ class DtnStorage {
         map.put(PROTOCOL_MAP, (int)pdu.read8())
         int payloadFields = (int)pdu.read32()
         int tbc = ((payloadFields & 0x80000000).toInteger() >>> 31)
-        int payloadID = ((payloadFields & 0x7F800000) >>> 23)
-        int startPtr = (payloadFields & 0x007FFFFF)
+        int alternatingBit = ((payloadFields & 0x40000000).toInteger() >>> 30)
+        int payloadID = ((payloadFields & 0x3FC00000) >>> 22)
+        int startPtr = (payloadFields & 0x003FFFFF)
         map.put(TBC_BIT_MAP, tbc)
+        map.put(ALT_BIT_MAP, alternatingBit)
         map.put(PAYLOAD_ID_MAP, payloadID)
         map.put(START_PTR_MAP, startPtr)
         return map

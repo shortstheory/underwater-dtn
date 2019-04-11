@@ -334,7 +334,8 @@ class DtnLink extends UnetAgent {
                     byte[] pduBytes = DtnStorage.encodePdu(pduData,
                             ttl,
                             pduProtocol,
-                            true,
+                            false,
+                            false,
                             0,
                             0)
                             .toByteArray()
@@ -366,6 +367,7 @@ class DtnLink extends UnetAgent {
                 byte[] pduBytes = DtnStorage.encodePdu(data,
                         ttl,
                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),
+                        false,
                         tbc,
                         payloadID,
                         startPtr)
