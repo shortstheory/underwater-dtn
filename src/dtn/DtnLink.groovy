@@ -257,14 +257,12 @@ class DtnLink extends UnetAgent {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
-                    int altBit = map.get(DtnStorage.ALT_BIT_MAP)
+                    boolean altBit = map.get(DtnStorage.ALT_BIT_MAP) ? true : false
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
 
-                    byte[] hashBytes = new byte[data.length + 1]
-                    hashBytes[0] = (byte)altBit
-                    System.arraycopy(data, 0, hashBytes, 1, data.length)
-                    int hashCode = Arrays.hashCode(hashBytes)
+                    int hashCode = Arrays.hashCode(data)
+                    hashCode = (altBit) ? (hashCode ^ 0xFFFFFFFF).toInteger() : hashCode
                     if (hashCode != lastDatagramHash.get(src)) {
                         // Only fragments have non-zero payloadIDs
                         lastDatagramHash.put(src, hashCode)

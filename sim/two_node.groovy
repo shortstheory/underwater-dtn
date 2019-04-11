@@ -32,7 +32,7 @@ channel.interferenceRange = range
 
 int nodeCount = 2
 int[] dest1 = [2]
-def T = 1.hour
+def T = 2.hour
 
 def msgSize = 300
 def msgFreq = 10
