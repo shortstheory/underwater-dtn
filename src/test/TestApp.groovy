@@ -42,6 +42,8 @@ class TestApp extends UnetAgent {
     void startup() {
         dtnlink = agent("dtnlink")
         subscribe(topic(dtnlink))
+        dtnlink.send(new ParameterReq().set(dtn.DtnLinkParameters.shortCircuit, true))
+
         switch(test) {
             case DtnTest.Tests.TRIVIAL_MESSAGE:
                 DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,

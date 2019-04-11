@@ -25,7 +25,7 @@ def nodeDistance = 900.m
 
 channel.model = ProtocolChannelModel
 channel.pDetection = 1.0
-channel.pDecoding = 0.5
+channel.pDecoding = 1.0
 channel.communicationRange = range
 channel.detectionRange = range
 channel.interferenceRange = range
@@ -54,9 +54,9 @@ for (int f = 1; f <= nodeCount; f++) {
 
 test.DtnStats stat1
 test.DtnStats stat2
-for (int i = 1; i <= 5; i++) {
+for (int i = 1; i <= 10; i++) {
 //    i = 1
-    channel.pDetection = 0.2*i
+    channel.pDetection = 0.1*i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
     stat1 = new test.DtnStats()

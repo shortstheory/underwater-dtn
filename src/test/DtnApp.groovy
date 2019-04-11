@@ -2,6 +2,7 @@ package test
 
 import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
 import dtn.DtnLink
+import dtn.DtnLinkParameters
 import groovy.transform.CompileStatic
 import org.arl.fjage.Agent
 import org.arl.fjage.AgentID
@@ -96,7 +97,7 @@ class DtnApp extends UnetAgent {
         if (router != null) {
             subscribe(router)
         }
-
+        dtnLink.send(new ParameterReq().set(DtnLinkParameters.shortCircuit, false))
         switch (mode) {
         case Mode.RANDOM_TTL:
             add(new PoissonBehavior(messagePeriod) {
@@ -188,6 +189,7 @@ class DtnApp extends UnetAgent {
                 stats.datagramsSuccess++
             }
             if (sentPayloads.contains(msg.getInReplyTo())) {
+                println(msg.getInReplyTo() + " success!")
                 stats.payloadsSuccess++
             }
         } else if (msg instanceof DatagramFailureNtf) {
@@ -195,6 +197,7 @@ class DtnApp extends UnetAgent {
                 stats.datagramsFailure++
             }
             if (sentPayloads.contains(msg.getInReplyTo())) {
+                println(msg.getInReplyTo() + " failed!")
                 stats.payloadsFailure++
             }
         }

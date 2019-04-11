@@ -82,15 +82,15 @@ def T = 10400.second
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(m))
             container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[])routesM.toArray())
-            container.add 'testagent', new DtnApp(destm, 10, 200, T, 200, true, DtnApp.Mode.REGULAR, statM)
+            container.add 'router_init', new RouteInitialiser((Tuple2[])routesM.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(destm, 10, 200, T, 500, true, DtnApp.Mode.REGULAR, statM)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         def slave = node '2', address: s, location: [0, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(s))
             container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS.toArray())
+            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS.toArray(), "dtnlink")
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         // 2 to m
@@ -98,9 +98,9 @@ def T = 10400.second
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(a))
             container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[])routesA.toArray())
-//            container.add 'testagent', new DtnApp(destauv, 1800, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statA)
-            container.add 'testagent', new DtnApp(statA, true)
+            container.add 'router_init', new RouteInitialiser((Tuple2[])routesA.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(destauv, 1800, 600, T, 0, true, DtnApp.Mode.REGULAR, statA)
+//            container.add 'testagent', new DtnApp(statA, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         def trajectory = [[duration: 2600.seconds, heading: 0.deg, speed: 0.mps],
@@ -116,9 +116,9 @@ def T = 10400.second
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(s0))
             container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS0.toArray())
-//            container.add 'testagent', new DtnApp(dests0, 300, 600, 3600, 0, true, DtnApp.Mode.REGULAR, statS0)
-            container.add 'testagent', new DtnApp(statS0, true)
+            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS0.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(dests0, 10, 600, T, 1000, true, DtnApp.Mode.REGULAR, statS0)
+//            container.add 'testagent', new DtnApp(statS0, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         // 6 to m
@@ -126,9 +126,9 @@ def T = 10400.second
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(s1))
             container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS1.toArray())
-//            container.add 'testagent', new DtnApp(dests1, 300, 600, T, 0, true, DtnApp.Mode.REGULAR, statS1)
-            container.add 'testagent', new DtnApp(statS1, true)
+            container.add 'router_init', new RouteInitialiser((Tuple2[])routesS1.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(dests1, 10, 600, T, 1000, true, DtnApp.Mode.REGULAR, statS1)
+//            container.add 'testagent', new DtnApp(statS1, true)
             container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
     }
