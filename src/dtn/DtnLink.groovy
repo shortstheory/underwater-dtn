@@ -84,7 +84,7 @@ class DtnLink extends UnetAgent {
         lastDatagramHash = new HashMap<>()
 
         linkState = LinkState.READY
-        shortCircuit = true
+        shortCircuit = false
         destinationNodeIndex = 0
     }
 
@@ -248,42 +248,47 @@ class DtnLink extends UnetAgent {
             linkManager.updateLastTransmission(link)
 
             // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
-            if (msg.getProtocol() == DTN_PROTOCOL && msg.getData().hashCode() != lastDatagramHash.get(src)) {
-                byte[] pduBytes = msg.getData()
-                lastDatagramHash.put(src, pduBytes.hashCode())
-                HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
-                byte[] data = storage.getPDUData(pduBytes)
-                if (map != null) {
-                    int ttl = map.get(DtnStorage.TTL_MAP)
-                    int protocol = map.get(DtnStorage.PROTOCOL_MAP)
-                    boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
-                    int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
-                    int startPtr = map.get(DtnStorage.START_PTR_MAP)
-                    // Only fragments have non-zero payloadIDs
-                    if (payloadID) {
-                        storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
-                        if (tbc) {
-                            println("Received Payload " + payloadID)
-                            byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
-                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
-                            String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
-                            storage.getMetadata(messageID).setDelivered()
+            if (msg.getProtocol() == DTN_PROTOCOL) {
+                int hashCode = msg.getData().hashCode()
+                String dataCheck = new String(msg.getData())
+                if (hashCode != lastDatagramHash.get(src)) {
+                    byte[] pduBytes = msg.getData()
+                    lastDatagramHash.put(src, pduBytes.hashCode())
+                    HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
+                    byte[] data = storage.getPDUData(pduBytes)
+                    if (map != null) {
+                        int ttl = map.get(DtnStorage.TTL_MAP)
+                        int protocol = map.get(DtnStorage.PROTOCOL_MAP)
+                        boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
+                        int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
+                        int startPtr = map.get(DtnStorage.START_PTR_MAP)
+                        // Only fragments have non-zero payloadIDs
+                        if (payloadID) {
+                            storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
+                            if (tbc) {
+                                println("Received Payload " + payloadID)
+                                byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
+                                notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
+                                String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
+                                storage.getMetadata(messageID).setDelivered()
+                            }
+                        } else {
+                            // If it doesn't have a PayloadID sent, we can just
+                            // broadcast it on our topic for anyone who's listening
+                            // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
+                            notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                         }
-                    } else {
-                        // If it doesn't have a PayloadID sent, we can just
-                        // broadcast it on our topic for anyone who's listening
-                        // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
-                        notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                     }
+                } else {
+                    println("Seen hash#" + msg.getData().hashCode() + " before!")
                 }
             }
         // once we have received a DDN/DFN, we can send the next DatagramReq
         } else if (msg instanceof DatagramDeliveryNtf) {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
-            println("DDN for " + originalDatagramID)
-            alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit
             if (newMessageID == outboundDatagramID) {
+                alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
                     metadata.setDelivered()
@@ -306,10 +311,10 @@ class DtnLink extends UnetAgent {
             }
             prepareLink()
         } else if (msg instanceof DatagramFailureNtf) {
-            println("DFN for " + originalDatagramID)
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
+                println("DFN for " + originalDatagramID)
                 if (metadata != null) {
                     metadata.attempts++
                 }
@@ -368,7 +373,6 @@ class DtnLink extends UnetAgent {
                 }
                 Message rsp = nodeLink.request(datagramReq, 1000)
                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
-                    println("Sending " + new String(pduData) + " id " + messageID)
                     originalDatagramID = messageID
                     outboundDatagramID = datagramReq.getMessageID()
                     resetState = addResetStateBehavior(messageID)
