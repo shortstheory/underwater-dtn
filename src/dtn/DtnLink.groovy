@@ -134,7 +134,6 @@ class DtnLink extends UnetAgent {
     }
 
     void datagramCycle() {
-        println("Entered Cycle!")
         if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
             destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
             int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
@@ -421,7 +420,6 @@ class DtnLink extends UnetAgent {
             @Override
             void onTick() {
                 if (linkState == LinkState.READY) {
-                    println "Resetting!!!"
                     datagramCycle()
                 }
             }
