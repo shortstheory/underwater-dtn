@@ -29,6 +29,7 @@ class DtnLink extends UnetAgent {
     private String directory
 
     private HashMap<Integer, Boolean> alternatingBitMap
+    private HashMap<Integer, Integer> lastDatagramHash
 
     private AgentID notify
     private AgentID nodeInfo
@@ -78,6 +79,9 @@ class DtnLink extends UnetAgent {
     private DtnLink() {
         random = new Random()
         linkPriority = new ArrayList<>()
+        alternatingBitMap = new HashMap<>()
+        lastDatagramHash = new HashMap<>()
+
         linkState = LinkState.READY
         destinationNodeIndex = 0
     }
@@ -86,7 +90,6 @@ class DtnLink extends UnetAgent {
         this()
         datagramPriority = DatagramPriority.EXPIRY
         directory = dir
-        alternatingBitMap = new HashMap<>()
     }
 
     DtnLink(String dir, DatagramPriority priority) {
@@ -236,13 +239,16 @@ class DtnLink extends UnetAgent {
             }
         } else if (msg instanceof DatagramNtf) {
             // Update the time of last message transmission when we receive a new DatagramNtf
+            // We don't care which protocol number it has over here
             AgentID link = linkManager.getLink(msg.getSender())
-            linkManager.addLinkForNode(msg.getFrom(), link)
+            int src = msg.getFrom()
+            linkManager.addLinkForNode(src, link)
             linkManager.updateLastTransmission(link)
 
-            // Receiving a DTN_PROTOCOL DatagramNtf could either be for the Router or a fragment
-            if (msg.getProtocol() == DTN_PROTOCOL) {
+            // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
+            if (msg.getProtocol() == DTN_PROTOCOL && msg.getData().hashCode() != lastDatagramHash.get(src)) {
                 byte[] pduBytes = msg.getData()
+                lastDatagramHash.put(src, pduBytes.hashCode())
                 HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
                 byte[] data = storage.getPDUData(pduBytes)
                 if (map != null) {
@@ -251,7 +257,6 @@ class DtnLink extends UnetAgent {
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
-                    int src = msg.getFrom()
                     // Only fragments have non-zero payloadIDs
                     if (payloadID) {
                         storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
@@ -263,8 +268,8 @@ class DtnLink extends UnetAgent {
                             storage.getMetadata(messageID).setDelivered()
                         }
                     } else {
-                        // If it doesn't have a PayloadID sent, it probably means its a ROUTING PDU, so we can just
-                        // broadcast it on our topic for anyone who's listening (read: ROUTER)
+                        // If it doesn't have a PayloadID sent, we can just
+                        // broadcast it on our topic for anyone who's listening
                         // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
                         notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                     }
