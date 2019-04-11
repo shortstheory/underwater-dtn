@@ -21,12 +21,14 @@ class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE  = 8
     public static final int DTN_PROTOCOL = 50
 
-    int MTU
-    int destinationNodeIndex
+    enum DatagramPriority {
+        ARRIVAL, EXPIRY, RANDOM
+    }
 
     private DtnStorage storage
     public int nodeAddress
     private String directory
+    private int destinationNodeIndex
 
     private HashMap<Integer, Boolean> alternatingBitMap
     private HashMap<Integer, Integer> lastDatagramHash
@@ -65,12 +67,11 @@ class DtnLink extends UnetAgent {
      */
     int linkExpiryTime = 3*3600        // timeout before a link expires
 
-    enum DatagramPriority {
-        ARRIVAL, EXPIRY, RANDOM
-    }
-
     DatagramPriority datagramPriority
     ArrayList<AgentID> linkPriority
+
+    int MTU
+    boolean shortCircuit
 
     enum LinkState {
         READY, WAITING
@@ -83,6 +84,7 @@ class DtnLink extends UnetAgent {
         lastDatagramHash = new HashMap<>()
 
         linkState = LinkState.READY
+        shortCircuit = true
         destinationNodeIndex = 0
     }
 
@@ -329,7 +331,7 @@ class DtnLink extends UnetAgent {
         datagramCycle()
     }
 
-    boolean sendDatagram(String messageID, int node, AgentID nodeLink) {
+    boolean sendDatagram(String messageID, int dest, AgentID nodeLink) {
         HashMap<String, Integer> parsedPdu = storage.getPDUInfo(messageID)
         DtnPduMetadata metadata
         int ttl
@@ -340,11 +342,17 @@ class DtnLink extends UnetAgent {
             // we are reading the file twice, not good!
             int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
-            boolean alternatingBit = alternatingBitMap.get(node)
+            boolean alternatingBit = alternatingBitMap.get(dest)
             byte[] pduData = storage.getMessageData(messageID)
             DatagramReq datagramReq
             if (pduData.length + HEADER_SIZE <= linkMTU) {
-                if (pduProtocol == Protocol.ROUTING) {
+                if (shortCircuit && pduProtocol != Protocol.ROUTING) {
+                    // this will short-circuit Datagrams to the appropriate agent
+                    datagramReq = new DatagramReq(protocol: pduProtocol,
+                            data: pduData,
+                            to: dest,
+                            reliability: true)
+                } else {
                     byte[] pduBytes = DtnStorage.encodePdu(pduData,
                             ttl,
                             pduProtocol,
@@ -355,13 +363,7 @@ class DtnLink extends UnetAgent {
                             .toByteArray()
                     datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                             data: pduBytes,
-                            to: node,
-                            reliability: true)
-                } else {
-                    // this will short-circuit Datagrams to the appropriate agent
-                    datagramReq = new DatagramReq(protocol: pduProtocol,
-                            data: pduData,
-                            to: node,
+                            to: dest,
                             reliability: true)
                 }
                 Message rsp = nodeLink.request(datagramReq, 1000)
@@ -389,7 +391,7 @@ class DtnLink extends UnetAgent {
                 String trackerID = Integer.toString(payloadID) + "_" + endPtr
                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                         data: pduBytes,
-                        to: node,
+                        to: dest,
                         reliability: true)
                 Message rsp = nodeLink.request(datagramReq, 1000)
                 if (rsp.getPerformative() == Performative.AGREE && rsp.getInReplyTo() == datagramReq.getMessageID()) {
@@ -457,8 +459,8 @@ class DtnLink extends UnetAgent {
     }
 
     int getMTU() {
-        // (8388607-8) = 8,388,599
-        return 0x7FFFFF - HEADER_SIZE
+        // (4194303-8) = 4194295
+        return 0x3FFFFF - HEADER_SIZE
     }
 
     void setBeaconTimeout(int period) {

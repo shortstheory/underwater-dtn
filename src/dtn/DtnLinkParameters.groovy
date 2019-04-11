@@ -11,5 +11,6 @@ enum DtnLinkParameters implements Parameter {
     linkExpiryTime,
     datagramPriority,
     linkPriority,
-    discoveredNodes
+    discoveredNodes,
+    shortCircuit
 }
