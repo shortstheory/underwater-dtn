@@ -55,7 +55,6 @@ for (int f = 1; f <= nodeCount; f++) {
 test.DtnStats stat1
 test.DtnStats stat2
 for (int i = 1; i <= 10; i++) {
-//    i = 1
     channel.pDetection = 0.1*i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
@@ -69,25 +68,21 @@ for (int i = 1; i <= 10; i++) {
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "dtnlink")
             container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(2))
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "dtnlink")
             container.add 'router', new Router()
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
             container.add 'router', new Router()
             container.add 'testagent', new DtnApp(stat2, true)
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
     }
     println("DtnLink Results")
-//    stat1.printStats()
     stat2.printStats()
 
     stat1 = new test.DtnStats()
@@ -99,22 +94,18 @@ for (int i = 1; i <= 10; i++) {
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "link")
             container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "link")
             container.add 'router', new Router()
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
         node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'router', new Router()
             container.add 'testagent', new DtnApp(stat2, true)
-//            container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
         }
     }
     println("ReliableLink Results")
-//    stat1.printStats()
     stat2.printStats()
 }

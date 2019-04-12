@@ -11,6 +11,15 @@ pending:
 later:
 
 in progress:
+router << new DatagramReq(to: 2, ttl: 5000, protocol: 22, data: [1,2,3])
+* should DtnLink be allowed to do RReqs?
+* ALL NODES NEED RDP for it to work correctly!
+* Which link does RDP use by default? Won't be good for it to use DtnLink :P
+* Router will use DtnLink if auto1hop is == true
+* does default link have to be symmetric?
+* Router does short circuiting!!!
+
+done:
 * multihop DTN complicated :P
 Alternating Bit
 * issue is that if we go out of sync on which bit to expect/receive, then we WILL lose all the messages
@@ -20,15 +29,6 @@ Alternating Bit
     * make all messages travel through DtnLink
     * may or may not be a good idea depending on how lossy the medium is
 * When I use dtnlink as default, it gives the wrong results for the number of DGs which should have been received!!
-router << new DatagramReq(to: 2, ttl: 5000, protocol: 22, data: [1,2,3])
-* should DtnLink be allowed to do RReqs?
-* ALL NODES NEED RDP for it to work correctly!
-* Which link does RDP use by default? Won't be good for it to use DtnLink :P
-* Router will use DtnLink if auto1hop is == true
-* does default link have to be symmetric?
-* Router does short circuitign!!!
-
-done:
 * does @Nullable do anything?
 * publish progress use ProgressNtfs?
 * is my PDU ID random enough? - maybe use pearson hashing?

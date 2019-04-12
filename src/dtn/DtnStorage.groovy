@@ -22,7 +22,7 @@ class DtnStorage {
 
     /**
      * PDU Structure
-     * |TTL (24)| Protocol (8)| To-Be-Continued Bit (1) Payload ID (8) Start Pointer (23)|
+     * |TTL (24)| Protocol (8)| To-Be-Continued Bit (1) AltBit (1) Payload ID (8) Start Pointer (23)|
      */
 
     public static final String TTL_MAP            = "ttl"
