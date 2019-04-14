@@ -32,7 +32,7 @@ int nodeCount = 3
 int[] dest1 = [3]
 def T = 2.hour
 
-def msgSize = 300
+def msgSize = 1000
 def msgFreq = 10
 def msgTtl = T
 def msgEndTime = 1000

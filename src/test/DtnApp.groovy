@@ -17,7 +17,7 @@ import org.arl.unet.ParameterReq
 import org.arl.unet.ParameterRsp
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
-import java.util.UUID
+
 
 @CompileStatic
 class DtnApp extends UnetAgent {
@@ -79,13 +79,12 @@ class DtnApp extends UnetAgent {
         return (currentTimeMillis()/1000).intValue()
     }
 
-    private static String createDataSize(int msgSize) {
-        StringBuilder sb
-        sb = new StringBuilder(msgSize);
-        for (int i = 0; i < msgSize; i++) {
-            sb.append('a');
+    private byte[] createDataSize(int msgSize) {
+        byte[] randomBytes = new byte[msgSize]
+        for (byte b : randomBytes) {
+            b = (byte)random.nextInt(256)
         }
-        return sb.toString();
+        return randomBytes
     }
 
     @Override
@@ -127,10 +126,10 @@ class DtnApp extends UnetAgent {
                     for (int destNode : destNodes) {
 
                         DatagramReq req = new DatagramReq(to: destNode, ttl: msgTtl, protocol: protocolNumber)
-//                        String data = createDataSize(msgSize)
+                        byte[] randData = createDataSize(msgSize)
                         String data = req.getMessageID()
                         byte[] bytes = data.getBytes()
-                        req.setData(bytes)
+                        req.setData(randData)
                         sendDatagram(req, false)
                     }
                 }
