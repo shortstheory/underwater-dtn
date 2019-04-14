@@ -20,12 +20,10 @@ import java.nio.file.Files
 
 platform = DiscreteEventSimulator
 
-def range = 1000.m
-def nodeDistance = 900.m
+def range = 2000.m
+def nodeDistance = 1500.m
 
 channel.model = ProtocolChannelModel
-channel.pDetection = 1.0
-channel.pDecoding = 1.0
 channel.communicationRange = range
 channel.detectionRange = range
 channel.interferenceRange = range
@@ -54,58 +52,63 @@ for (int f = 1; f <= nodeCount; f++) {
 
 test.DtnStats stat1
 test.DtnStats stat2
-for (int i = 1; i <= 10; i++) {
-    channel.pDetection = 0.1*i
-    channel.pDecoding = 1.0
-    println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    for (int i = 1; i <= 10; i++) {
+        channel.pDetection = 0.1 * i
+        channel.pDecoding = 1.0
+        println("\nChannel Config - " + channel.pDetection + " / " + channel.pDecoding)
+        for (k = 1; k <= 6; k++) {
+            T = k.hour
+            println("\nRunning sim for " + T + " seconds!\n==============\n")
 
-    simulate T, {
-        node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink(Integer.toString(1))
-            container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "dtnlink")
-            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
-        }
-        node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink(Integer.toString(2))
-            container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "dtnlink")
-            container.add 'router', new Router()
-        }
-        node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'dtnlink', new DtnLink(Integer.toString(3))
-            container.add 'router', new Router()
-            container.add 'testagent', new DtnApp(stat2, true)
-        }
-    }
-    println("DtnLink Results")
-    stat2.printStats()
+            stat1 = new test.DtnStats()
+            stat2 = new test.DtnStats()
+            simulate T, {
+                node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'dtnlink', new DtnLink(Integer.toString(1))
+                    container.add 'router', new Router()
+                    container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "dtnlink")
+                    container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
+                }
+                node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'dtnlink', new DtnLink(Integer.toString(2))
+                    container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "dtnlink")
+                    container.add 'router', new Router()
+                }
+                node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'dtnlink', new DtnLink(Integer.toString(3))
+                    container.add 'router', new Router()
+                    container.add 'testagent', new DtnApp(stat2, true)
+                }
+            }
+            println("DtnLink Results")
+            stat2.printStats()
 
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+            stat1 = new test.DtnStats()
+            stat2 = new test.DtnStats()
 
-    simulate T, {
-        node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'router', new Router()
-            container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "link")
-            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
+            simulate T, {
+                node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'router', new Router()
+                    container.add 'router_init', new RouteInitialiser((Tuple2[]) routes1.toArray(), "link")
+                    container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, true, DtnApp.Mode.REGULAR, stat1)
+                }
+                node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "link")
+                    container.add 'router', new Router()
+                }
+                node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
+                    container.add 'link', new ReliableLink()
+                    container.add 'router', new Router()
+                    container.add 'testagent', new DtnApp(stat2, true)
+                }
+            }
+            println("ReliableLink Results")
+            stat2.printStats()
         }
-        node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'router_init', new RouteInitialiser((Tuple2[]) routes2.toArray(), "link")
-            container.add 'router', new Router()
-        }
-        node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
-            container.add 'link', new ReliableLink()
-            container.add 'router', new Router()
-            container.add 'testagent', new DtnApp(stat2, true)
-        }
-    }
-    println("ReliableLink Results")
-    stat2.printStats()
+    println("XXXXXXXXXXXXXXXXXXXX\n")
 }

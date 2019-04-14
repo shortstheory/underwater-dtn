@@ -15,7 +15,6 @@ class DtnStats {
     HashSet<String> uniqueDatagrams = new HashSet<>()
 
     void printStats() {
-        println("\nStats: ")
         println("Datagrams: " + "TX: " + datagramsSent + " RX: " + datagramsReceived + " S: " + datagramsSuccess + " F: " + datagramsFailure)
         println("Payloads:  " + "TX: " + payloadsSent + " RX: " + payloadsReceived + " S: " + payloadsSuccess + " F: " + payloadsFailure)
         println("Unique Datagrams - " + uniqueDatagrams.size())

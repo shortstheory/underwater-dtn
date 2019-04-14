@@ -17,6 +17,7 @@ import org.arl.unet.ParameterReq
 import org.arl.unet.ParameterRsp
 import org.arl.unet.Services
 import org.arl.unet.UnetAgent
+import java.util.UUID
 
 @CompileStatic
 class DtnApp extends UnetAgent {
