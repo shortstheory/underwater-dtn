@@ -14,8 +14,9 @@ class DtnStats {
 
     String agentName
     int simTime
-    int pDetect
-    int pDecode
+    float pDetect
+    float pDecode
+    int msgSize
 
 
     int[] msgRecv = new int[100]

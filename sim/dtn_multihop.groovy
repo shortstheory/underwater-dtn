@@ -56,7 +56,7 @@ test.DtnStats stat2
         channel.pDetection = 0.2 * i
         channel.pDecoding = 1.0
         println("\nChannel Config - " + channel.pDetection + " / " + channel.pDecoding)
-        for (k = 1; k <= 6; k++) {
+        for (k = 1; k <= 3; k++) {
             T = k.hour
             println("\nRunning sim for " + T + " seconds!\n==============\n")
 
@@ -67,6 +67,7 @@ test.DtnStats stat2
             stat2.pDetect = channel.pDetection
             stat2.simTime = T
             stat2.agentName = "dtnlink"
+            stat2.msgSize
 
             simulate T, {
                 node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
@@ -92,7 +93,7 @@ test.DtnStats stat2
             println("DtnLink Results")
             stat2.printStats()
 
-            String filename1 = "results/" + System.currentTimeMillis().toString()
+            String filename1 = "results/" + System.currentTimeMillis().toString() + ".json"
             stat2.saveResults(filename1)
 
             stat1 = new test.DtnStats()
@@ -102,6 +103,7 @@ test.DtnStats stat2
             stat2.pDetect = channel.pDetection
             stat2.simTime = T
             stat2.agentName = "reliablelink"
+            stat2.msgSize
 
             simulate T, {
                 node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
@@ -123,7 +125,7 @@ test.DtnStats stat2
             }
             println("ReliableLink Results")
             stat2.printStats()
-            String filename2 = "results/" + System.currentTimeMillis().toString()
+            String filename2 = "results/" + System.currentTimeMillis().toString() + ".json"
             stat2.saveResults(filename2)
         }
     println("XXXXXXXXXXXXXXXXXXXX\n")
