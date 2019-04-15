@@ -32,7 +32,7 @@ int nodeCount = 3
 int[] dest1 = [3]
 def T = 2.hour
 
-def msgSize = 1000
+def msgSize = 10
 def msgFreq = 10
 def msgTtl = T
 def msgEndTime = 1000
@@ -62,6 +62,12 @@ test.DtnStats stat2
 
             stat1 = new test.DtnStats()
             stat2 = new test.DtnStats()
+
+            stat2.pDecode = channel.pDecoding
+            stat2.pDetect = channel.pDetection
+            stat2.simTime = T
+            stat2.agentName = "dtnlink"
+
             simulate T, {
                 node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
                     container.add 'link', new ReliableLink()
@@ -86,8 +92,16 @@ test.DtnStats stat2
             println("DtnLink Results")
             stat2.printStats()
 
+            String filename1 = "results/" + System.currentTimeMillis().toString()
+            stat2.saveResults(filename1)
+
             stat1 = new test.DtnStats()
             stat2 = new test.DtnStats()
+
+            stat2.pDecode = channel.pDecoding
+            stat2.pDetect = channel.pDetection
+            stat2.simTime = T
+            stat2.agentName = "reliablelink"
 
             simulate T, {
                 node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
@@ -109,6 +123,8 @@ test.DtnStats stat2
             }
             println("ReliableLink Results")
             stat2.printStats()
+            String filename2 = "results/" + System.currentTimeMillis().toString()
+            stat2.saveResults(filename2)
         }
     println("XXXXXXXXXXXXXXXXXXXX\n")
 }

@@ -9,3 +9,4 @@ testDir*/
 out/
 logs/
 results/
+*.pyc

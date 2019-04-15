@@ -1,5 +1,6 @@
 package test
 
+import com.google.gson.Gson;
 class DtnStats {
     int payloadsSent      = 0
     int payloadsSuccess   = 0
@@ -10,6 +11,12 @@ class DtnStats {
     int datagramsSuccess  = 0
     int datagramsFailure  = 0
     int datagramsReceived = 0
+
+    String agentName
+    int simTime
+    int pDetect
+    int pDecode
+
 
     int[] msgRecv = new int[100]
     HashSet<String> uniqueDatagrams = new HashSet<>()
@@ -23,5 +30,11 @@ class DtnStats {
                 println(i + "->" + msgRecv[i])
             }
         }
+    }
+
+    void saveResults(String filePath) {
+        String json = new Gson().toJson(this)
+        File f = new File(filePath)
+        f.write(json)
     }
 }
