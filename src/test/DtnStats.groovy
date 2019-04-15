@@ -20,7 +20,7 @@ class DtnStats {
 
 
     int[] msgRecv = new int[100]
-    HashSet<String> uniqueDatagrams = new HashSet<>()
+    HashMap<Integer, Integer> uniqueDatagrams = new HashSet<>()
 
     void printStats() {
         println("Datagrams: " + "TX: " + datagramsSent + " RX: " + datagramsReceived + " S: " + datagramsSuccess + " F: " + datagramsFailure)
