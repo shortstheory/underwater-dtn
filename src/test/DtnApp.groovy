@@ -81,8 +81,8 @@ class DtnApp extends UnetAgent {
 
     private byte[] createDataSize(int msgSize) {
         byte[] randomBytes = new byte[msgSize]
-        for (byte b : randomBytes) {
-            b = (byte)random.nextInt(256)
+        for (int i = 0; i < randomBytes.length; i++) {
+            randomBytes[i] = (byte)random.nextInt(256)
         }
         return randomBytes
     }
