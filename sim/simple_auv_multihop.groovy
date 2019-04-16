@@ -21,7 +21,7 @@ import java.nio.file.Files
 
 platform = DiscreteEventSimulator
 
-def range = 1000.m
+def range = 600.m
 def nodeDistance = 900.m
 
 channel.model = ProtocolChannelModel
@@ -45,50 +45,60 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
 }
 
-def T = 10400.second
+def T = 8800.second
 def msgSize = 50
 def msgFreq = 10
 def msgTtl = T
-def lastMsg = T
+def lastMsg = 3200
 
 test.DtnStats stat1
 test.DtnStats stat2
+for (int i = 1; i <= 10; i++) {
 
-stat1 = new test.DtnStats()
-stat2 = new test.DtnStats()
+    stat1 = new test.DtnStats()
+    stat2 = new test.DtnStats()
 
-simulate T, {
-    def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
-        container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(1))
-        container.add 'router', new Router()
-        container.add 'router_init', new RouteInitialiser((Tuple2[])routesSrc.toArray(), new AgentID("dtnlink"))
-        container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat1)
-        container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
+    channel.pDetection = 0.1*i
+
+    stat2.pDecode = channel.pDecoding
+    stat2.pDetect = channel.pDetection
+    stat2.simTime = T
+    stat2.agentName = "dtnlink"
+    stat2.msgSize = msgSize
+
+    simulate T, {
+        def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
+            container.add 'link', new ReliableLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(1))
+            container.add 'router', new Router()
+            container.add 'router_init', new RouteInitialiser((Tuple2[]) routesSrc.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat1)
+        }
+        def auv = node '2', address: 2, location: [0, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
+            container.add 'link', new ReliableLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(2))
+            container.add 'router', new Router()
+            container.add 'router_init', new RouteInitialiser((Tuple2[]) routesAUV.toArray(), "dtnlink")
+        }
+        def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+                          [duration: 1600.seconds, heading: 90.deg, speed: 1.mps],
+                          [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
+                          [duration: 1600.seconds, heading: 270.deg, speed: 1.mps],
+                          [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
+        auv.motionModel = trajectory
+        auv.motionModel += trajectory
+        def dest = node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
+            container.add 'link', new ReliableLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(3))
+            container.add 'router', new Router()
+            container.add 'testagent', new DtnApp(stat2, true)
+        }
     }
-    def auv = node '2', address: 2, location: [0, 0, -50.m], mobility: true, shell: 5001, stack: { container ->
-        container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(2))
-        container.add 'router', new Router()
-        container.add 'router_init', new RouteInitialiser((Tuple2[])routesAUV.toArray(), new AgentID("dtnlink"))
-        container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
-    }
-    def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
-                      [duration: 2000.seconds, heading: 90.deg, speed: 1.mps],
-                      [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
-                      [duration: 2000.seconds, heading: 270.deg, speed: 1.mps],
-                      [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
-    auv.motionModel = trajectory
-    auv.motionModel += trajectory
-    def dest = node '3', address: 3, location: [nodeDistance*2, 0, -50.m], shell: 5002, stack: { container ->
-        container.add 'link', new ReliableLink()
-        container.add 'dtnlink', new DtnLink(Integer.toString(3))
-        container.add 'router', new Router()
-        container.add 'testagent', new DtnApp(stat2, true)
-        container.shell.addInitrc "/home/nic/nus/UnetStack3-prerelease-20190128/etc/fshrc.groovy"
-    }
+
+    stat1.printStats()
+    stat2.printStats()
+
+    String filename2 = "results/" + "dtnlink_auv_" + channel.pDetection + "_" + msgSize + ".json"
+    stat2.saveResults(filename2)
 }
-
-stat1.printStats()
-stat2.printStats()
 
