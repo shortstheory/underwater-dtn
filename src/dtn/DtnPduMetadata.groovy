@@ -9,7 +9,6 @@ import groovy.transform.CompileStatic
 class DtnPduMetadata {
     int nextHop
     int expiryTime
-    int attempts // only used for statistics
     boolean delivered
     int bytesSent
     int size
@@ -17,7 +16,6 @@ class DtnPduMetadata {
     public static final int INBOUND_HOP = -1
 
     DtnPduMetadata(int hop, int expiry) {
-        attempts = 1
         bytesSent = 0
         delivered = false
         nextHop = hop

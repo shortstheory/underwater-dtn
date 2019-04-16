@@ -33,13 +33,19 @@ channel.interferenceRange = range
 
 int nodeCount = 3
 int[] dest1 = [3]
+int[] dest3 = [1]
+
 
 println "Starting Routing simulation!"
 
 ArrayList<Tuple2> routesSrc = new ArrayList<>()
 ArrayList<Tuple2> routesAUV = new ArrayList<>()
+ArrayList<Tuple2> routesDest = new ArrayList<>()
 routesSrc.add(new Tuple2(3,2))
 routesAUV.add(new Tuple2(3,3))
+routesAUV.add(new Tuple2(1,1))
+routesDest.add(new Tuple2(1,2))
+
 
 for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
@@ -91,14 +97,16 @@ for (int i = 1; i <= 10; i++) {
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
             container.add 'router', new Router()
-            container.add 'testagent', new DtnApp(stat2, true)
+            container.add 'router_init', new RouteInitialiser((Tuple2[]) routesDest.toArray(), "dtnlink")
+            container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat2)
         }
     }
 
     stat1.printStats()
     stat2.printStats()
-
-    String filename2 = "results/" + "dtnlink_auv_" + channel.pDetection + "_" + msgSize + ".json"
+    String filename1 = "results/" + "dtnlink_auv_s1_" + i + "_" + msgSize + ".json"
+    stat1.saveResults(filename1)
+    String filename2 = "results/" + "dtnlink_auv_s3_" + i + "_" + msgSize + ".json"
     stat2.saveResults(filename2)
 }
 

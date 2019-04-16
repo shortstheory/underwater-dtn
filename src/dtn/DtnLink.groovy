@@ -312,16 +312,9 @@ class DtnLink extends UnetAgent {
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 println("DFN for " + originalDatagramID)
-                if (metadata != null) {
-                    metadata.attempts++
-                }
             } else if (newMessageID == outboundPayloadFragmentID) {
-                DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
-                if (metadata != null) {
-                    metadata.attempts++
-                }
+                println("DFN for " + originalPayloadID)
             } else {
                 println("This should never happen! " + newMessageID)
             }
