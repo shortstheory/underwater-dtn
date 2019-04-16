@@ -52,12 +52,12 @@ for (int f = 1; f <= nodeCount; f++) {
 }
 
 //def T = 8800.second
-def T = 12400.second
+def T = 8800.second
 
 def msgSize = 50
 def msgFreq = 10
 def msgTtl = T
-def lastMsg = 100
+def lastMsg = 1000
 
 test.DtnStats stat1
 test.DtnStats stat2
@@ -89,11 +89,9 @@ for (int i = 1; i <= 10; i++) {
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routesAUV.toArray(), "dtnlink")
         }
-        def trajectory = [[duration: 1800.seconds, heading: 0.deg, speed: 0.mps],
-                          [duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+        def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                           [duration: 1600.seconds, heading: 90.deg, speed: 1.mps],
                           [duration: 300.seconds, heading: 180.deg, speed: 1.mps],
-                          [duration: 1800.seconds, heading: 180.deg, speed: 0.mps],
                           [duration: 300.seconds, heading: 180.deg, speed: 1.mps],
                           [duration: 1600.seconds, heading: 270.deg, speed: 1.mps],
                           [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,

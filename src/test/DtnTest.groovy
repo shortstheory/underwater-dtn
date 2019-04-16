@@ -143,23 +143,6 @@ class DtnTest {
     }
 
     @Test
-    public void testClosedCircuit() {
-        Platform p = new DiscreteEventSimulator()
-        Container c = new Container(p)
-        TestApp app = new TestApp(DtnTest.Tests.TTL_MESSAGE)
-        TestLink link = new TestLink(DtnTest.Tests.TTL_MESSAGE)
-        c.add("dtnlink", new DtnLink(path))
-        c.add("testapp", app)
-        c.add("testlink", link)
-        p.start()
-        println("Running")
-        p.delay(DELAY_TIME*3)
-        println("Done")
-        p.shutdown()
-        assert(app.ttlMessageResult)
-    }
-
-    @Test
     public void testArrivalPriority() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
