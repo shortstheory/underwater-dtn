@@ -51,11 +51,13 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
 }
 
-def T = 8800.second
+//def T = 8800.second
+def T = 12400.second
+
 def msgSize = 50
 def msgFreq = 10
 def msgTtl = T
-def lastMsg = 3200
+def lastMsg = 100
 
 test.DtnStats stat1
 test.DtnStats stat2
@@ -77,6 +79,7 @@ for (int i = 1; i <= 10; i++) {
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(1))
             container.add 'router', new Router()
+//            container.add 'testagent', new DtnApp(stat1, true)
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routesSrc.toArray(), "dtnlink")
             container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat1)
         }
@@ -86,9 +89,12 @@ for (int i = 1; i <= 10; i++) {
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routesAUV.toArray(), "dtnlink")
         }
-        def trajectory = [[duration: 300.seconds, heading: 0.deg, speed: 1.mps],
+        def trajectory = [[duration: 1800.seconds, heading: 0.deg, speed: 0.mps],
+                          [duration: 300.seconds, heading: 0.deg, speed: 1.mps],
                           [duration: 1600.seconds, heading: 90.deg, speed: 1.mps],
-                          [duration: 600.seconds, heading: 180.deg, speed: 1.mps],
+                          [duration: 300.seconds, heading: 180.deg, speed: 1.mps],
+                          [duration: 1800.seconds, heading: 180.deg, speed: 0.mps],
+                          [duration: 300.seconds, heading: 180.deg, speed: 1.mps],
                           [duration: 1600.seconds, heading: 270.deg, speed: 1.mps],
                           [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
         auv.motionModel = trajectory
@@ -98,6 +104,7 @@ for (int i = 1; i <= 10; i++) {
             container.add 'dtnlink', new DtnLink(Integer.toString(3))
             container.add 'router', new Router()
             container.add 'router_init', new RouteInitialiser((Tuple2[]) routesDest.toArray(), "dtnlink")
+//            container.add 'testagent', new DtnApp(stat2, true)
             container.add 'testagent', new DtnApp(dest3, msgFreq, msgSize, msgTtl, lastMsg, true, DtnApp.Mode.REGULAR, stat2)
         }
     }

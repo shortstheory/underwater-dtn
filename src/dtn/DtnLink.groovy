@@ -153,24 +153,29 @@ class DtnLink extends UnetAgent {
     }
 
     void restartSending() {
-        if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
-            destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
-            int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
-            AgentID nodeLink = linkManager.getBestLink(node)
-            if (nodeLink != null) {
-                // FIXME: later choose links based on bitrate
-                ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
-                String messageID = selectNextDatagram(datagrams)
-                if (alternatingBitMap.get(node) == null) {
-                    alternatingBitMap.put(node, false)
-                }
-                if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
-                    linkState = LinkState.WAITING
-                } else {
-                    linkState = LinkState.READY
+        add(new WakerBehavior(random.nextInt(randomDelay)) {
+            @Override
+            void onWake() {
+                if (linkState == LinkState.READY && linkManager.getDestinationNodes().size()) {
+                    destinationNodeIndex = (destinationNodeIndex + 1) % linkManager.getDestinationNodes().size()
+                    int node = linkManager.getDestinationNodes().get(destinationNodeIndex)
+                    AgentID nodeLink = linkManager.getBestLink(node)
+                    if (nodeLink != null) {
+                        // FIXME: later choose links based on bitrate
+                        ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
+                        String messageID = selectNextDatagram(datagrams)
+                        if (alternatingBitMap.get(node) == null) {
+                            alternatingBitMap.put(node, false)
+                        }
+                        if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
+                            linkState = LinkState.WAITING
+                        } else {
+                            linkState = LinkState.READY
+                        }
+                    }
                 }
             }
-        }
+        })
     }
 
     void sendFailureNtf(String messageID, int nextHop) {
