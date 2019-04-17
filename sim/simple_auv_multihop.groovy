@@ -52,7 +52,7 @@ for (int f = 1; f <= nodeCount; f++) {
 }
 
 //def T = 8800.second
-def T = 8800.second
+def T = (8800*2)
 
 def msgSize = 50
 def msgFreq = 10
@@ -61,7 +61,7 @@ def lastMsg = 1000
 
 test.DtnStats stat1
 test.DtnStats stat2
-for (int i = 1; i <= 10; i++) {
+for (int i = 10; i <= 10; i+=1) {
 
     stat1 = new test.DtnStats()
     stat2 = new test.DtnStats()
@@ -73,6 +73,12 @@ for (int i = 1; i <= 10; i++) {
     stat2.simTime = T
     stat2.agentName = "dtnlink"
     stat2.msgSize = msgSize
+
+    stat1.pDecode = channel.pDecoding
+    stat1.pDetect = channel.pDetection
+    stat1.simTime = T
+    stat1.agentName = "dtnlink"
+    stat1.msgSize = msgSize
 
     simulate T, {
         def src = node '1', address: 1, location: [0, 0, -50.m], shell: true, stack: { container ->
@@ -97,6 +103,9 @@ for (int i = 1; i <= 10; i++) {
                           [duration: 300.seconds, heading: 0.deg, speed: 1.mps]]//,
         auv.motionModel = trajectory
         auv.motionModel += trajectory
+        auv.motionModel += trajectory
+        auv.motionModel += trajectory
+
         def dest = node '3', address: 3, location: [nodeDistance * 2, 0, -50.m], shell: 5002, stack: { container ->
             container.add 'link', new ReliableLink()
             container.add 'dtnlink', new DtnLink(Integer.toString(3))

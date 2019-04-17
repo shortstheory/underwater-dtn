@@ -7,6 +7,7 @@ import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
+import org.arl.unet.sim.channels.Mission2013a
 import org.arl.unet.sim.channels.ProtocolChannelModel
 import org.arl.unet.transport.SWTransport
 import org.arl.unet.sim.NamTracer
@@ -23,7 +24,7 @@ platform = DiscreteEventSimulator
 def range = 2000.m
 def nodeDistance = 1500.m
 
-channel.model = ProtocolChannelModel
+channel.model = Mission2013a
 channel.communicationRange = range
 channel.detectionRange = range
 channel.interferenceRange = range
