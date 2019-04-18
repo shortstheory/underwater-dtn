@@ -269,6 +269,7 @@ class DtnLink extends UnetAgent {
                         lastDatagramHash.put(src, hashCode)
                         if (payloadID) {
                             storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
+                            // FIXME: true or not?
                             if (tbc) {
                                 println("Received Payload " + payloadID)
                                 byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))

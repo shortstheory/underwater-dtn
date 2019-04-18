@@ -41,6 +41,7 @@ class DtnLinkManager {
     }
 
     // Returns the highest priority link which is available in the LinkPriority list
+    // FIXME: iterate through links on FailureNtf
     AgentID getBestLink(int node) {
         int bestLinkPriority = Integer.MAX_VALUE
         AgentID bestLink = null
