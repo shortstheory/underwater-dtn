@@ -4,12 +4,9 @@ import com.sun.istack.internal.Nullable
 import groovy.transform.CompileStatic
 import org.arl.fjage.AgentID
 import org.arl.unet.DatagramParam
-import org.arl.unet.link.ReliableLink
 import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.PhysicalChannelParam
-import org.arl.unet.phy.PhysicalParam
-import org.arl.unet.sim.HalfDuplexModem
 
 /**
  * Helper class for managing the underlying links used by DtnLink
@@ -68,7 +65,7 @@ class DtnLinkManager {
         int[] dataRateArray
         int dataRate = 0
         if (phy != null) {
-            // FIXME: how do I get the data rate directly?
+            // FIXME: how do I get the data rate directly? This looks clumsy!
             dataRateArray = (int[])dtnLink.getProperty(phy, PhysicalChannelParam.dataRate)
             dataRate = dataRateArray[Physical.DATA-1]
             dtnLink.subscribe(dtnLink.topic(phy))
@@ -83,6 +80,9 @@ class DtnLinkManager {
         return nodeLinks.keySet().asList()
     }
 
+    /**
+     * Returns a set of Link AgentIDs which have not yet timed out for sending messages
+     */
     Set<AgentID> getLinksForNode(int node) {
         Set<AgentID> liveLinks = new HashSet<>()
         Set<AgentID> links = nodeLinks.get(node)
@@ -115,8 +115,8 @@ class DtnLinkManager {
         return null
     }
 
-    @Nullable AgentID getLink(AgentID l) {
-        AgentID link = (l.isTopic()) ? l.getOwner().getAgentID() : l
+    @Nullable AgentID getLink(AgentID agentID) {
+        AgentID link = (agentID.isTopic()) ? agentID.getOwner().getAgentID() : agentID
         for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
             if (entry.getKey().getName() == link.getName()) {
                 return entry.getKey()

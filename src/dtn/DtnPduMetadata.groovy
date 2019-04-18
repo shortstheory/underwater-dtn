@@ -15,13 +15,6 @@ class DtnPduMetadata {
 
     public static final int INBOUND_HOP = -1
 
-    DtnPduMetadata(int hop, int expiry) {
-        bytesSent = 0
-        delivered = false
-        nextHop = hop
-        expiryTime = expiry
-    }
-
     /**
      * INBOUND messages are in-progress fragments of Payloads which are sent from other nodes
      * OUTBOUND messages are datagrams other agents request the DtnLink to send
@@ -29,6 +22,13 @@ class DtnPduMetadata {
     enum MessageType {
         INBOUND,
         OUTBOUND
+    }
+
+    DtnPduMetadata(int hop, int expiry) {
+        bytesSent = 0
+        delivered = false
+        nextHop = hop
+        expiryTime = expiry
     }
 
     MessageType getMessageType() {

@@ -248,7 +248,6 @@ class DtnLink extends UnetAgent {
             linkManager.addLinkForNode(src, link)
             linkManager.updateLastTransmission(link)
 
-            // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
@@ -261,8 +260,10 @@ class DtnLink extends UnetAgent {
                     int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
 
+                    // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
                     int hashCode = Arrays.hashCode(data)
                     hashCode = (altBit) ? (hashCode ^ 0xFFFFFFFF).toInteger() : hashCode
+
                     if (hashCode != lastDatagramHash.get(src)) {
                         // Only fragments have non-zero payloadIDs
                         lastDatagramHash.put(src, hashCode)
@@ -278,7 +279,8 @@ class DtnLink extends UnetAgent {
                         } else {
                             // If it doesn't have a PayloadID sent, we can just
                             // broadcast it on our topic for anyone who's listening
-                            // Non DTNL-PDUs skip all this entirely and go straight to the agent they need to
+                            // Messages which are short circuited skip all this entirely
+                            // and go straight to the agent they need to
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                         }
                     } else {
@@ -291,9 +293,8 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit
+                alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit every successful message
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
-                println("DDN for " + originalDatagramID)
                 if (metadata != null) {
                     metadata.setDelivered()
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
@@ -327,6 +328,9 @@ class DtnLink extends UnetAgent {
         }
     }
 
+    /**
+     * Resets the state of DtnLink so we can send the next pending DatagramReq
+     */
     void prepareLink() {
         resetState.stop()
         linkState = LinkState.READY
@@ -432,6 +436,7 @@ class DtnLink extends UnetAgent {
                     AgentID linkID = (AgentID)entry.getKey()
                     DtnLinkManager.LinkMetadata linkMetadata = (DtnLinkManager.LinkMetadata)entry.getValue()
                     int lastTransmission = linkMetadata.lastTransmission
+                    // no need to send a Beacon if we've sent one on that link within beaconPeriod
                     if (currentTimeSeconds() - lastTransmission >= beaconPeriod) {
                         linkID.send(new DatagramReq(to: Address.BROADCAST))
                         linkManager.updateLastTransmission(linkID)

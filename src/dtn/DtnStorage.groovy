@@ -91,7 +91,7 @@ class DtnStorage {
                 || metadata.delivered
                 || metadata.getMessageType() == DtnPduMetadata.MessageType.INBOUND) {
                 // we don't delete here, as it will complicate the logic
-                // instead, it will be deleted by the next DtnLink sweep
+                // instead, it will be deleted by the next GC sweep
                 continue
             }
             if (metadata.nextHop == nextHop) {
