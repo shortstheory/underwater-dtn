@@ -12,7 +12,7 @@ platform = DiscreteEventSimulator
 
 //channel.model = BasicAcousticChannel
 channel.model = ProtocolChannelModel
-channel.pDetection = 0.7
+channel.pDetection = 1.0
 channel.pDecoding = 1.0
 
 int[] dest1 = [2]
@@ -21,7 +21,7 @@ def T = 4.hour
 def dist = 200.m
 def msgSize = 5*1000
 def msgFreq = 10.second
-def msgTtl = 1000
+def msgTtl = T
 
 int nodeCount = 2
 

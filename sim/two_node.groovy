@@ -47,8 +47,7 @@ for (int f = 1; f <= nodeCount; f++) {
 
 test.DtnStats stat1
 test.DtnStats stat2
-//for (int i = 1; i <= 5; i++) {
-    def i = 1
+for (int i = 1; i <= 5; i++) {
     channel.pDetection = 0.2 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
@@ -70,4 +69,30 @@ test.DtnStats stat2
 
 println("DtnLink Results")
 stat2.printStats()
-//}
+}
+
+println("RANDOMRESULTS")
+
+for (int i = 1; i <= 5; i++) {
+    channel.pDetection = 0.2 * i
+    channel.pDecoding = 1.0
+    println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
+    stat1 = new test.DtnStats()
+    stat2 = new test.DtnStats()
+
+    simulate T, {
+        node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
+            container.add 'link', new ReliableLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(1), DtnLink.DatagramPriority.RANDOM)
+            container.add 'testagent', new DtnApp(dest1, msgFreq, msgSize, msgTtl, msgEndTime, false, DtnApp.Mode.REGULAR, stat1)
+        }
+        node '2', address: 2, location: [nodeDistance, 0, -50.m], shell: 5001, stack: { container ->
+            container.add 'link', new ReliableLink()
+            container.add 'dtnlink', new DtnLink(Integer.toString(2))
+            container.add 'testagent', new DtnApp(stat2, false)
+        }
+    }
+
+    println("DtnLink Results")
+    stat2.printStats()
+}

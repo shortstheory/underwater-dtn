@@ -118,7 +118,7 @@ class DtnStorage {
         File file = new File(directory, filename)
 
         if (file.exists()) {
-            // FIXME: Payloads are meant to be transferred sequentially, so we actually could just append to the file
+            // FIXME: if OoO just discard the payload
             RandomAccessFile raf = new RandomAccessFile(file, "rw")
             raf.seek(DtnLink.HEADER_SIZE + startPtr)
             try {

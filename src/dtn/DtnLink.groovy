@@ -32,7 +32,7 @@ class DtnLink extends UnetAgent {
     private int destinationNodeIndex
 
     private HashMap<Integer, Boolean> alternatingBitMap
-    private HashMap<Integer, Integer> lastDatagramHash
+    private HashMap<Integer, Integer> lastDatagramHash // this won't work if RANDOM is set
 
     private AgentID notify
     private AgentID nodeInfo
@@ -269,8 +269,7 @@ class DtnLink extends UnetAgent {
                         lastDatagramHash.put(src, hashCode)
                         if (payloadID) {
                             storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
-                            // FIXME: true or not?
-                            if (tbc) {
+                            if (!tbc) {
                                 println("Received Payload " + payloadID)
                                 byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
                                 notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
@@ -383,7 +382,7 @@ class DtnLink extends UnetAgent {
             } else {
                 int startPtr = metadata.bytesSent
                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
-                boolean tbc = (endPtr == pduData.length)
+                boolean tbc = !(endPtr == pduData.length)
                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
                 int payloadID = storage.getPayloadID(messageID)
                 byte[] pduBytes = DtnStorage.encodePdu(data,

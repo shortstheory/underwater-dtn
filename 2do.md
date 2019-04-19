@@ -1,4 +1,13 @@
 issues:
+* PDU byte arrangement could be better
+* remove AB and use the payloadID - which can be random instead
+* startPtr+TBC==isPayload()?
+* discard OoO payloads
+* backup datagrams metadata to internal storage, this only has to be written n deleted once
+* random will disrupt the hashCode logic! - so either drop it or so it won't work
+* inbound fragments will be lost on power disruption
+* remove println->log.info
+
 * changed datagramCycle -> datagramCycle()
 * should AltBit -> payload byte first
 
