@@ -8,6 +8,8 @@ import org.arl.unet.link.ReliableLinkParam
 import org.arl.unet.phy.Physical
 import org.arl.unet.phy.PhysicalChannelParam
 
+import java.util.logging.Logger
+
 /**
  * Helper class for managing the underlying links used by DtnLink
  * Sets priorities for links and records the time of last transmission of a particular link
@@ -15,6 +17,7 @@ import org.arl.unet.phy.PhysicalChannelParam
 @CompileStatic
 class DtnLinkManager {
     private DtnLink dtnLink
+    protected Logger log = Logger.getLogger(getClass().getName());
 
     class LinkMetadata {
         AgentID phyID
@@ -72,7 +75,7 @@ class DtnLinkManager {
             dtnLink.subscribe(dtnLink.topic(phy))
             dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))
         } else {
-            println "PHY not provided for link"
+            log.fine("PHY not provided for link")
         }
         linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
     }

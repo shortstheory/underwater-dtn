@@ -7,6 +7,7 @@ import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
 
 import java.nio.file.Files
+import java.util.logging.Logger
 
 /**
  * Helper class for managing the datagrams saved to the node's non-volatile storage
@@ -19,6 +20,7 @@ class DtnStorage {
     private List<String> payloadList
     private int payloadCounter
     private HashMap<String, DtnPduMetadata> metadataMap
+    protected Logger log = Logger.getLogger(getClass().getName());
 
     /**
      * PDU Structure
@@ -75,7 +77,7 @@ class DtnStorage {
             }
             return null
         } catch (Exception e) {
-            println "Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds()
+            log.warning("Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds())
             return null
         } finally {
             fis.close()
@@ -163,7 +165,7 @@ class DtnStorage {
             metadataMap.get(messageID).size = (data == null) ? 0 : data.length
             return true
         } catch (IOException e) {
-            println "Could not save file for " + messageID
+            log.warning("Could not save file for " + messageID)
             return false
         } finally {
             fos.close()

@@ -137,7 +137,7 @@ class DtnLink extends UnetAgent {
         ArrayList<AgentID> linksWithReliability = getLinksWithReliability()
 
         if (!linksWithReliability.size()) {
-            println("No reliable links available")
+            log.info("No reliable links available")
             return
         }
 
@@ -181,7 +181,7 @@ class DtnLink extends UnetAgent {
     void sendFailureNtf(String messageID, int nextHop) {
         notify.send(new DatagramFailureNtf(inReplyTo: messageID,
                                             to: nextHop))
-        println "Datagram - " + messageID + " has expired"
+        log.info("Datagram - " + messageID + " has expired")
     }
 
     /**
@@ -214,7 +214,7 @@ class DtnLink extends UnetAgent {
             case DatagramPriority.RANDOM:
                 return (datagrams.size()) ? datagrams.get(random.nextInt(datagrams.size())) : null
             default:
-                println("This should never happen!")
+                log.warning("This should never happen!")
                 return null
         }
     }
@@ -223,7 +223,7 @@ class DtnLink extends UnetAgent {
     protected Message processRequest(Message msg) {
         if (msg instanceof DatagramReq) {
             if (msg.getTtl().isNaN() || msg.getTo() <= 0 || !storage.saveDatagram(msg)) {
-                println("Invalid Datagram!")
+                log.fine("Invalid Datagram!")
                 return new Message(msg, Performative.REFUSE)
             } else {
                 return new Message(msg, Performative.AGREE)
@@ -270,7 +270,7 @@ class DtnLink extends UnetAgent {
                         if (isPayload(map)) {
                             storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                             if (!tbc) {
-                                println("Received Payload " + payloadID)
+                                log.fine("Received Payload " + payloadID)
                                 byte[] msgBytes = storage.getPDUData(storage.readPayload(src, payloadID))
                                 notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
                                 String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
@@ -284,7 +284,7 @@ class DtnLink extends UnetAgent {
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                         }
                     } else {
-                        println("Seen hash#" + msg.getData().hashCode() + " before!")
+                        log.info("Seen hash#" + msg.getData().hashCode() + " before!")
                     }
                 }
             }
@@ -304,7 +304,7 @@ class DtnLink extends UnetAgent {
                 DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
                 if (metadata != null) {
                     metadata.bytesSent = outboundPayloadBytesSent
-                    println("Datagram: " + originalPayloadID + " Bytes Sent " + metadata.bytesSent)
+                    log.fine("Datagram: " + originalPayloadID + " Bytes Sent " + metadata.bytesSent)
                     if (metadata.bytesSent == metadata.size) {
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalPayloadID, to: node)
                         notify.send(deliveryNtf)
@@ -312,17 +312,17 @@ class DtnLink extends UnetAgent {
                     }
                 }
             } else {
-                println("This should never happen! " + newMessageID)
+                log.warning("This should never happen! " + newMessageID)
             }
             prepareLink()
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                println("DFN for " + originalDatagramID)
+                log.fine("DFN for " + originalDatagramID)
             } else if (newMessageID == outboundPayloadFragmentID) {
-                println("DFN for " + originalPayloadID)
+                log.fine("DFN for " + originalPayloadID)
             } else {
-                println("This should never happen! " + newMessageID)
+                log.warning("This should never happen! " + newMessageID)
             }
             prepareLink()
         }
@@ -427,7 +427,7 @@ class DtnLink extends UnetAgent {
             if (rsp != null && rsp.getPerformative() == Performative.CONFIRM &&
                     (int)get(link, DatagramParam.MTU) > HEADER_SIZE &&
                     link.getName() != getName()) { // we don't want to use the DtnLink!
-                println("Candidate Link " + link.getName())
+                log.fine("Candidate Link " + link.getName())
                 reliableLinks.add(link)
             }
         }
@@ -477,7 +477,7 @@ class DtnLink extends UnetAgent {
         return (WakerBehavior)add(new WakerBehavior(resetStateTime) {
             @Override
             void onWake() {
-                println("No DDN/DFN received, resetting DtnLink for " + ID)
+                log.info("No DDN/DFN received, resetting DtnLink for " + ID)
                 linkState = LinkState.READY
             }
         })
@@ -496,9 +496,9 @@ class DtnLink extends UnetAgent {
         beaconTimeout = period
         beaconBehavior.stop()
         if (beaconTimeout == 0) {
-            println("Stopped beacon")
+            log.info("Stopped beacon")
         } else {
-            println("Changed beacon interval")
+            log.info("Changed beacon interval to " + period)
             beaconBehavior = addBeaconBehavior()
         }
     }
@@ -507,9 +507,9 @@ class DtnLink extends UnetAgent {
         GCPeriod = period
         GCBehavior.stop()
         if (GCPeriod == 0) {
-            println("Stopped GC")
+            log.info("Stopped GC")
         } else {
-            println("Changed GC interval")
+            log.info("Changed GC interval to " + period)
             GCBehavior = addGCBehavior()
         }
     }
@@ -518,9 +518,9 @@ class DtnLink extends UnetAgent {
         datagramResetPeriod = period
         datagramResetBehavior.stop()
         if (datagramResetPeriod == 0) {
-            println("Stopped Datagram Reset Period")
+            log.info("Stopped Datagram Reset Period")
         } else {
-            println("Changed Reset Interval")
+            log.info("Changed Reset Interval to " + period)
             datagramResetBehavior = addDatagramBehavior()
         }
     }
