@@ -267,7 +267,7 @@ class DtnLink extends UnetAgent {
                     if (hashCode != lastDatagramHash.get(src)) {
                         // Only fragments have non-zero payloadIDs
                         lastDatagramHash.put(src, hashCode)
-                        if (payloadID) {
+                        if (isPayload(map)) {
                             storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
                             if (!tbc) {
                                 println("Received Payload " + payloadID)
@@ -335,6 +335,13 @@ class DtnLink extends UnetAgent {
         resetState.stop()
         linkState = LinkState.READY
         restartSending()
+    }
+
+    boolean isPayload(HashMap<String, Integer> map) {
+        if (map.get(DtnStorage.START_PTR_MAP) || map.get(DtnStorage.TBC_BIT_MAP)) {
+            return true
+        }
+        return false
     }
 
     boolean sendDatagram(String messageID, int dest, AgentID nodeLink) {
