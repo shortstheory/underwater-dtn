@@ -55,17 +55,17 @@ class DtnStorage {
 
     byte[] readPayload(int src, int payloadID) {
         String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
-        return Files.readAllBytes(new File(directory, filename).toPath())
+        return getPDUData(Files.readAllBytes(new File(directory, filename).toPath()))
     }
 
     byte[] getPDUData(byte[] pdu) {
-        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE + EXTRA_FILE_DATA, pdu.length)
+        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
     }
 
     @Nullable byte[] getMessageData(String messageID) {
         byte[] pduBytes = Files.readAllBytes(new File(directory, messageID).toPath())
         if (pduBytes != null) {
-            return getPDUData(pduBytes)
+            return Arrays.copyOfRange(pduBytes, dtnLink.HEADER_SIZE + EXTRA_FILE_DATA, pduBytes.length)
         }
         return null
     }
