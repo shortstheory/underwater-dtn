@@ -35,6 +35,8 @@ class DtnStorage {
     public static final String PAYLOAD_ID_MAP     = "pid"
     public static final String START_PTR_MAP      = "startptr"
 
+    public static final int EXTRA_FILE_DATA = 8
+
     DtnStorage(DtnLink link, String dir) {
         directory = dir
         dtnLink = link
@@ -57,7 +59,7 @@ class DtnStorage {
     }
 
     byte[] getPDUData(byte[] pdu) {
-        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
+        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE + EXTRA_FILE_DATA, pdu.length)
     }
 
     @Nullable byte[] getMessageData(String messageID) {
@@ -69,18 +71,20 @@ class DtnStorage {
     }
 
     @Nullable HashMap getPDUInfo(String messageID) {
-        FileInputStream fis = new FileInputStream(new File(directory, messageID))
+        RandomAccessFile raf = new RandomAccessFile(new File(directory, messageID), "r")
         try {
             byte[] pduBytes = new byte[DtnLink.HEADER_SIZE]
-            if (fis.read(pduBytes, 0, DtnLink.HEADER_SIZE) == DtnLink.HEADER_SIZE) {
+            raf.seek(EXTRA_FILE_DATA)
+            if (raf.read(pduBytes) == DtnLink.HEADER_SIZE) {
                 return decodePdu(pduBytes)
             }
+            // First 8 bytes contain nextHop and the expiryTime, which we need to recreate the metadata map
             return null
         } catch (Exception e) {
             log.warning("Message ID " + messageID + " not found " + dtnLink.currentTimeSeconds())
             return null
         } finally {
-            fis.close()
+            raf.close()
         }
     }
 
@@ -134,6 +138,7 @@ class DtnStorage {
         } else {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
+            DataOutputStream dos = new DataOutputStream(fos)
             // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
             metadataMap.put(filename, new DtnPduMetadata(DtnPduMetadata.INBOUND_HOP, ttl + dtnLink.currentTimeSeconds()))
             try {
@@ -142,6 +147,7 @@ class DtnStorage {
             } catch (IOException e) {
                 return false
             } finally {
+                dos.close()
                 fos.close()
             }
         }
@@ -159,15 +165,20 @@ class DtnStorage {
         OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, false, 0, 0)
         File file = new File(directory, messageID)
         FileOutputStream fos = new FileOutputStream(file)
+        DataOutputStream dos = new DataOutputStream(fos)
         try {
+            int expiryTime = ttl + dtnLink.currentTimeSeconds()
+            dos.writeInt(nextHop)
+            dos.writeInt(expiryTime)
             outputPDU.writeTo(fos)
-            metadataMap.put(messageID, new DtnPduMetadata(nextHop, ttl + dtnLink.currentTimeSeconds()))
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop, expiryTime))
             metadataMap.get(messageID).size = (data == null) ? 0 : data.length
             return true
         } catch (IOException e) {
             log.warning("Could not save file for " + messageID)
             return false
         } finally {
+            dos.close()
             fos.close()
         }
     }

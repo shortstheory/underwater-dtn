@@ -5,7 +5,6 @@ issues:
 * backup datagrams metadata to internal storage, this only has to be written n deleted once
 * random will disrupt the hashCode logic! - so either drop it or so it won't work
 * inbound fragments will be lost on power disruption
-* remove println->log.info
 
 * changed datagramCycle -> datagramCycle()
 * should AltBit -> payload byte first
@@ -19,7 +18,9 @@ pending:
 later:
 
 in progress:
+* remove println->log.info
 * startPtr+TBC==isPayload()?
+
 router << new DatagramReq(to: 2, ttl: 5000, protocol: 22, data: [1,2,3])
 * should DtnLink be allowed to do RReqs?
 * ALL NODES NEED RDP for it to work correctly!

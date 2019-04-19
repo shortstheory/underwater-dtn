@@ -318,6 +318,7 @@ class TestApp extends UnetAgent {
                 break
             case DtnTest.Tests.PAYLOAD_MESSAGE:
                 if (msg instanceof DatagramNtf) {
+                    println(new String(msg.getData()))
                     if (DtnTest.payloadText == new String(msg.getData())
                         && msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         payloadResult = true
