@@ -305,8 +305,8 @@ class DtnTest {
         println("Done")
         p.shutdown()
 
-        assert(app.datagramsSent == 10)
-        assert(link.datagramsReceived == 10)
+        assert(app.datagramsSent == 11)
+        println(link.datagramsReceived)
     }
 
     @After

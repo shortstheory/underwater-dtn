@@ -274,7 +274,7 @@ class TestLink extends UnetAgent {
                 break
             case DtnTest.Tests.REBOOT_SEND_MESSAGES:
                 if (msg instanceof DatagramReq) {
-                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                    if (msg.getProtocol() == Protocol.USER || msg.getProtocol() == DtnLink.DTN_PROTOCOL) {
                         String messageID = msg.getMessageID()
                         String msgData = new String(msg.getData())
                         println("Message - " + msgData)

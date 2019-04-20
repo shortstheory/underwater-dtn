@@ -227,12 +227,12 @@ class TestApp extends UnetAgent {
                             sendDatagram(req)
                         }
                     })
-//                    DatagramReq payload = new DatagramReq(to: DtnTest.DEST_ADDRESS,
-//                            ttl: (DtnTest.DELAY_TIME * 2 /1000).floatValue(),
-//                            msgID: "payloadMessage",
-//                            protocol: DtnTest.MESSAGE_PROTOCOL,
-//                            data: DtnTest.payloadText.getBytes())
-//                    sendDatagram(payload)
+                    DatagramReq payload = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                            ttl: (DtnTest.DELAY_TIME * 2 /1000).floatValue(),
+                            msgID: "payloadMessage",
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: DtnTest.payloadText.getBytes())
+                    sendDatagram(payload)
                 }
                 break
             case DtnTest.Tests.REBOOT_SEND_MESSAGES:

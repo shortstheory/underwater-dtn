@@ -78,6 +78,8 @@ class DtnStorage {
                     int expiryTime = dis.readInt()
                     if (nextHop != DtnPduMetadata.INBOUND_HOP) {
                         metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
+                        int len = (int)(file.length() - EXTRA_FILE_DATA - DtnLink.HEADER_SIZE)
+                        metadataMap.get(filename).size = len
                     } else {
                         file.delete()
                     }
