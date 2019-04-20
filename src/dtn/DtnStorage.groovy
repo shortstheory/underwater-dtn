@@ -5,6 +5,7 @@ import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
+import test.DtnTest
 
 import java.nio.file.Files
 import java.util.logging.Logger
@@ -69,20 +70,22 @@ class DtnStorage {
     void buildMetadataMap() {
         File[] files = new File(directory).listFiles()
         for (File file : files) {
+            String filename = file.getName()
             if (file.isFile()) {
-                String filename = file.getName()
-                if (filename.matches("/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\$/")) {
-                    DataInputStream dis = new DataInputStream(new FileInputStream(file))
-                    try {
-                        int nextHop = dis.readInt()
-                        int expiryTime = dis.readInt()
+                DataInputStream dis = new DataInputStream(new FileInputStream(file))
+                try {
+                    int nextHop = dis.readInt()
+                    int expiryTime = dis.readInt()
+                    if (nextHop != DtnPduMetadata.INBOUND_HOP) {
                         metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
-                    } catch (IOException e) {
-                        log.warning("Could not recover metadata for " + filename)
+                    } else {
+                        file.delete()
                     }
-                } else {
-                    log.fine("Discarding file " + filename)
+                } catch (IOException e) {
+                    log.warning("Could not recover metadata for " + filename)
                 }
+            } else {
+                log.fine("Discarding file " + filename)
             }
         }
     }

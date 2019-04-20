@@ -132,6 +132,8 @@ class DtnLink extends UnetAgent {
         notify = topic()
 
         storage = new DtnStorage(this, directory)
+        storage.buildMetadataMap()
+
         linkManager = new DtnLinkManager(this)
 
         ArrayList<AgentID> linksWithReliability = getLinksWithReliability()
