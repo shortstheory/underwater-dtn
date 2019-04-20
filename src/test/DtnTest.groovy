@@ -277,6 +277,8 @@ class DtnTest {
     public void testReboot() {
         Platform p = new DiscreteEventSimulator()
         Container c = new Container(p)
+        payloadText = new File(payloadPath).text
+
         TestApp app
         TestLink link
         app = new TestApp(DtnTest.Tests.REBOOT_LOAD_MESSAGES)
@@ -297,7 +299,14 @@ class DtnTest {
         c.add("dtnlink", new DtnLink(path))
         c.add("testapp", app)
         c.add("testlink", link)
-        assert(app.rebootResult)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+
+        assert(app.datagramsSent == 10)
+        assert(link.datagramsReceived == 10)
     }
 
     @After

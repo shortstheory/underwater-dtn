@@ -257,7 +257,7 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
-            case DtnTest.Tests.REBOOT_SEND_MESSAGES:
+            case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         String messageID = msg.getMessageID()
@@ -272,10 +272,13 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
-            case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
+            case DtnTest.Tests.REBOOT_SEND_MESSAGES:
                 if (msg instanceof DatagramReq) {
                     if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
                         String messageID = msg.getMessageID()
+                        String msgData = new String(msg.getData())
+                        println("Message - " + msgData)
+                        datagramsReceived++
                         add(new WakerBehavior(10 * 1000) {
                             @Override
                             void onWake() {

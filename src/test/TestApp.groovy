@@ -27,6 +27,7 @@ class TestApp extends UnetAgent {
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
+    int datagramsSent = 0
 
     Random random
 
@@ -219,13 +220,19 @@ class TestApp extends UnetAgent {
                             ttl: (DtnTest.DELAY_TIME * 2 /1000).floatValue(),
                             msgID: id,
                             protocol: DtnTest.MESSAGE_PROTOCOL,
-                            data: DtnTest.MESSAGE_DATA.getBytes())
+                            data: (DtnTest.MESSAGE_DATA+Integer.toString(i)).getBytes())
                     add(new WakerBehavior(10 * 1000) {
                         @Override
                         void onWake() {
                             sendDatagram(req)
                         }
                     })
+//                    DatagramReq payload = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+//                            ttl: (DtnTest.DELAY_TIME * 2 /1000).floatValue(),
+//                            msgID: "payloadMessage",
+//                            protocol: DtnTest.MESSAGE_PROTOCOL,
+//                            data: DtnTest.payloadText.getBytes())
+//                    sendDatagram(payload)
                 }
                 break
             case DtnTest.Tests.REBOOT_SEND_MESSAGES:
@@ -359,6 +366,9 @@ class TestApp extends UnetAgent {
             case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
                 break
             case DtnTest.Tests.REBOOT_SEND_MESSAGES:
+                if (msg instanceof DatagramDeliveryNtf) {
+                    datagramsSent++
+                }
                 break
         }
     }
