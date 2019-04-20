@@ -67,29 +67,37 @@ class DtnStorage {
         return null
     }
 
-    void buildMetadataMap() {
+    /**
+     * Recovers the pending datagrams which are in a node's non-volatile storage after reboot
+     * Run only once, on DtnLink's startup
+     */
+    void recoverMetadataMap() {
         File[] files = new File(directory).listFiles()
         for (File file : files) {
-            String filename = file.getName()
+            String messageID = file.getName()
             if (file.isFile()) {
                 DataInputStream dis = new DataInputStream(new FileInputStream(file))
                 try {
                     int nextHop = dis.readInt()
                     int expiryTime = dis.readInt()
                     if (nextHop != DtnPduMetadata.INBOUND_HOP) {
-                        metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
-                        int len = (int)(file.length() - EXTRA_FILE_DATA - DtnLink.HEADER_SIZE)
-                        metadataMap.get(filename).size = len
+                        metadataMap.put(messageID, new DtnPduMetadata(nextHop, expiryTime))
+                        metadataMap.get(messageID).size = getMessageLength(messageID)
                     } else {
                         file.delete()
                     }
                 } catch (IOException e) {
-                    log.warning("Could not recover metadata for " + filename)
+                    log.warning("Could not recover metadata for " + messageID)
                 }
             } else {
-                log.fine("Discarding file " + filename)
+                log.fine("Discarding file " + messageID)
             }
         }
+    }
+
+    int getMessageLength(String messageID) {
+        File file = new File(directory, messageID)
+        return (int)(file.length() - EXTRA_FILE_DATA - DtnLink.HEADER_SIZE)
     }
 
     @Nullable HashMap getPDUInfo(String messageID) {
@@ -142,10 +150,28 @@ class DtnStorage {
     }
 
     boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
-        String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
-        File file = new File(directory, filename)
+        String messageID = Integer.toString(src) + "_" + Integer.toString(payloadID)
+        File file = new File(directory, messageID)
 
-        if (file.exists()) {
+        if (!file.exists() && !startPtr) {
+            OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
+            FileOutputStream fos = new FileOutputStream(file)
+            DataOutputStream dos = new DataOutputStream(fos)
+            // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
+            int nextHop = DtnPduMetadata.INBOUND_HOP
+            int expiryTime = ttl + dtnLink.currentTimeSeconds()
+            metadataMap.put(messageID, new DtnPduMetadata(nextHop, expiryTime))
+            try {
+                dos.writeInt(nextHop)
+                dos.writeInt(expiryTime)
+                pdu.writeTo(fos)
+                return true
+            } catch (IOException e) {
+                return false
+            } finally {
+                dos.close()
+            }
+        } else if (file.exists() && getMessageLength(messageID) == startPtr) {
             // FIXME: if OoO just discard the payload
             RandomAccessFile raf = new RandomAccessFile(file, "rw")
             raf.seek(EXTRA_FILE_DATA + DtnLink.HEADER_SIZE + startPtr)
@@ -158,23 +184,9 @@ class DtnStorage {
                 raf.close()
             }
         } else {
-            OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
-            FileOutputStream fos = new FileOutputStream(file)
-            DataOutputStream dos = new DataOutputStream(fos)
-            // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
-            int nextHop = DtnPduMetadata.INBOUND_HOP
-            int expiryTime = ttl + dtnLink.currentTimeSeconds()
-            metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
-            try {
-                dos.writeInt(nextHop)
-                dos.writeInt(expiryTime)
-                pdu.writeTo(fos)
-                return true
-            } catch (IOException e) {
-                return false
-            } finally {
-                dos.close()
-            }
+            // No point of the payload if sent out of order, lah!
+            file.delete()
+            metadataMap.remove(messageID)
         }
     }
 

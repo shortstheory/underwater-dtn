@@ -132,7 +132,7 @@ class DtnLink extends UnetAgent {
         notify = topic()
 
         storage = new DtnStorage(this, directory)
-        storage.buildMetadataMap()
+        storage.recoverMetadataMap()
 
         linkManager = new DtnLinkManager(this)
 
