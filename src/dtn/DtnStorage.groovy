@@ -55,11 +55,7 @@ class DtnStorage {
 
     byte[] readPayload(int src, int payloadID) {
         String filename = Integer.toString(src) + "_" + Integer.toString(payloadID)
-        return getPDUData(Files.readAllBytes(new File(directory, filename).toPath()))
-    }
-
-    byte[] getPDUData(byte[] pdu) {
-        return Arrays.copyOfRange(pdu, dtnLink.HEADER_SIZE, pdu.length)
+        return getMessageData(filename)
     }
 
     @Nullable byte[] getMessageData(String messageID) {
@@ -147,7 +143,7 @@ class DtnStorage {
         if (file.exists()) {
             // FIXME: if OoO just discard the payload
             RandomAccessFile raf = new RandomAccessFile(file, "rw")
-            raf.seek(DtnLink.HEADER_SIZE + startPtr)
+            raf.seek(EXTRA_FILE_DATA + DtnLink.HEADER_SIZE + startPtr)
             try {
                 raf.write(data)
                 return true
@@ -159,17 +155,20 @@ class DtnStorage {
         } else {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
+            DataOutputStream dos = new DataOutputStream(fos)
             // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
             int nextHop = DtnPduMetadata.INBOUND_HOP
             int expiryTime = ttl + dtnLink.currentTimeSeconds()
             metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
             try {
+                dos.writeInt(nextHop)
+                dos.writeInt(expiryTime)
                 pdu.writeTo(fos)
                 return true
             } catch (IOException e) {
                 return false
             } finally {
-                fos.close()
+                dos.close()
             }
         }
     }

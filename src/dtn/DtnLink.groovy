@@ -251,7 +251,7 @@ class DtnLink extends UnetAgent {
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
                 HashMap<String, Integer> map = DtnStorage.decodePdu(pduBytes)
-                byte[] data = storage.getPDUData(pduBytes)
+                byte[] data = Arrays.copyOfRange(pduBytes, HEADER_SIZE, pduBytes.length)
                 if (map != null) {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
