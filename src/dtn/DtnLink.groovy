@@ -241,6 +241,7 @@ class DtnLink extends UnetAgent {
             AgentID link = linkManager.getLinkForPhy(phy)
             if (link != null) {
                 linkManager.addNodeLink(msg.getFrom(), link)
+                linkManager.updateLastReception(link)
             }
         } else if (msg instanceof DatagramNtf) {
             // Update the time of last message transmission when we receive a new DatagramNtf
@@ -248,7 +249,7 @@ class DtnLink extends UnetAgent {
             AgentID link = linkManager.getLink(msg.getSender())
             int src = msg.getFrom()
             linkManager.addNodeLink(src, link)
-            linkManager.updateLastTransmission(link)
+            linkManager.updateLastReception(link)
 
             if (msg.getProtocol() == DTN_PROTOCOL) {
                 byte[] pduBytes = msg.getData()
@@ -319,6 +320,7 @@ class DtnLink extends UnetAgent {
             prepareLink()
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
+            linkManager.removeNodeLink(msg.getTo(), msg.getSender())
             if (newMessageID == outboundDatagramID) {
                 log.fine("DFN for " + originalDatagramID)
             } else if (newMessageID == outboundPayloadFragmentID) {
@@ -326,6 +328,7 @@ class DtnLink extends UnetAgent {
             } else {
                 log.warning("This should never happen! " + newMessageID)
             }
+//            linkManager.removeNodeLink()
             prepareLink()
         }
     }

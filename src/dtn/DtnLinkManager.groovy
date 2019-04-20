@@ -22,6 +22,7 @@ class DtnLinkManager {
     class LinkMetadata {
         AgentID phyID
         int lastTransmission
+        int lastReception
         int linkMTU
         int dataRate
     }
@@ -77,7 +78,11 @@ class DtnLinkManager {
         } else {
             log.fine("PHY not provided for link")
         }
-        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnlink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
+        linkInfo.put(link, new LinkMetadata(phyID: phy,
+                            lastTransmission: dtnlink.currentTimeSeconds(),
+                            lastReception: dtnlink.currentTimeSeconds(),
+                            linkMTU: mtu,
+                            dataRate: dataRate))
     }
 
     List<Integer> getDestinationNodes() {
@@ -94,7 +99,7 @@ class DtnLinkManager {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
                 if (metadata != null) {
-                    if (metadata.lastTransmission + dtnlink.linkExpiryTime > dtnlink.currentTimeSeconds()) {
+                    if (metadata.lastReception + dtnlink.linkExpiryTime > dtnlink.currentTimeSeconds()) {
                         liveLinks.add(link)
                     }
                 }
@@ -108,6 +113,13 @@ class DtnLinkManager {
             nodeLinks.put(node, new HashSet<AgentID>())
         }
         nodeLinks.get(node).add(link)
+    }
+
+    void removeNodeLink(int node, AgentID link) {
+        // FIXME: only if we have options it makes sense to delete our current one, right?
+        if (getNodeLinks(node).size() > 1) {
+            nodeLinks.remove(node, link)
+        }
     }
 
     AgentID getLinkForPhy(AgentID phy) {
@@ -132,6 +144,12 @@ class DtnLinkManager {
     void updateLastTransmission(AgentID linkID) {
         if (linkInfo.get(linkID) != null) {
             linkInfo.get(linkID).lastTransmission = dtnlink.currentTimeSeconds()
+        }
+    }
+
+    void updateLastReception(AgentID linkID) {
+        if (linkInfo.get(linkID) != null) {
+            linkInfo.get(linkID).lastReception = dtnlink.currentTimeSeconds()
         }
     }
 

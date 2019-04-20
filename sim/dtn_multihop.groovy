@@ -24,7 +24,7 @@ platform = DiscreteEventSimulator
 def range = 2000.m
 def nodeDistance = 1500.m
 
-channel.model = Mission2013a
+channel.model = ProtocolChannelModel
 channel.communicationRange = range
 channel.detectionRange = range
 channel.interferenceRange = range
