@@ -5,7 +5,6 @@ import groovy.transform.CompileStatic
 import org.arl.unet.DatagramReq
 import org.arl.unet.InputPDU
 import org.arl.unet.OutputPDU
-import test.DtnTest
 
 import java.nio.file.Files
 import java.util.logging.Logger
@@ -82,7 +81,7 @@ class DtnStorage {
                     int expiryTime = dis.readInt()
                     if (nextHop != DtnPduMetadata.INBOUND_HOP) {
                         metadataMap.put(messageID, new DtnPduMetadata(nextHop, expiryTime))
-                        metadataMap.get(messageID).size = getMessageLength(messageID)
+                        metadataMap.get(messageID).size = getDatagramSize(messageID)
                     } else {
                         file.delete()
                     }
@@ -95,7 +94,7 @@ class DtnStorage {
         }
     }
 
-    int getMessageLength(String messageID) {
+    int getDatagramSize(String messageID) {
         File file = new File(directory, messageID)
         return (int)(file.length() - EXTRA_FILE_DATA - DtnLink.HEADER_SIZE)
     }
@@ -124,7 +123,6 @@ class DtnStorage {
             String messageID = entry.getKey()
             DtnPduMetadata metadata = entry.getValue()
             if (dtnLink.currentTimeSeconds() > metadata.expiryTime
-                || metadata.delivered
                 || metadata.getMessageType() == DtnPduMetadata.MessageType.INBOUND) {
                 // we don't delete here, as it will complicate the logic
                 // instead, it will be deleted by the next GC sweep
@@ -152,7 +150,7 @@ class DtnStorage {
     boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
         String messageID = Integer.toString(src) + "_" + Integer.toString(payloadID)
         File file = new File(directory, messageID)
-
+        int fragmentSize = data.length - DtnLink.HEADER_SIZE
         if (!file.exists() && !startPtr) {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
@@ -171,7 +169,9 @@ class DtnStorage {
             } finally {
                 dos.close()
             }
-        } else if (file.exists() && getMessageLength(messageID) == startPtr) {
+        } else if (file.exists()
+                && startPtr <= getDatagramSize(messageID)
+                && (startPtr + fragmentSize) > getDatagramSize(messageID)) {
             // FIXME: if OoO just discard the payload
             RandomAccessFile raf = new RandomAccessFile(file, "rw")
             raf.seek(EXTRA_FILE_DATA + DtnLink.HEADER_SIZE + startPtr)
@@ -225,7 +225,7 @@ class DtnStorage {
             Map.Entry entry = (Map.Entry)it.next()
             String messageID = (String)entry.getKey()
             DtnPduMetadata metadata = (DtnPduMetadata)entry.getValue()
-            if (metadata.delivered || dtnLink.currentTimeSeconds() > metadata.expiryTime) {
+            if (dtnLink.currentTimeSeconds() > metadata.expiryTime) {
                 // Delete the file
                 File file = new File(directory, messageID)
                 file.delete()

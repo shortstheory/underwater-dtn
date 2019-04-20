@@ -276,7 +276,7 @@ class DtnLink extends UnetAgent {
                                 byte[] msgBytes = storage.readPayload(src, payloadID)
                                 notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
                                 String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
-                                storage.getMetadata(messageID).setDelivered()
+                                storage.removeDatagram(messageID)
                             }
                         } else {
                             // If it doesn't have a PayloadID sent, we can just
@@ -298,9 +298,9 @@ class DtnLink extends UnetAgent {
                 alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit every successful message
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
-                    metadata.setDelivered()
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
                     notify.send(deliveryNtf)
+                    storage.removeDatagram(originalDatagramID)
                 }
             } else if (newMessageID == outboundPayloadFragmentID) {
                 DtnPduMetadata metadata = storage.getMetadata(originalPayloadID)
@@ -310,7 +310,7 @@ class DtnLink extends UnetAgent {
                     if (metadata.bytesSent == metadata.size) {
                         DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalPayloadID, to: node)
                         notify.send(deliveryNtf)
-                        metadata.setDelivered()
+                        storage.removeDatagram(originalPayloadID)
                     }
                 }
             } else {
@@ -352,7 +352,6 @@ class DtnLink extends UnetAgent {
         int ttl
         if (parsedPdu != null
                 && ((metadata = storage.getMetadata(messageID)) != null)
-                && !metadata.delivered
                 && (ttl = metadata.expiryTime - currentTimeSeconds()) > 0) {
             // we are reading the file twice, not good!
             int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU

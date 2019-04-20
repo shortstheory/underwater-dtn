@@ -1,10 +1,6 @@
 issues:
 * PDU byte arrangement could be better
 * remove AB and use the payloadID - which can be random instead
-* discard OoO payloads
-* random will disrupt the hashCode logic! - so either drop it or so it won't work
-
-* changed datagramCycle -> datagramCycle()
 * should AltBit -> payload byte first
 
 router.defaultLink = dtnlink
@@ -12,10 +8,12 @@ router << new RouteDiscoveryNtf(to: 3, nextHop: 2, reliability: true, link: dtnl
 
 pending:
     * how about a TTL for position updates from a GPS node?
+    * random will disrupt the hashCode logic! - so either drop it or so it won't work
     
 later:
 
 in progress:
+* discard OoO payloads
 * inbound fragments will be lost on power disruption
 * backup datagrams metadata to internal storage, this only has to be written n deleted once
 * remove println->log.info
@@ -30,6 +28,7 @@ router << new DatagramReq(to: 2, ttl: 5000, protocol: 22, data: [1,2,3])
 * Router does short circuiting!!!
 
 done:
+* changed datagramCycle -> datagramCycle()
 * multihop DTN complicated :P
 Alternating Bit
 * issue is that if we go out of sync on which bit to expect/receive, then we WILL lose all the messages

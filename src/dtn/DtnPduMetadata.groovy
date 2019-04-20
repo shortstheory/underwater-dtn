@@ -9,7 +9,6 @@ import groovy.transform.CompileStatic
 class DtnPduMetadata {
     int nextHop
     int expiryTime
-    boolean delivered
     int bytesSent
     int size
 
@@ -26,7 +25,6 @@ class DtnPduMetadata {
 
     DtnPduMetadata(int hop, int expiry) {
         bytesSent = 0
-        delivered = false
         nextHop = hop
         expiryTime = expiry
     }
@@ -36,10 +34,6 @@ class DtnPduMetadata {
             return MessageType.INBOUND
         }
         return MessageType.OUTBOUND
-    }
-
-    void setDelivered() {
-        delivered = true
     }
 }
 
