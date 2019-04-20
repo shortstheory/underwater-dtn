@@ -2,7 +2,6 @@ issues:
 * PDU byte arrangement could be better
 * remove AB and use the payloadID - which can be random instead
 * discard OoO payloads
-* backup datagrams metadata to internal storage, this only has to be written n deleted once
 * random will disrupt the hashCode logic! - so either drop it or so it won't work
 * inbound fragments will be lost on power disruption
 
@@ -18,6 +17,7 @@ pending:
 later:
 
 in progress:
+* backup datagrams metadata to internal storage, this only has to be written n deleted once
 * remove println->log.info
 * startPtr+TBC==isPayload()?
 

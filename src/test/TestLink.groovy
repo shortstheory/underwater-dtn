@@ -257,6 +257,36 @@ class TestLink extends UnetAgent {
                     return new Message(msg, Performative.AGREE)
                 }
                 break
+            case DtnTest.Tests.REBOOT_SEND_MESSAGES:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        String messageID = msg.getMessageID()
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramFailureNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: messageID))
+                            }
+                        })
+                    }
+                    return new Message(msg, Performative.AGREE)
+                }
+                break
+            case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
+                if (msg instanceof DatagramReq) {
+                    if (msg.getProtocol() == DtnTest.MESSAGE_PROTOCOL) {
+                        String messageID = msg.getMessageID()
+                        add(new WakerBehavior(10 * 1000) {
+                            @Override
+                            void onWake() {
+                                dtnlink.send(new DatagramDeliveryNtf(to: DtnTest.DEST_ADDRESS,
+                                        inReplyTo: messageID))
+                            }
+                        })
+                    }
+                    return new Message(msg, Performative.AGREE)
+                }
+                break
         }
         return null
     }

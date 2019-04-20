@@ -25,7 +25,9 @@ class DtnTest {
         RANDOM_PRIORITY, // count if all messages have been sent
         LINK_TIMEOUT, // i.e., is our link still active? - add link, delay
         MULTI_LINK,
-        PAYLOAD_MESSAGE
+        PAYLOAD_MESSAGE,
+        REBOOT_LOAD_MESSAGES,
+        REBOOT_SEND_MESSAGES
     }
 
     public static final String MESSAGE_ID = "testmessage"
@@ -269,6 +271,33 @@ class DtnTest {
         p.shutdown()
         assert(app.payloadResult)
         assert(app.payloadDeletionResult)
+    }
+
+    @Test
+    public void testReboot() {
+        Platform p = new DiscreteEventSimulator()
+        Container c = new Container(p)
+        TestApp app
+        TestLink link
+        app = new TestApp(DtnTest.Tests.REBOOT_LOAD_MESSAGES)
+        link = new TestLink(DtnTest.Tests.REBOOT_LOAD_MESSAGES)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        p.start()
+        println("Running")
+        p.delay(DELAY_TIME) // extra long, but that's OK
+        println("Done")
+        p.shutdown()
+
+        p = new DiscreteEventSimulator()
+        c = new Container(p)
+        app = new TestApp(DtnTest.Tests.REBOOT_SEND_MESSAGES)
+        link = new TestLink(DtnTest.Tests.REBOOT_SEND_MESSAGES)
+        c.add("dtnlink", new DtnLink(path))
+        c.add("testapp", app)
+        c.add("testlink", link)
+        assert(app.rebootResult)
     }
 
     @After

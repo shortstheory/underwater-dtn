@@ -23,6 +23,7 @@ class TestApp extends UnetAgent {
     public boolean multiLinkResult = false
     public boolean payloadResult = false
     public boolean payloadDeletionResult = false
+    public boolean rebootResult = false
 
     int NEXT_EXPECTED_DATAGRAM = 0
     int DATAGRAMS_RECEIVED = 0
@@ -210,6 +211,26 @@ class TestApp extends UnetAgent {
                     }
                 })
                 break
+            case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
+                for (int i = 0; i < 10; i++) {
+                    String id = DtnTest.MESSAGE_ID+Integer.toString(i)
+                    println(id)
+                    DatagramReq req = new DatagramReq(to: DtnTest.DEST_ADDRESS,
+                            ttl: (DtnTest.DELAY_TIME * 2 /1000).floatValue(),
+                            msgID: id,
+                            protocol: DtnTest.MESSAGE_PROTOCOL,
+                            data: DtnTest.MESSAGE_DATA.getBytes())
+                    add(new WakerBehavior(10 * 1000) {
+                        @Override
+                        void onWake() {
+                            sendDatagram(req)
+                        }
+                    })
+                }
+                break
+            case DtnTest.Tests.REBOOT_SEND_MESSAGES:
+
+                break
             default:
                 println("Unhandled case!")
         }
@@ -334,6 +355,10 @@ class TestApp extends UnetAgent {
                         }
                     })
                 }
+                break
+            case DtnTest.Tests.REBOOT_LOAD_MESSAGES:
+                break
+            case DtnTest.Tests.REBOOT_SEND_MESSAGES:
                 break
         }
     }
