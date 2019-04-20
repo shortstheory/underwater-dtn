@@ -261,13 +261,13 @@ class DtnStorage {
         int dataLength = (data == null) ? 0 : data.length
         OutputPDU pdu = new OutputPDU(dataLength + DtnLink.HEADER_SIZE)
         pdu.write24(ttl & 0x00FFFFFF)
-        pdu.write8(protocol)
-        int payloadFields
-        payloadFields = (tbc) ? (1 << 31) : 0
-        payloadFields |= (alternatingBit) ? (1 << 30) : 0
-        payloadFields |= ((payloadID & 0x000000FF) << 22)
-        payloadFields |= startPtr
-        pdu.write32(payloadFields)
+        int upperByte = 0
+        upperByte |= (byte)((alternatingBit) ? (1 << 7) : 0)
+        upperByte |= (byte)((tbc) ? (1 << 6) : 0)
+        upperByte |= (byte)((protocol & 0x3F))
+        pdu.write8(upperByte)
+        pdu.write8(payloadID)
+        pdu.write24(startPtr)
         if (data != null) {
             pdu.write(data)
         }
@@ -281,16 +281,16 @@ class DtnStorage {
         InputPDU pdu = new InputPDU(pduBytes)
         HashMap<String, Integer> map = new HashMap<>()
         map.put(TTL_MAP, (int)pdu.read24())
-        map.put(PROTOCOL_MAP, (int)pdu.read8())
-        int payloadFields = (int)pdu.read32()
-        int tbc = ((payloadFields & 0x80000000).toInteger() >>> 31)
-        int alternatingBit = ((payloadFields & 0x40000000).toInteger() >>> 30)
-        int payloadID = ((payloadFields & 0x3FC00000) >>> 22)
-        int startPtr = (payloadFields & 0x003FFFFF)
-        map.put(TBC_BIT_MAP, tbc)
+        byte upperByte = (byte)pdu.read8()
+        int protocol = (upperByte & 0x3F)
+        int alternatingBit = ((upperByte & 0x80) >>> 7)
+        int tbc = ((upperByte & 0x40) >>> 6)
         map.put(ALT_BIT_MAP, alternatingBit)
-        map.put(PAYLOAD_ID_MAP, payloadID)
-        map.put(START_PTR_MAP, startPtr)
+        map.put(TBC_BIT_MAP, tbc)
+        map.put(PROTOCOL_MAP, protocol)
+        map.put(PAYLOAD_ID_MAP, (int)pdu.read8())
+        map.put(START_PTR_MAP, pdu.read24())
+        map.put(ALT_BIT_MAP, alternatingBit)
         return map
     }
 }
