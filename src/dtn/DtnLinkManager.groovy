@@ -16,7 +16,7 @@ import java.util.logging.Logger
  */
 @CompileStatic
 class DtnLinkManager {
-    private DtnLink dtnLink
+    private DtnLink dtnlink
     protected Logger log = Logger.getLogger(getClass().getName());
 
     class LinkMetadata {
@@ -30,7 +30,7 @@ class DtnLinkManager {
     private HashMap<Integer, HashSet<AgentID>> nodeLinks  // Maintains the available Links available for each node
 
     DtnLinkManager(DtnLink dtnLink) {
-        this.dtnLink = dtnLink
+        dtnlink = dtnLink
         linkInfo = new HashMap<>()
         nodeLinks = new HashMap<>()
     }
@@ -48,10 +48,10 @@ class DtnLinkManager {
     AgentID getBestLink(int node) {
         int bestLinkPriority = Integer.MAX_VALUE
         AgentID bestLink = null
-        Set<AgentID> nodeLinks = getLinksForNode(node)
+        Set<AgentID> nodeLinks = getNodeLinks(node)
         for (AgentID aid : nodeLinks) {
-            for (int i = 0; i < dtnLink.linkPriority.size(); i++) {
-                if (aid == dtnLink.linkPriority[i] && i < bestLinkPriority) {
+            for (int i = 0; i < dtnlink.linkPriority.size(); i++) {
+                if (aid == dtnlink.linkPriority[i] && i < bestLinkPriority) {
                     bestLinkPriority = i
                     bestLink = aid
                 }
@@ -61,23 +61,23 @@ class DtnLinkManager {
     }
 
     void addLink(AgentID link) {
-        dtnLink.subscribe(dtnLink.topic(link))
+        dtnlink.subscribe(dtnlink.topic(link))
         // If phy for a link doesn't exist, we can't SNOOP to listen for other transmissions
-        String phyName = dtnLink.getProperty(link, ReliableLinkParam.phy)
-        AgentID phy = (phyName != null) ? dtnLink.agent(phyName) : null
-        int mtu = (int)dtnLink.getProperty(link, DatagramParam.MTU)
+        String phyName = dtnlink.getProperty(link, ReliableLinkParam.phy)
+        AgentID phy = (phyName != null) ? dtnlink.agent(phyName) : null
+        int mtu = (int)dtnlink.getProperty(link, DatagramParam.MTU)
         int[] dataRateArray
         int dataRate = 0
         if (phy != null) {
             // FIXME: how do I get the data rate directly? This looks clumsy!
-            dataRateArray = (int[])dtnLink.getProperty(phy, PhysicalChannelParam.dataRate)
+            dataRateArray = (int[])dtnlink.getProperty(phy, PhysicalChannelParam.dataRate)
             dataRate = dataRateArray[Physical.DATA-1]
-            dtnLink.subscribe(dtnLink.topic(phy))
-            dtnLink.subscribe(dtnLink.topic(phy, Physical.SNOOP))
+            dtnlink.subscribe(dtnlink.topic(phy))
+            dtnlink.subscribe(dtnlink.topic(phy, Physical.SNOOP))
         } else {
             log.fine("PHY not provided for link")
         }
-        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnLink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
+        linkInfo.put(link, new LinkMetadata(phyID: phy, lastTransmission: dtnlink.currentTimeSeconds(), linkMTU: mtu, dataRate: dataRate))
     }
 
     List<Integer> getDestinationNodes() {
@@ -87,14 +87,14 @@ class DtnLinkManager {
     /**
      * Returns a set of Link AgentIDs which have not yet timed out for sending messages
      */
-    Set<AgentID> getLinksForNode(int node) {
+    Set<AgentID> getNodeLinks(int node) {
         Set<AgentID> liveLinks = new HashSet<>()
         Set<AgentID> links = nodeLinks.get(node)
         if (links != null) {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
                 if (metadata != null) {
-                    if (metadata.lastTransmission + dtnLink.linkExpiryTime > dtnLink.currentTimeSeconds()) {
+                    if (metadata.lastTransmission + dtnlink.linkExpiryTime > dtnlink.currentTimeSeconds()) {
                         liveLinks.add(link)
                     }
                 }
@@ -103,7 +103,7 @@ class DtnLinkManager {
         return liveLinks
     }
 
-    void addLinkForNode(int node, AgentID link) {
+    void addNodeLink(int node, AgentID link) {
         if (nodeLinks.get(node) == null) {
             nodeLinks.put(node, new HashSet<AgentID>())
         }
@@ -131,7 +131,7 @@ class DtnLinkManager {
 
     void updateLastTransmission(AgentID linkID) {
         if (linkInfo.get(linkID) != null) {
-            linkInfo.get(linkID).lastTransmission = dtnLink.currentTimeSeconds()
+            linkInfo.get(linkID).lastTransmission = dtnlink.currentTimeSeconds()
         }
     }
 

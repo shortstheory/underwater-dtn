@@ -240,14 +240,14 @@ class DtnLink extends UnetAgent {
             AgentID phy = msg.getRecipient().getOwner().getAgentID()
             AgentID link = linkManager.getLinkForPhy(phy)
             if (link != null) {
-                linkManager.addLinkForNode(msg.getFrom(), link)
+                linkManager.addNodeLink(msg.getFrom(), link)
             }
         } else if (msg instanceof DatagramNtf) {
             // Update the time of last message transmission when we receive a new DatagramNtf
             // We don't care which protocol number it has over here
             AgentID link = linkManager.getLink(msg.getSender())
             int src = msg.getFrom()
-            linkManager.addLinkForNode(src, link)
+            linkManager.addNodeLink(src, link)
             linkManager.updateLastTransmission(link)
 
             if (msg.getProtocol() == DTN_PROTOCOL) {
