@@ -184,7 +184,7 @@ class DtnStorage {
                 raf.close()
             }
         } else {
-            // No point of the payload if sent out of order, lah!
+            // No point of the payload if sent out of order, just delete it lah!
             file.delete()
             metadataMap.remove(messageID)
         }
@@ -241,6 +241,11 @@ class DtnStorage {
         }
     }
 
+    void removeDatagram(String messageID) {
+        File file = new File(directory, messageID)
+        file.delete()
+        metadataMap.remove(messageID)
+    }
 
     int getArrivalTime(String messageID) {
         HashMap<String, Integer> map = getPDUInfo(messageID)
