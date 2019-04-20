@@ -70,6 +70,27 @@ class DtnStorage {
         return null
     }
 
+    void buildMetadataMap() {
+        File[] files = new File(directory).listFiles()
+        for (File file : files) {
+            if (file.isFile()) {
+                String filename = file.getName()
+                if (filename.matches("/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\$/")) {
+                    DataInputStream dis = new DataInputStream(new FileInputStream(file))
+                    try {
+                        int nextHop = dis.readInt()
+                        int expiryTime = dis.readInt()
+                        metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
+                    } catch (IOException e) {
+                        log.warning("Could not recover metadata for " + filename)
+                    }
+                } else {
+                    log.fine("Discarding file " + filename)
+                }
+            }
+        }
+    }
+
     @Nullable HashMap getPDUInfo(String messageID) {
         RandomAccessFile raf = new RandomAccessFile(new File(directory, messageID), "r")
         try {
@@ -138,16 +159,16 @@ class DtnStorage {
         } else {
             OutputPDU pdu = encodePdu(data, ttl, protocol, false, false, payloadID, 0)
             FileOutputStream fos = new FileOutputStream(file)
-            DataOutputStream dos = new DataOutputStream(fos)
             // Only thing the tracking map is doing for INBOUND fragments is maintaining TTL and delivered status
-            metadataMap.put(filename, new DtnPduMetadata(DtnPduMetadata.INBOUND_HOP, ttl + dtnLink.currentTimeSeconds()))
+            int nextHop = DtnPduMetadata.INBOUND_HOP
+            int expiryTime = ttl + dtnLink.currentTimeSeconds()
+            metadataMap.put(filename, new DtnPduMetadata(nextHop, expiryTime))
             try {
                 pdu.writeTo(fos)
                 return true
             } catch (IOException e) {
                 return false
             } finally {
-                dos.close()
                 fos.close()
             }
         }
@@ -179,7 +200,6 @@ class DtnStorage {
             return false
         } finally {
             dos.close()
-            fos.close()
         }
     }
 
