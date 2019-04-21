@@ -18,7 +18,7 @@ class DtnStorage {
     private final String directory
     private DtnLink dtnLink
     private List<String> payloadList
-    private int payloadCounter
+    private int idCounter
     private HashMap<String, DtnPduMetadata> metadataMap
     protected Logger log = Logger.getLogger(getClass().getName());
 
@@ -32,7 +32,7 @@ class DtnStorage {
     public static final String PROTOCOL_MAP       = "protocol"
     public static final String ALT_BIT_MAP        = "alt"
     public static final String TBC_BIT_MAP        = "tbc"
-    public static final String PAYLOAD_ID_MAP     = "pid"
+    public static final String UNIQUE_ID_MAP = "pid"
     public static final String START_PTR_MAP      = "startptr"
 
     public static final int EXTRA_FILE_DATA = 8
@@ -44,8 +44,8 @@ class DtnStorage {
         if (!file.exists()) {
             file.mkdir()
         }
-        payloadCounter = 0
-        payloadList = Arrays.asList(new String[DtnLink.MAX_PAYLOADS])
+        idCounter = 0
+        payloadList = Arrays.asList(new String[DtnLink.MAX_UNIQUE_ID])
         metadataMap = new HashMap<>()
     }
 
@@ -135,16 +135,9 @@ class DtnStorage {
         return data
     }
 
-    int getPayloadID(String messageID) {
-        int id
-        // Yes, it's not the most efficient. But we will only have 256 strings to go through at most
-        if ((id = payloadList.indexOf(messageID)) != -1) {
-            // We can't have payloadID = 0 as that will make the receiver think we're sending a regular Datagram
-            return id + 1
-        }
-        payloadCounter %= DtnLink.MAX_PAYLOADS
-        payloadList[payloadCounter] = messageID
-        return ++payloadCounter
+    int generateUniqueID() {
+        idCounter %= DtnLink.MAX_UNIQUE_ID
+        return ++idCounter
     }
 
     boolean saveFragment(int src, int payloadID, int protocol, int startPtr, int ttl, byte[] data) {
@@ -199,7 +192,8 @@ class DtnStorage {
         if (data != null && dtnLink.getMTU() < data.length) {
             return false
         }
-        OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, false, 0, 0)
+        // FIXME: payload ID can go here
+        OutputPDU outputPDU = encodePdu(data, ttl, protocol, false, false, generateUniqueID(), 0)
         File file = new File(directory, messageID)
         FileOutputStream fos = new FileOutputStream(file)
         DataOutputStream dos = new DataOutputStream(fos)
@@ -288,7 +282,7 @@ class DtnStorage {
         map.put(ALT_BIT_MAP, alternatingBit)
         map.put(TBC_BIT_MAP, tbc)
         map.put(PROTOCOL_MAP, protocol)
-        map.put(PAYLOAD_ID_MAP, (int)pdu.read8())
+        map.put(UNIQUE_ID_MAP, (int)pdu.read8())
         map.put(START_PTR_MAP, pdu.read24())
         map.put(ALT_BIT_MAP, alternatingBit)
         return map

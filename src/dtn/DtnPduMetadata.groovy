@@ -11,6 +11,7 @@ class DtnPduMetadata {
     int expiryTime
     int bytesSent
     int size
+    int uniqueID
 
     public static final int INBOUND_HOP = -1
 

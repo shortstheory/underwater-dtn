@@ -20,7 +20,8 @@ import org.arl.unet.phy.RxFrameNtf
 class DtnLink extends UnetAgent {
     public static final int HEADER_SIZE  = 8
     public static final int DTN_PROTOCOL = 50
-    public static final int MAX_PAYLOADS = 256
+    public static final int MAX_UNIQUE_ID = 256
+    public static final int TTL_SIZE = 3
 
     enum DatagramPriority {
         ARRIVAL, EXPIRY, RANDOM
@@ -260,27 +261,26 @@ class DtnLink extends UnetAgent {
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
                     boolean altBit = map.get(DtnStorage.ALT_BIT_MAP) ? true : false
-                    int payloadID = map.get(DtnStorage.PAYLOAD_ID_MAP)
+                    int uniqueID = map.get(DtnStorage.UNIQUE_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
 
                     // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
-                    int hashCode = Arrays.hashCode(data)
-                    hashCode = (altBit) ? (hashCode ^ 0xFFFFFFFF).toInteger() : hashCode
+                    int hashCode = Arrays.hashCode(Arrays.copyOfRange(pduBytes, TTL_SIZE, pduBytes.length))
 
                     if (hashCode != lastDatagramHash.get(src)) {
                         // Only fragments have non-zero payloadIDs
                         lastDatagramHash.put(src, hashCode)
                         if (isPayload(map)) {
-                            storage.saveFragment(src, payloadID, protocol, startPtr, ttl, data)
+                            storage.saveFragment(src, uniqueID, protocol, startPtr, ttl, data)
                             if (!tbc) {
-                                log.fine("Received Payload " + payloadID)
-                                byte[] msgBytes = storage.readPayload(src, payloadID)
+                                log.fine("Received Payload " + uniqueID)
+                                byte[] msgBytes = storage.readPayload(src, uniqueID)
                                 notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: msgBytes, ttl: ttl))
-                                String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(payloadID)
+                                String messageID = Integer.valueOf(src) + "_" + Integer.valueOf(uniqueID)
                                 storage.removeDatagram(messageID)
                             }
                         } else {
-                            // If it doesn't have a PayloadID sent, we can just
+                            // If it isn't a payload, we can just
                             // broadcast it on our topic for anyone who's listening
                             // Messages which are short circuited skip all this entirely
                             // and go straight to the agent they need to
@@ -360,7 +360,9 @@ class DtnLink extends UnetAgent {
             int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
             boolean alternatingBit = alternatingBitMap.get(dest)
+            int uniqueID = parsedPdu.get(DtnStorage.UNIQUE_ID_MAP)
             byte[] pduData = storage.getMessageData(messageID)
+
             DatagramReq datagramReq
             if (pduData.length + HEADER_SIZE <= linkMTU) {
                 // Short circuit datagrams straight to the appropriate agent
@@ -375,7 +377,7 @@ class DtnLink extends UnetAgent {
                             pduProtocol,
                             alternatingBit,
                             false,
-                            0,
+                            uniqueID,
                             0)
                             .toByteArray()
                     datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
@@ -395,16 +397,15 @@ class DtnLink extends UnetAgent {
                 int endPtr = Math.min(startPtr + (linkMTU - HEADER_SIZE), pduData.length)
                 boolean tbc = !(endPtr == pduData.length)
                 byte[] data = Arrays.copyOfRange(pduData, startPtr, endPtr)
-                int payloadID = storage.getPayloadID(messageID)
                 byte[] pduBytes = DtnStorage.encodePdu(data,
                         ttl,
                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),
                         alternatingBit,
                         tbc,
-                        payloadID,
+                        uniqueID,
                         startPtr)
                         .toByteArray()
-                String trackerID = Integer.toString(payloadID) + "_" + endPtr
+                String trackerID = Integer.toString(uniqueID) + "_" + endPtr
                 datagramReq = new DatagramReq(protocol: DTN_PROTOCOL,
                         data: pduBytes,
                         to: dest,
