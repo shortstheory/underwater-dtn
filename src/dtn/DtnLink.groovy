@@ -32,7 +32,7 @@ class DtnLink extends UnetAgent {
     private String directory
     private int destinationNodeIndex
 
-    private HashMap<Integer, Integer> lastDatagramHash // this won't work if RANDOM is set
+    private HashSet<Integer> receivedHashes
 
     private AgentID notify
     private AgentID nodeInfo
@@ -85,7 +85,7 @@ class DtnLink extends UnetAgent {
     private DtnLink() {
         random = new Random()
         linkPriority = new ArrayList<>()
-        lastDatagramHash = new HashMap<>()
+        receivedHashes = new HashSet<>()
 
         beaconTimeout        = 100*1000
         resetStateTime       = 300*1000
@@ -261,9 +261,9 @@ class DtnLink extends UnetAgent {
                     // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
                     int hashCode = Arrays.hashCode(Arrays.copyOfRange(pduBytes, TTL_SIZE, pduBytes.length))
 
-                    if (hashCode != lastDatagramHash.get(src)) {
+                    if (!receivedHashes.contains(hashCode)) {
                         // Only fragments have non-zero payloadIDs
-                        lastDatagramHash.put(src, hashCode)
+                        receivedHashes.add(hashCode)
                         if (isPayload(map)) {
                             storage.saveFragment(src, uniqueID, protocol, startPtr, ttl, data)
                             if (!tbc) {
@@ -368,7 +368,6 @@ class DtnLink extends UnetAgent {
                             ttl,
                             pduProtocol,
                             false,
-                            false,
                             uniqueID,
                             0)
                             .toByteArray()
@@ -392,7 +391,6 @@ class DtnLink extends UnetAgent {
                 byte[] pduBytes = DtnStorage.encodePdu(data,
                         ttl,
                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                        false,
                         tbc,
                         uniqueID,
                         startPtr)
@@ -486,7 +484,7 @@ class DtnLink extends UnetAgent {
 
     int getMTU() {
         // (4194303-8) = 4194295
-        return 0x3FFFFF - HEADER_SIZE
+        return 0x7FFFFF - HEADER_SIZE
     }
 
     void setBeaconTimeout(int period) {

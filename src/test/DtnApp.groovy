@@ -82,7 +82,7 @@ class DtnApp extends UnetAgent {
     private byte[] createDataSize(int msgSize) {
         byte[] randomBytes = new byte[msgSize]
         for (int i = 0; i < randomBytes.length; i++) {
-            randomBytes[i] = (byte)random.nextInt(256)
+            randomBytes[i] = (byte)(65 + random.nextInt(26))
         }
         return randomBytes
     }
@@ -178,6 +178,7 @@ class DtnApp extends UnetAgent {
         if (msg instanceof DatagramNtf) {
             if (msg.getProtocol() == protocolNumber) {
 //                println(msg.toString() + " " + msg.getMessageID())
+                println("Message - " + new String(msg.getData()))
                 stats.uniqueDatagrams.put(Arrays.hashCode(msg.getData()), currentTimeSeconds())
                 stats.msgRecv[msg.getFrom()]++
                 stats.datagramsReceived++
