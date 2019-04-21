@@ -47,14 +47,15 @@ ArrayList<Tuple2> routes2 = new ArrayList<>()
 routes1.add(new Tuple2(3,2))
 routes2.add(new Tuple2(3,3))
 
-for (int f = 1; f <= nodeCount; f++) {
-    FileUtils.deleteDirectory(new File(Integer.toString(f)))
-}
 
 test.DtnStats stat1
 test.DtnStats stat2
 
-for (int i = 1; i <= 10; i++) {
+for (int i = 2; i <= 10; i+=2) {
+    for (int f = 1; f <= nodeCount; f++) {
+        FileUtils.deleteDirectory(new File(Integer.toString(f)))
+    }
+
     channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
 

@@ -281,7 +281,7 @@ class DtnLink extends UnetAgent {
                             notify.send(new DatagramNtf(protocol: protocol, from: msg.getFrom(), to: msg.getTo(), data: data, ttl: ttl))
                         }
                     } else {
-                        log.info("Seen hash#" + msg.getData().hashCode() + " before!")
+                        log.fine("Seen hash#" + msg.getData().hashCode() + " before!")
                     }
                 }
             }
