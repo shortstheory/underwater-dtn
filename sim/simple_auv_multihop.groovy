@@ -52,7 +52,7 @@ for (int f = 1; f <= nodeCount; f++) {
 }
 
 //def T = 8800.second
-def T = (8800*2)
+def T = (8800)
 
 def msgSize = 50
 def msgFreq = 10
@@ -61,7 +61,7 @@ def lastMsg = 1000
 
 test.DtnStats stat1
 test.DtnStats stat2
-for (int i = 10; i <= 10; i+=1) {
+for (int i = 1; i <= 10; i+=1) {
 
     stat1 = new test.DtnStats()
     stat2 = new test.DtnStats()
