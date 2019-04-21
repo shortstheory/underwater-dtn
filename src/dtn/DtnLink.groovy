@@ -32,7 +32,6 @@ class DtnLink extends UnetAgent {
     private String directory
     private int destinationNodeIndex
 
-    private HashMap<Integer, Boolean> alternatingBitMap
     private HashMap<Integer, Integer> lastDatagramHash // this won't work if RANDOM is set
 
     private AgentID notify
@@ -86,7 +85,6 @@ class DtnLink extends UnetAgent {
     private DtnLink() {
         random = new Random()
         linkPriority = new ArrayList<>()
-        alternatingBitMap = new HashMap<>()
         lastDatagramHash = new HashMap<>()
 
         beaconTimeout        = 100*1000
@@ -167,9 +165,6 @@ class DtnLink extends UnetAgent {
                         // FIXME: later choose links based on bitrate
                         ArrayList<String> datagrams = storage.getNextHopDatagrams(node)
                         String messageID = selectNextDatagram(datagrams)
-                        if (alternatingBitMap.get(node) == null) {
-                            alternatingBitMap.put(node, false)
-                        }
                         if (messageID != null && sendDatagram(messageID, node, nodeLink)) {
                             linkState = LinkState.WAITING
                         } else {
@@ -260,7 +255,6 @@ class DtnLink extends UnetAgent {
                     int ttl = map.get(DtnStorage.TTL_MAP)
                     int protocol = map.get(DtnStorage.PROTOCOL_MAP)
                     boolean tbc = (map.get(DtnStorage.TBC_BIT_MAP)) ? true : false
-                    boolean altBit = map.get(DtnStorage.ALT_BIT_MAP) ? true : false
                     int uniqueID = map.get(DtnStorage.UNIQUE_ID_MAP)
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
 
@@ -296,7 +290,6 @@ class DtnLink extends UnetAgent {
             int node = msg.getTo()
             String newMessageID = msg.getInReplyTo()
             if (newMessageID == outboundDatagramID) {
-                alternatingBitMap.put(node, !alternatingBitMap.get(node)) // toggle the alt-bit every successful message
                 DtnPduMetadata metadata = storage.getMetadata(originalDatagramID)
                 if (metadata != null) {
                     DatagramDeliveryNtf deliveryNtf = new DatagramDeliveryNtf(inReplyTo: originalDatagramID, to: node)
@@ -359,7 +352,6 @@ class DtnLink extends UnetAgent {
             // we are reading the file twice, not good!
             int linkMTU = linkManager.getLinkMetadata(nodeLink).linkMTU
             int pduProtocol = parsedPdu.get(DtnStorage.PROTOCOL_MAP)
-            boolean alternatingBit = alternatingBitMap.get(dest)
             int uniqueID = parsedPdu.get(DtnStorage.UNIQUE_ID_MAP)
             byte[] pduData = storage.getMessageData(messageID)
 
@@ -375,7 +367,7 @@ class DtnLink extends UnetAgent {
                     byte[] pduBytes = DtnStorage.encodePdu(pduData,
                             ttl,
                             pduProtocol,
-                            alternatingBit,
+                            false,
                             false,
                             uniqueID,
                             0)
@@ -400,7 +392,7 @@ class DtnLink extends UnetAgent {
                 byte[] pduBytes = DtnStorage.encodePdu(data,
                         ttl,
                         parsedPdu.get(DtnStorage.PROTOCOL_MAP),
-                        alternatingBit,
+                        false,
                         tbc,
                         uniqueID,
                         startPtr)
