@@ -1,10 +1,9 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
-import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.*
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
@@ -15,8 +14,6 @@ import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
 import org.arl.fjage.AgentID
-import test.DtnApp
-import test.RouteInitialiser
 
 import java.nio.file.Files
 
@@ -60,12 +57,12 @@ def msgFreq = 10
 def msgTtl = T
 def lastMsg = 1000
 
-test.DtnStats stat1
-test.DtnStats stat2
+DtnStats stat1
+DtnStats stat2
 for (int i = 1; i <= 10; i+=1) {
 
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    stat1 = new DtnStats()
+    stat2 = new DtnStats()
 
     channel.pDetection = 0.1*i
 

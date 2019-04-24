@@ -1,17 +1,16 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStats
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import test.DtnApp
-import test.DtnApp
 
 import java.nio.file.Files
 
@@ -41,8 +40,8 @@ for (int f = 1; f <= nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
-test.DtnStats stat1 = new test.DtnStats()
-test.DtnStats stat2 = new test.DtnStats()
+DtnStats stat1 = new DtnStats()
+DtnStats stat2 = new DtnStats()
 
 for (int i = 1; i <= 1; i++) {
     println("\n===========\nSize - " + msgSize + " Freq - " + msgFreq + " Dist - " + dist + " TTL - " + msgTtl)

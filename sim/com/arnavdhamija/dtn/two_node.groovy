@@ -1,10 +1,11 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStats
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
@@ -14,8 +15,6 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
-import test.DtnApp
-import test.RouteInitialiser
 
 import java.nio.file.Files
 
@@ -46,14 +45,14 @@ for (int f = 1; f <= nodeCount; f++) {
     FileUtils.deleteDirectory(new File(Integer.toString(f)))
 }
 
-test.DtnStats stat1
-test.DtnStats stat2
+DtnStats stat1
+DtnStats stat2
 for (int i = 3; i <= 5; i++) {
     channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    stat1 = new DtnStats()
+    stat2 = new DtnStats()
 
     simulate T, {
         node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->
@@ -82,8 +81,8 @@ for (int i = 3; i <= 5; i++) {
     channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    stat1 = new DtnStats()
+    stat2 = new DtnStats()
 
     simulate T, {
         node '1', address: 1, location: [0, 0, -50.m], shell: 5000, stack: { container ->

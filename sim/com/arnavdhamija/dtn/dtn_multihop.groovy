@@ -1,10 +1,12 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStats
+import com.arnavdhamija.dtn.RouteInitialiser
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
@@ -15,8 +17,6 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
-import test.DtnApp
-import test.RouteInitialiser
 
 import java.nio.file.Files
 
@@ -49,8 +49,8 @@ routes1.add(new Tuple2(3,2))
 routes2.add(new Tuple2(3,3))
 
 
-test.DtnStats stat1
-test.DtnStats stat2
+DtnStats stat1
+DtnStats stat2
 
 for (int i = 2; i <= 10; i+=2) {
     for (int f = 1; f <= nodeCount; f++) {
@@ -63,8 +63,8 @@ for (int i = 2; i <= 10; i+=2) {
     println("\nChannel Config - " + channel.pDetection + " / " + channel.pDecoding)
     println("\nRunning sim for " + T + " seconds!\n==============\n")
 
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    stat1 = new DtnStats()
+    stat2 = new DtnStats()
 
     stat2.pDecode = channel.pDecoding
     stat2.pDetect = channel.pDetection
@@ -99,8 +99,8 @@ for (int i = 2; i <= 10; i+=2) {
     String filename1 = "results/" + "dtnlink_" + channel.pDetection + "_" + msgSize + ".json"
     stat2.saveResults(filename1)
 
-    stat1 = new test.DtnStats()
-    stat2 = new test.DtnStats()
+    stat1 = new DtnStats()
+    stat2 = new DtnStats()
 
     stat2.pDecode = channel.pDecoding
     stat2.pDetect = channel.pDetection

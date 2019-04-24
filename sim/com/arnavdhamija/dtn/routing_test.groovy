@@ -4,7 +4,6 @@
 import com.arnavdhamija.dtn.DtnLink
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.RouteDiscoveryProtocol
@@ -15,7 +14,6 @@ import org.arl.unet.sim.NamTracer
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
-import test.RouteInitialiser
 
 import java.nio.file.Files
 

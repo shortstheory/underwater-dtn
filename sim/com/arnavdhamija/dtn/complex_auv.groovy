@@ -1,10 +1,12 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStats
+import com.arnavdhamija.dtn.RouteInitialiser
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
-import dtn.*
 import org.arl.unet.link.*
 import org.arl.unet.net.RouteDiscoveryNtf
 import org.arl.unet.net.Router
@@ -15,8 +17,6 @@ import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.MotionModel
 import org.arl.unet.shell.*
 import org.arl.unet.net.RouteDiscoveryProtocol
-import test.DtnApp
-import test.RouteInitialiser
 
 import java.nio.file.Files
 
@@ -71,11 +71,10 @@ for (int f = 1; f <= nodeCount; f++) {
 
 def T = 10400.second
 //for (int i=0;i<5;i++) {
-    test.DtnStats statM = new test.DtnStats()
-//test.DtnStats statS = new test.DtnStats()
-    test.DtnStats statA = new test.DtnStats()
-    test.DtnStats statS0 = new test.DtnStats()
-    test.DtnStats statS1 = new test.DtnStats()
+DtnStats statM = new DtnStats()
+DtnStats statA = new DtnStats()
+DtnStats statS0 = new DtnStats()
+DtnStats statS1 = new DtnStats()
 
     simulate T, {
         // 10 DGs to s0,s1

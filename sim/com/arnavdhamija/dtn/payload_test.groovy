@@ -1,11 +1,15 @@
+//!Simulation
+
+
+import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStats
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.DiscreteEventSimulator
 import org.arl.unet.link.ReliableLink
 import org.arl.unet.sim.channels.BasicAcousticChannel
 import org.arl.unet.sim.channels.ProtocolChannelModel
-import test.DtnApp
-import test.DtnApp
+
 
 import java.nio.file.Files
 platform = DiscreteEventSimulator
@@ -30,8 +34,8 @@ for (int f = 1; f <= nodeCount; f++) {
     Files.deleteIfExists((new File(Integer.toString(f)+".json")).toPath())
 }
 
-test.DtnStats stat1 = new test.DtnStats()
-test.DtnStats stat2 = new test.DtnStats()
+DtnStats stat1 = new DtnStats()
+DtnStats stat2 = new DtnStats()
 
 simulate T, {
     node 'a', address: 1, location: [0, 0, 0], shell: true, stack: { container ->
