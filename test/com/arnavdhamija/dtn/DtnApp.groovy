@@ -40,7 +40,7 @@ class DtnApp extends UnetAgent {
     boolean randomGeneration
     boolean useRouter = false
     Random random = new Random()
-    String payloadPath = "src/test/testPayload"
+    String payloadPath = "test/com/arnavdhamija/dtn/testPayload"
     String payloadText = new File(payloadPath).text
 
     ArrayList<String> sentDatagrams = new ArrayList<>()
