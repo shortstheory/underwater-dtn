@@ -36,7 +36,7 @@ def T = 2.hour
 
 def msgSize = 300
 def msgFreq = 10
-def msgTtl = T
+def msgTtl = 1000
 def msgEndTime = 1000
 
 println "Starting 2-hop simulation!"
@@ -48,7 +48,7 @@ for (int f = 1; f <= nodeCount; f++) {
 test.DtnStats stat1
 test.DtnStats stat2
 for (int i = 3; i <= 5; i++) {
-    channel.pDetection = 0.2 * i
+    channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
     stat1 = new test.DtnStats()
@@ -71,10 +71,14 @@ println("DtnLink Results")
 stat2.printStats()
 }
 
+for (int f = 1; f <= nodeCount; f++) {
+    FileUtils.deleteDirectory(new File(Integer.toString(f)))
+}
+
 println("RANDOMRESULTS")
 
 for (int i = 3; i <= 5; i++) {
-    channel.pDetection = 0.2 * i
+    channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
     stat1 = new test.DtnStats()
