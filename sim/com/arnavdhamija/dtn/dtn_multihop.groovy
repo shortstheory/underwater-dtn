@@ -1,6 +1,6 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
-
+package com.arnavdhamija.dtn
 import com.arnavdhamija.dtn.DtnApp
 import com.arnavdhamija.dtn.DtnLink
 import com.arnavdhamija.dtn.DtnStats
