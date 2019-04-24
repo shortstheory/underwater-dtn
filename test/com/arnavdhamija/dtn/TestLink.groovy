@@ -1,7 +1,7 @@
-package test
+package com.arnavdhamija.dtn
 
-import dtn.DtnLink
-import dtn.DtnStorage
+import com.arnavdhamija.dtn.DtnLink
+import com.arnavdhamija.dtn.DtnStorage
 import groovy.transform.CompileStatic
 import org.arl.fjage.*
 import org.arl.unet.*

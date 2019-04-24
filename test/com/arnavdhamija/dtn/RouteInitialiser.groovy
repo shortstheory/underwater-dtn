@@ -1,4 +1,4 @@
-package test
+package com.arnavdhamija.dtn
 
 import  groovy.transform.CompileStatic
 import org.arl.fjage.*

@@ -1,11 +1,11 @@
-package test
+package com.arnavdhamija.dtn
 
+import com.arnavdhamija.dtn.*
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.arl.unet.Protocol
 import org.junit.*
 import org.arl.fjage.*
-import dtn.*
 
 @CompileStatic
 class DtnTest {
@@ -34,7 +34,7 @@ class DtnTest {
     public static final String BIG_MESSAGE_ID = "bigmessage"
     public static final String MESSAGE_DATA = "testdata"
     public static final String storagePath = "testStorage"
-    public static final String payloadPath = "src/test/testPayload"
+    public static final String payloadPath = "test/com/arnavdhamija/dtn/testPayload"
 
     public static final int NODE_ADDRESS = 1
     public static final int DEST_ADDRESS = 2

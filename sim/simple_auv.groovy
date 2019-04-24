@@ -1,6 +1,7 @@
 //!Simulation
 /// Output trace file: logs/trace.nam
 
+import com.arnavdhamija.dtn.DtnLink
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.*
 import dtn.*

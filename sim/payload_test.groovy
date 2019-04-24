@@ -1,4 +1,4 @@
-import dtn.DtnLink
+import com.arnavdhamija.dtn.DtnLink
 import org.apache.commons.io.FileUtils
 import org.arl.fjage.DiscreteEventSimulator
 import org.arl.unet.link.ReliableLink

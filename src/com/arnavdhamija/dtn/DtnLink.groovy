@@ -3,7 +3,7 @@
  *  Distributed under the MIT License (http://opensource.org/licenses/MIT) *
  ***************************************************************************/
 
-package dtn
+package com.arnavdhamija.dtn
 
 import groovy.transform.CompileStatic
 import org.arl.fjage.*

@@ -1,4 +1,4 @@
-package test
+package com.arnavdhamija.dtn
 
 import com.google.gson.Gson;
 class DtnStats {
