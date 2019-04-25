@@ -120,6 +120,11 @@ class DtnLinkManager {
         nodeLinks.get(node).add(link)
     }
 
+    /**
+     * Removes a link from the links available for a node if sending a message has failed
+     * This lets us use the next link in the priority queue
+     * If our agent only has a single link, we shouldn't remove it
+     */
     void removeNodeLink(int node, AgentID link) {
         // FIXME: only if we have options it makes sense to delete our current one, right?
         if (getNodeLinks(node).size() > 1) {
