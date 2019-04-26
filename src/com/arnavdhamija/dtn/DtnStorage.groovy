@@ -29,15 +29,15 @@ class DtnStorage {
 
     /**
      * PDU Structure
-     * |TTL (24)                          |         Protocol (8)|
-     * |TBC Bit (1) AltBit (1) Payload ID (8) Start Pointer (23)|
+     * |TTL (24)          | TBC(1) Protocol (7)|
+     * |Unique ID (8)|       Start Pointer (23)|
      */
 
-    public static final String TTL_MAP            = "ttl"
-    public static final String PROTOCOL_MAP       = "protocol"
-    public static final String TBC_BIT_MAP        = "tbc"
+    public static final String TTL_MAP       = "ttl"
+    public static final String PROTOCOL_MAP  = "protocol"
+    public static final String TBC_BIT_MAP   = "tbc"
     public static final String UNIQUE_ID_MAP = "pid"
-    public static final String START_PTR_MAP      = "startptr"
+    public static final String START_PTR_MAP = "startptr"
 
     public static final int EXTRA_FILE_DATA = 8
 
