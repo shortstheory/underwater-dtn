@@ -61,3 +61,35 @@ Use Cases
     `DtnLink` can store pending messages and then send these
     messages when the LTE link is available.
 
+Salient Features
+---------
+
+`DtnLink` supports the following features:
+- Fragmentation of large messages (payloads)
+- Detection of duplicate messages caused due to dropped `DatagramDeliveryNtfs`
+- Stop-And-Wait sending to reduce channel congestion
+- Short-circuiting to save header space
+
+Usage
+---------
+
+After cloning this repo, run any of the simulation scripts using the **UnetStack3** JARs. This project is **not** compatible with older versions of UnetStack.
+
+`DtnLink` can be dropped into any Unet container to enable disruption tolerant communication. On startup `DtnLink` will probe for Link agents supporting the `RELIABILITY` parameter (e.g. `ReliableLink`). All `DatagramReq` sent to `DtnLink` must have a set TTL value or the `DatagramReq` will be refused at the outset.
+
+To use `DtnLink` for multi-hop paths, populate the Routing table of `Router` with `RouteDiscoveryNtf` messages with the link set to `DtnLink` for each hop.
+
+The following parameters of `DtnLink` can be configured by the user at runtime:
+
+- Link Priorities - the order in which `DtnLink` should attempt sending messages
+- Order of sending messages (`ARRIVAL`, `EXPIRY`, `RANDOM`)
+- Time periods for some functions
+- Short-circuiting - send messages to destination without DTN headers
+
+Running Tests
+---------
+`DtnLink` uses a `JUnit` test suite for running regression tests. This uses the methodology of "Black Box" unit testing where we check if `DtnLink` is giving us the expected output for known inputs. To test if `DtnLink` is behaving as expected, run `DtnTest` in the `test/` sub-directory to make sure everything is working correctly.
+
+License
+---------
+The source files are distributed under the MIT License (http://opensource.org/licenses/MIT), so feel free to fork and modify `DtnLink` for your projects!

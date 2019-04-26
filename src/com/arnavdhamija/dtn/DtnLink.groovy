@@ -1,6 +1,6 @@
 /***************************************************************************
  *  Copyright (C) 2019 by Arnav Dhamija <arnav.dhamija@gmail.com>          *
- *  Distributed under the MIT License (http://opensource.org/licenses/MIT) *
+     *  Distributed under the MIT License (http://opensource.org/licenses/MIT) *
  ***************************************************************************/
 
 package com.arnavdhamija.dtn
