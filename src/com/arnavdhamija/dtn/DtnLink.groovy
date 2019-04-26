@@ -264,10 +264,11 @@ class DtnLink extends UnetAgent {
                     int startPtr = map.get(DtnStorage.START_PTR_MAP)
 
                     // If the hash is the same as the previous, it's an unecessary Re-Tx and we can ignore it
-                    int hashCode = Arrays.hashCode(Arrays.copyOfRange(pduBytes, TTL_SIZE, pduBytes.length))
+                    // Here, we need to be aware that a normal datagram for one LINK might be a fragment for another
+                    // So to check if a fragment and a full datagram is the same, we can check by ignoring the TBC & checking the rest
+                    int hashCode = Arrays.hashCode(Arrays.copyOfRange(pduBytes, TTL_SIZE + 1, Math.min(pduBytes.length, linkManager.getMinMTU())))
 
                     if (!receivedHashes.contains(hashCode)) {
-                        // Only fragments have non-zero payloadIDs
                         receivedHashes.add(hashCode)
                         if (isPayload(map)) {
                             storage.saveFragment(src, uniqueID, protocol, startPtr, ttl, data)

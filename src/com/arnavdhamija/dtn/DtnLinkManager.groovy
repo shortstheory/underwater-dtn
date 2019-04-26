@@ -132,6 +132,14 @@ class DtnLinkManager {
         }
     }
 
+    int getMinMTU() {
+        int minMTU = Integer.MAX_VALUE
+        for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
+            minMTU = Math.min(minMTU, entry.getValue().linkMTU)
+        }
+        return minMTU
+    }
+
     AgentID getLinkForPhy(AgentID phy) {
         for (Map.Entry<AgentID, LinkMetadata> entry : linkInfo) {
             if (entry.getValue().phyID == phy) {
