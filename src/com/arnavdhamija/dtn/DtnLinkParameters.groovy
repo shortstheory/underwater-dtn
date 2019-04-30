@@ -17,6 +17,7 @@ enum DtnLinkParameters implements Parameter {
     GCPeriod,
     datagramPeriod,
     linkExpiryTime,
+    maxLinkRetries,
     datagramPriority,
     linkPriority,
     discoveredNodes,

@@ -127,7 +127,8 @@ class DtnLinkManager {
      */
     void decrementNodeLink(int node, AgentID link) {
         if (--nodeLinks.get(node).get(link) <= 0) {
-           nodeLinks.get(node).remove(link)
+            nodeLinks.get(node).remove(link)
+            log.info("Link " + link.getName() + " disabled for node " + node)
         }
     }
 

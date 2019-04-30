@@ -67,7 +67,7 @@ class DtnLink extends UnetAgent {
     int GCPeriod            // time period for deleting expired messages on non-volatile storage
     int datagramResetPeriod // time period for sending a pending datagram
     int randomDelay         // delays sending a datagram from [0, randomDelay] ms to avoid collisions
-    int maxLinkRetries      // maximum number of consecutive failures we will endure to send a message to a node given a link
+    int maxLinkRetries      // maximum number of consecutive failures we will tolerate to send a message to a node on a given link
 
     /**
      * Parameter with unit in seconds
@@ -98,7 +98,7 @@ class DtnLink extends UnetAgent {
         datagramResetPeriod  = 10*1000
         randomDelay          = 5*1000
         linkExpiryTime       = 3*3600
-        maxLinkRetries       = 5
+        maxLinkRetries       = 10
 
         linkState = LinkState.READY
         shortCircuit = false
