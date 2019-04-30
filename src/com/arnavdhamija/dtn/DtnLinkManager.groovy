@@ -32,8 +32,8 @@ class DtnLinkManager {
         int dataRate
     }
 
-    private HashMap<AgentID, LinkMetadata> linkInfo       // Maintains the properties of each Link
-    private HashMap<Integer, HashSet<AgentID>> nodeLinks  // Maintains the available Links available for each node
+    private HashMap<AgentID, LinkMetadata> linkInfo                // Maintains the properties of each Link
+    private HashMap<Integer, HashMap<AgentID, Integer>> nodeLinks  // Maintains the available links available for each node and attempts
 
     DtnLinkManager(DtnLink dtnLink) {
         dtnlink = dtnLink
@@ -99,7 +99,7 @@ class DtnLinkManager {
      */
     Set<AgentID> getNodeLinks(int node) {
         Set<AgentID> liveLinks = new HashSet<>()
-        Set<AgentID> links = nodeLinks.get(node)
+        Set<AgentID> links = nodeLinks.get(node).keySet()
         if (links != null) {
             for (AgentID link : links) {
                 LinkMetadata metadata = getLinkMetadata(link)
@@ -115,20 +115,19 @@ class DtnLinkManager {
 
     void addNodeLink(int node, AgentID link) {
         if (nodeLinks.get(node) == null) {
-            nodeLinks.put(node, new HashSet<AgentID>())
+            nodeLinks.put(node, new HashMap<AgentID, Integer>())
         }
-        nodeLinks.get(node).add(link)
+        nodeLinks.get(node).put(link, dtnlink.maxLinkRetries)
     }
 
     /**
-     * Removes a link from the links available for a node if sending a message has failed
+     * Reduces the retries for a link available for a node if sending a message has failed
      * This lets us use the next link in the priority queue
-     * If our agent only has a single link, we shouldn't remove it
+     * Count gets reset on a DDN!
      */
-    void removeNodeLink(int node, AgentID link) {
-        // FIXME: only if we have options it makes sense to delete our current one, right?
-        if (getNodeLinks(node).size() > 1) {
-            nodeLinks.remove(node, link)
+    void decrementNodeLink(int node, AgentID link) {
+        if (--nodeLinks.get(node).get(link) <= 0) {
+           nodeLinks.get(node).remove(link)
         }
     }
 

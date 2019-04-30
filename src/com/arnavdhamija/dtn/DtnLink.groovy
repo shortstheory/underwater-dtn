@@ -1,6 +1,6 @@
 /***************************************************************************
  *  Copyright (C) 2019 by Arnav Dhamija <arnav.dhamija@gmail.com>          *
-     *  Distributed under the MIT License (http://opensource.org/licenses/MIT) *
+ *  Distributed under the MIT License (http://opensource.org/licenses/MIT) *
  ***************************************************************************/
 
 package com.arnavdhamija.dtn
@@ -67,7 +67,7 @@ class DtnLink extends UnetAgent {
     int GCPeriod            // time period for deleting expired messages on non-volatile storage
     int datagramResetPeriod // time period for sending a pending datagram
     int randomDelay         // delays sending a datagram from [0, randomDelay] ms to avoid collisions
-
+    int maxLinkRetries      // maximum number of consecutive failures we will endure to send a message to a node given a link
 
     /**
      * Parameter with unit in seconds
@@ -98,6 +98,7 @@ class DtnLink extends UnetAgent {
         datagramResetPeriod  = 10*1000
         randomDelay          = 5*1000
         linkExpiryTime       = 3*3600
+        maxLinkRetries       = 5
 
         linkState = LinkState.READY
         shortCircuit = false
@@ -319,7 +320,7 @@ class DtnLink extends UnetAgent {
             prepareLink()
         } else if (msg instanceof DatagramFailureNtf) {
             String newMessageID = msg.getInReplyTo()
-            linkManager.removeNodeLink(msg.getTo(), msg.getSender())
+            linkManager.decrementNodeLink(msg.getTo(), msg.getSender())
             if (newMessageID == outboundDatagramID) {
                 log.fine("DFN for " + originalDatagramID)
             } else if (newMessageID == outboundPayloadFragmentID) {
@@ -327,7 +328,7 @@ class DtnLink extends UnetAgent {
             } else {
                 log.warning("This should never happen! " + newMessageID)
             }
-//            linkManager.removeNodeLink()
+//            linkManager.decrementNodeLink()
             prepareLink()
         }
     }

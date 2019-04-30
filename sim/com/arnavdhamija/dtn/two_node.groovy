@@ -47,7 +47,7 @@ for (int f = 1; f <= nodeCount; f++) {
 
 DtnStats stat1
 DtnStats stat2
-for (int i = 3; i <= 5; i++) {
+for (int i = 1; i <= 3; i++) {
     channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
@@ -77,7 +77,7 @@ for (int f = 1; f <= nodeCount; f++) {
 
 println("RANDOMRESULTS")
 
-for (int i = 3; i <= 5; i++) {
+for (int i = 1; i <= 3; i++) {
     channel.pDetection = 0.1 * i
     channel.pDecoding = 1.0
     println("Channel Config - " + channel.pDetection + " / " + channel.pDecoding)
