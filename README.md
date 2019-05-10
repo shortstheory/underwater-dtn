@@ -26,8 +26,7 @@ suffer from packet collisions when the network is flooded with messages.
 Therefore, an implementation of DTNs for UnetStack MAY NOT use packet
 replication.
 
-A hypothetical Unet Link agent supporting the DTN protocol described in
-this document is referred to as `DtnLink`.
+The DTN protocol developed in this project is referred to as `DtnLink`.
 
 Use Cases
 ---------
@@ -88,6 +87,12 @@ The following parameters of `DtnLink` can be configured by the user at runtime:
 Running Tests
 ---------
 `DtnLink` uses a `JUnit` test suite for running regression tests. This uses the methodology of "Black Box" unit testing where we check if `DtnLink` is giving us the expected output for known inputs. To test if `DtnLink` is behaving as expected, run `DtnTest` in the `test/` sub-directory to make sure everything is working correctly.
+
+Useful Links & Documentation
+---------
+The Request For Comments (RFC) [document](https://www.dropbox.com/s/wudkpl2wkpygkpx/rfc.pdf?dl=0) has more technical details about the project and offers a high-level idea of the design decisions which went into writing `DtnLink`.
+
+My final thesis [presentation](https://www.dropbox.com/s/g0t11y2k8fltjkb/final-presentation.pdf?dl=0), presented to the Acoustic Research Lab on 25 April 2019, has useful diagrams and simulation results which can help in understanding how `DtnLink` works in detail.
 
 License
 ---------
